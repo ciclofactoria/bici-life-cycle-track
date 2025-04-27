@@ -7,7 +7,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 const STRAVA_CLIENT_ID = '117183';
-const REDIRECT_URI = 'lovable.dev';
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
@@ -40,7 +39,12 @@ const More = () => {
     }
 
     const scope = 'read,activity:read';
-    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scope}&state=${user.id}`;
+    
+    // Store state in localStorage to retrieve after redirection
+    localStorage.setItem('stravaAuthState', user.id);
+    
+    // Use just the domain for the redirect URL as required by Strava
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=lovable.dev&response_type=code&scope=${scope}`;
     
     console.log("Redirigiendo a Strava:", authUrl);
     window.location.href = authUrl;

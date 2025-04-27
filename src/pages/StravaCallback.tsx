@@ -37,8 +37,8 @@ const StravaCallback = () => {
           throw new Error('Debes iniciar sesión para conectar con Strava');
         }
 
-        // Verificar que state coincide con el user ID
-        if (state !== user.id) {
+        // Verify that state matches the user ID (or whatever we stored)
+        if (state && state !== user.id) {
           console.warn('El estado no coincide, posible problema de falsificación', {
             receivedState: state,
             expectedState: user.id
@@ -47,9 +47,13 @@ const StravaCallback = () => {
 
         console.log('Procesando callback de Strava con código:', code);
 
-        // Intercambiar el código por tokens usando la edge function
+        // Exchange the code for tokens using the edge function
         const { data, error: exchangeError } = await supabase.functions.invoke('strava-auth', {
-          body: { code, user_id: user.id }
+          body: { 
+            code, 
+            user_id: user.id,
+            redirect_uri: 'lovable.dev' // Pass the same redirect_uri used in the auth request
+          }
         });
 
         console.log('Respuesta de edge function:', { data, error: exchangeError });
@@ -64,7 +68,7 @@ const StravaCallback = () => {
           description: 'Tu cuenta de Strava ha sido conectada exitosamente',
         });
 
-        // Redirigir a la página de perfil
+        // Redirect to the profile page
         navigate('/more', { replace: true });
       } catch (error: any) {
         console.error('Error durante el callback de Strava:', error);
@@ -75,7 +79,7 @@ const StravaCallback = () => {
           variant: 'destructive'
         });
         
-        // Aún redirigir después de un error
+        // Still redirect after an error
         setTimeout(() => {
           navigate('/more', { replace: true });
         }, 3000);

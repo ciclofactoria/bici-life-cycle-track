@@ -11,17 +11,21 @@ const SUPABASE_URL = "https://tyqmfhtfvrffkaqttbcf.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cW1maHRmdnJmZmthcXR0YmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3ODQ3NjgsImV4cCI6MjA2MTM2MDc2OH0.yQvXxJe4SYcBDyIqKOg0Vl-4nyV3VF8EK3bplFr0SzU"
 
 serve(async (req) => {
-  // Manejar la solicitud CORS preflight
+  // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Analizar el cuerpo de la solicitud
+    // Parse request body
     const requestData = await req.json()
-    const { code, user_id } = requestData
+    const { code, user_id, redirect_uri } = requestData
     
-    console.log("Strava auth function called with:", { code: code ? "PRESENT" : "MISSING", user_id })
+    console.log("Strava auth function called with:", { 
+      code: code ? "PRESENT" : "MISSING", 
+      user_id,
+      redirect_uri
+    })
     
     if (!code || !user_id) {
       console.error("Missing required parameters:", { code: Boolean(code), user_id: Boolean(user_id) })
@@ -31,7 +35,7 @@ serve(async (req) => {
       )
     }
 
-    // Obtener credenciales de la API de Strava de las variables de entorno
+    // Get Strava API credentials from environment variables
     const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID')
     const STRAVA_CLIENT_SECRET = Deno.env.get('STRAVA_CLIENT_SECRET')
     
@@ -54,7 +58,10 @@ serve(async (req) => {
 
     console.log("Exchanging code for token with Strava API")
     
-    // Intercambiar código por tokens
+    // Use the same redirect_uri that was used in the authorization request
+    const finalRedirectUri = redirect_uri || 'lovable.dev'
+    
+    // Exchange code for tokens
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: {
@@ -65,6 +72,7 @@ serve(async (req) => {
         client_secret: STRAVA_CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
+        redirect_uri: finalRedirectUri, // Include the redirect_uri in the token exchange
       }),
     })
 
@@ -78,7 +86,13 @@ serve(async (req) => {
         JSON.stringify({ 
           error: 'Failed to exchange code for token',
           details: tokenData.error || tokenData.message || 'Unknown error from Strava API',
-          status: tokenResponse.status
+          status: tokenResponse.status,
+          requestBody: {
+            client_id: STRAVA_CLIENT_ID,
+            code: code,
+            grant_type: 'authorization_code',
+            redirect_uri: finalRedirectUri,
+          }
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -86,7 +100,7 @@ serve(async (req) => {
 
     console.log("Successfully received tokens from Strava")
     
-    // Inicializar el cliente de Supabase
+    // Initialize Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     // Check if profiles table exists and if not, create it
@@ -115,7 +129,7 @@ serve(async (req) => {
       }
     }
 
-    // Actualizar perfil de usuario con tokens de Strava
+    // Update user profile with Strava tokens
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
@@ -137,7 +151,7 @@ serve(async (req) => {
 
     console.log("Profile updated successfully with Strava credentials")
     
-    // Devolver respuesta exitosa
+    // Return successful response
     return new Response(
       JSON.stringify({ 
         success: true,

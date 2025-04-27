@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,7 +28,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/strava-callback" element={<StravaCallback />} />
-            {/* Añade esta ruta para manejar la redirección desde la raíz cuando hay un código de Strava */}
+            {/* Handle Strava redirect at the root */}
             <Route path="/" element={
               <RootRouteHandler />
             } />
@@ -61,18 +60,22 @@ const App = () => (
   </QueryClientProvider>
 );
 
-// Componente para manejar la redirección de Strava en la raíz
+// Component to handle root route and Strava redirects
 const RootRouteHandler = () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
-  const state = params.get('state');
   
-  // Si hay un código en la URL, esto es probablemente una redirección de Strava
-  if (code && state) {
-    return <Navigate to={`/strava-callback?code=${code}&state=${state}`} replace />;
+  // If there's a code in the URL, this is likely a Strava redirect
+  if (code) {
+    console.log("Detectado código de Strava en URL raíz:", { code });
+    // Get the state from localStorage instead of URL
+    const state = localStorage.getItem('stravaAuthState');
+    localStorage.removeItem('stravaAuthState'); // Clean up
+    
+    return <Navigate to={`/strava-callback?code=${code}&state=${state || ''}`} replace />;
   }
   
-  // De lo contrario, muestra la página de inicio normal
+  // Otherwise, show the normal home page
   return (
     <ProtectedRoute>
       <Index />
