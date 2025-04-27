@@ -5,14 +5,16 @@ import BikeCard, { BikeProps } from '@/components/BikeCard';
 import EmptyState from '@/components/EmptyState';
 import BottomNav from '@/components/BottomNav';
 import FloatingActionButton from '@/components/FloatingActionButton';
+import AddBikeDialog from '@/components/AddBikeDialog';
 import { bikes } from '@/data/mockData';
 
 const Index = () => {
   const navigate = useNavigate();
   const [bikeData] = useState<BikeProps[]>(bikes);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const handleAddBike = () => {
-    console.log('Add bike clicked');
+    setIsAddDialogOpen(true);
   };
 
   const handleBikeClick = (bikeId: string) => {
@@ -45,6 +47,14 @@ const Index = () => {
       </div>
       
       <FloatingActionButton onClick={handleAddBike} label="Agregar Bicicleta" />
+      <AddBikeDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen}
+        onSuccess={() => {
+          // Here you would typically refresh the bikes list
+          // This will be implemented when we connect to the real data
+        }}
+      />
       <BottomNav activePage="/" />
     </div>
   );
