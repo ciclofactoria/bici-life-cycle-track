@@ -1,7 +1,12 @@
 
 import React from 'react';
-import { Settings, Archive, FileText } from 'lucide-react';
+import { Settings, Archive, FileText, Bike } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
+
+const STRAVA_CLIENT_ID = '117183';
+const REDIRECT_URI = 'https://lovable.dev/strava-callback';
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
@@ -20,6 +25,24 @@ const SettingsItem = ({ icon: Icon, label, onClick }: {
 );
 
 const More = () => {
+  const { toast } = useToast();
+
+  const handleStravaConnect = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes iniciar sesión para conectar con Strava",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const scope = 'read,activity:read';
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scope}&state=${user.id}`;
+    window.location.href = authUrl;
+  };
+
   return (
     <div className="pb-16">
       <div className="bici-container pt-6">
@@ -40,6 +63,11 @@ const More = () => {
             icon={FileText}
             label="Exportar Datos"
             onClick={() => console.log('Export data clicked')}
+          />
+          <SettingsItem 
+            icon={Bike}
+            label="Conectar con Strava"
+            onClick={handleStravaConnect}
           />
         </div>
         

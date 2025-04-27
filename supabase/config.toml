@@ -1,1 +1,6 @@
+
+[functions.strava-auth]
+verify_jwt = true
+
+[project]
 project_id = "tyqmfhtfvrffkaqttbcf"

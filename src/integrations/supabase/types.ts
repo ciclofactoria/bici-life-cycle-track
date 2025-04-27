@@ -9,7 +9,173 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bikes: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: string
+          image: string | null
+          last_maintenance_date: string | null
+          name: string
+          next_check_date: string | null
+          strava_id: string | null
+          total_distance: number | null
+          type: string
+          updated_at: string | null
+          user_id: string
+          year: number | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: string
+          image?: string | null
+          last_maintenance_date?: string | null
+          name: string
+          next_check_date?: string | null
+          strava_id?: string | null
+          total_distance?: number | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+          year?: number | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: string
+          image?: string | null
+          last_maintenance_date?: string | null
+          name?: string
+          next_check_date?: string | null
+          strava_id?: string | null
+          total_distance?: number | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      maintenance: {
+        Row: {
+          bike_id: string
+          cost: number
+          created_at: string | null
+          date: string
+          distance_at_maintenance: number | null
+          has_receipt: boolean | null
+          id: string
+          notes: string | null
+          receipt_image: string | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bike_id: string
+          cost: number
+          created_at?: string | null
+          date: string
+          distance_at_maintenance?: number | null
+          has_receipt?: boolean | null
+          id?: string
+          notes?: string | null
+          receipt_image?: string | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bike_id?: string
+          cost?: number
+          created_at?: string | null
+          date?: string
+          distance_at_maintenance?: number | null
+          has_receipt?: boolean | null
+          id?: string
+          notes?: string | null
+          receipt_image?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_bike_id_fkey"
+            columns: ["bike_id"]
+            isOneToOne: false
+            referencedRelation: "bikes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_types: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          strava_access_token: string | null
+          strava_connected: boolean | null
+          strava_refresh_token: string | null
+          strava_token_expires_at: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          strava_access_token?: string | null
+          strava_connected?: boolean | null
+          strava_refresh_token?: string | null
+          strava_token_expires_at?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          strava_access_token?: string | null
+          strava_connected?: boolean | null
+          strava_refresh_token?: string | null
+          strava_token_expires_at?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
