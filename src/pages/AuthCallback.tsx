@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Spinner } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ const AuthCallback = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <Spinner className="animate-spin mb-4 h-8 w-8" />
+            <Loader2 className="animate-spin mb-4 h-8 w-8" />
             <h2 className="text-xl font-medium mb-2">Autenticando...</h2>
             <p className="text-muted-foreground">Te estamos redirigiendo a la aplicación.</p>
           </div>
