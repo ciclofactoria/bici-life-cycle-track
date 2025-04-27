@@ -1,0 +1,55 @@
+
+import React from 'react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Wrench, Calendar, ChartBar } from "lucide-react";
+
+export interface BikeProps {
+  id: string;
+  name: string;
+  type: string;
+  year: number;
+  image: string;
+  totalSpent: number;
+  lastMaintenance: string;
+  nextCheck: string;
+}
+
+const BikeCard = ({ bike }: { bike: BikeProps }) => {
+  return (
+    <Card className="overflow-hidden mb-4 bg-card hover:bg-secondary transition-colors cursor-pointer animate-fade-in">
+      <div className="aspect-video relative overflow-hidden">
+        <img 
+          src={bike.image} 
+          alt={bike.name} 
+          className="object-cover w-full h-full"
+        />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          <h3 className="text-xl font-bold text-white">{bike.name}</h3>
+          <p className="text-sm text-gray-300">{bike.type}, {bike.year}</p>
+        </div>
+      </div>
+      
+      <CardContent className="pt-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col items-center">
+            <ChartBar className="h-5 w-5 text-bicicare-green mb-1" />
+            <p className="text-xs text-muted-foreground">Total Spent</p>
+            <p className="font-medium">${bike.totalSpent}</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <Wrench className="h-5 w-5 text-bicicare-green mb-1" />
+            <p className="text-xs text-muted-foreground">Last Service</p>
+            <p className="font-medium">{bike.lastMaintenance}</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <Calendar className="h-5 w-5 text-bicicare-green mb-1" />
+            <p className="text-xs text-muted-foreground">Next Check</p>
+            <p className="font-medium">{bike.nextCheck}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default BikeCard;
