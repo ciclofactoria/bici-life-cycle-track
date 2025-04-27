@@ -11,6 +11,7 @@ import EmptyState from '@/components/EmptyState';
 import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 const BikeDetail = () => {
   const { id } = useParams();
@@ -37,7 +38,19 @@ const BikeDetail = () => {
           console.log('Using mock bike data as fallback');
           setRealBikeId(id);
         } else if (data) {
-          setBike(data);
+          // Map the Supabase data to match our Bike interface
+          const mappedBike = {
+            id: data.id,
+            name: data.name,
+            type: data.type,
+            year: data.year || 0,
+            image: data.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+            totalSpent: 0, // We'll calculate this from maintenance records later
+            lastMaintenance: data.last_maintenance_date ? format(new Date(data.last_maintenance_date), 'MMM dd') : 'N/A',
+            nextCheck: data.next_check_date ? format(new Date(data.next_check_date), 'MMM dd') : 'N/A'
+          };
+          
+          setBike(mappedBike);
           setRealBikeId(data.id);
         }
       } catch (error) {
