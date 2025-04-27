@@ -25,7 +25,8 @@ const StravaCallback = () => {
         console.log('StravaCallback: Datos recibidos:', { 
           code: code ? 'presente' : 'ausente', 
           state: state || 'ausente',
-          scope: scope || 'ausente'
+          scope: scope || 'ausente',
+          fullUrl: window.location.href
         });
 
         if (!code) {
