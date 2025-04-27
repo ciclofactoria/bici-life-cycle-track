@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 type AuthContextType = {
   session: Session | null;
@@ -21,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -56,15 +58,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    // Obtener la URL completa para el sitio
+    const siteUrl = window.location.origin;
+    console.log("URL del sitio para registro:", siteUrl);
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
-        }
+        },
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       }
     });
+
+    if (error) {
+      console.error("Error en registro:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Revisa tu email",
+        description: "Se ha enviado un enlace de confirmación a tu correo electrónico",
+      });
+    }
+
     return { error };
   };
 
