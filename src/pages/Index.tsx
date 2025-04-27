@@ -12,7 +12,6 @@ const Index = () => {
   const [bikeData] = useState<BikeProps[]>(bikes);
 
   const handleAddBike = () => {
-    // In a real app, this would navigate to an add bike form
     console.log('Add bike clicked');
   };
 
@@ -24,7 +23,7 @@ const Index = () => {
     <div className="pb-16">
       <div className="bici-container pt-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">My Bikes</h1>
+          <h1 className="text-2xl font-bold">Mis Bicicletas</h1>
         </div>
         
         {bikeData.length > 0 ? (
@@ -37,15 +36,15 @@ const Index = () => {
           </div>
         ) : (
           <EmptyState
-            title="No bikes found"
-            description="Add your first bike to start tracking maintenance"
-            actionLabel="Add Bike"
+            title="No se encontraron bicicletas"
+            description="Agrega tu primera bicicleta para comenzar a registrar el mantenimiento"
+            actionLabel="Agregar Bicicleta"
             onAction={handleAddBike}
           />
         )}
       </div>
       
-      <FloatingActionButton onClick={handleAddBike} label="Add Bike" />
+      <FloatingActionButton onClick={handleAddBike} label="Agregar Bicicleta" />
       <BottomNav activePage="/" />
     </div>
   );

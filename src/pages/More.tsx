@@ -23,22 +23,22 @@ const More = () => {
   return (
     <div className="pb-16">
       <div className="bici-container pt-6">
-        <h1 className="text-2xl font-bold mb-6">More</h1>
+        <h1 className="text-2xl font-bold mb-6">Más</h1>
         
         <div className="bg-card rounded-lg divide-y divide-border">
           <SettingsItem 
             icon={Settings}
-            label="Settings"
+            label="Configuración"
             onClick={() => console.log('Settings clicked')}
           />
           <SettingsItem 
             icon={Archive}
-            label="Archived Bikes"
+            label="Bicicletas Archivadas"
             onClick={() => console.log('Archived bikes clicked')}
           />
           <SettingsItem 
             icon={FileText}
-            label="Export Data"
+            label="Exportar Datos"
             onClick={() => console.log('Export data clicked')}
           />
         </div>

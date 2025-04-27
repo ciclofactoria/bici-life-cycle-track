@@ -37,12 +37,11 @@ const BikeDetail = () => {
   };
 
   const handleAddMaintenance = () => {
-    // In a real app, this would navigate to an add maintenance form
     console.log('Add maintenance clicked');
   };
 
   if (!bike) {
-    return <div>Bike not found</div>;
+    return <div>Bicicleta no encontrada</div>;
   }
 
   return (
@@ -83,21 +82,21 @@ const BikeDetail = () => {
       <div className="bici-container">
         <div className="grid grid-cols-3 gap-2 my-6 bg-card rounded-lg p-4">
           <div className="flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Total Spent</p>
+            <p className="text-xs text-muted-foreground">Gasto Total</p>
             <p className="font-medium text-bicicare-green">${bike.totalSpent}</p>
           </div>
           <div className="flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Last Service</p>
+            <p className="text-xs text-muted-foreground">Último Servicio</p>
             <p className="font-medium">{bike.lastMaintenance}</p>
           </div>
           <div className="flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Next Check</p>
+            <p className="text-xs text-muted-foreground">Próxima Revisión</p>
             <p className="font-medium">{bike.nextCheck}</p>
           </div>
         </div>
         
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-medium">Maintenance History</h2>
+          <h2 className="text-xl font-medium">Historial de Mantenimiento</h2>
           <Button 
             variant="ghost" 
             size="sm"
@@ -105,7 +104,7 @@ const BikeDetail = () => {
             onClick={() => console.log('Export history')}
           >
             <FileText className="h-4 w-4" />
-            <span className="text-sm">Export</span>
+            <span className="text-sm">Exportar</span>
           </Button>
         </div>
         
@@ -117,15 +116,15 @@ const BikeDetail = () => {
           </div>
         ) : (
           <EmptyState
-            title="No maintenance records"
-            description="Add your first maintenance record to start tracking"
-            actionLabel="Add Record"
+            title="No hay registros de mantenimiento"
+            description="Agrega tu primer registro de mantenimiento para comenzar a llevar el control"
+            actionLabel="Agregar Registro"
             onAction={handleAddMaintenance}
           />
         )}
       </div>
       
-      <FloatingActionButton onClick={handleAddMaintenance} label="Add Maintenance" />
+      <FloatingActionButton onClick={handleAddMaintenance} label="Agregar Mantenimiento" />
       <BottomNav activePage="/" />
     </div>
   );
