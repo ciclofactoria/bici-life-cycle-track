@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 const STRAVA_CLIENT_ID = '117183';
-const REDIRECT_URI = 'https://lovable.dev/strava-callback';
+const REDIRECT_URI = 'https://lovable.dev';
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
