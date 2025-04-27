@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,13 +32,31 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
 
   const onSubmit = async (data: BikeFormData) => {
     try {
+      // Primero obtenemos la sesión actual para conseguir el ID del usuario
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) throw sessionError;
+      
+      if (!sessionData.session?.user?.id) {
+        toast({
+          title: "Error",
+          description: "Debes iniciar sesión para crear una bicicleta",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const userId = sessionData.session.user.id;
+      
+      // Ahora insertamos con el user_id incluido
       const { error } = await supabase
         .from('bikes')
-        .insert([{
+        .insert({
           name: data.name,
           type: data.type,
           year: data.year || null,
-        }]);
+          user_id: userId,
+        });
 
       if (error) throw error;
 
