@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { Mail } from 'lucide-react';
+import { Google } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
 const Auth = () => {
@@ -138,7 +138,7 @@ const Auth = () => {
                   onClick={signInWithGoogle}
                   disabled={isLoading}
                 >
-                  <Mail className="mr-2 h-4 w-4" />
+                  <Google className="mr-2 h-4 w-4" />
                   Google
                 </Button>
               </CardFooter>
@@ -212,7 +212,7 @@ const Auth = () => {
                   onClick={signInWithGoogle}
                   disabled={isLoading}
                 >
-                  <Mail className="mr-2 h-4 w-4" />
+                  <Google className="mr-2 h-4 w-4" />
                   Google
                 </Button>
               </CardFooter>
