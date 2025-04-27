@@ -75,10 +75,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     console.log("Iniciando autenticación con Google");
+    
+    // Obtener la URL completa actual para la redirección
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    console.log("URL de redirección:", redirectTo);
+    
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/auth/callback',
+        redirectTo: redirectTo,
+        // Añadir scopes necesarios para Google
+        scopes: 'email profile',
       }
     });
   };
