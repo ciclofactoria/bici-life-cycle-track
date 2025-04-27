@@ -14,6 +14,7 @@ import More from "./pages/More";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import StravaCallback from "./pages/StravaCallback";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/strava-callback" element={<StravaCallback />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />

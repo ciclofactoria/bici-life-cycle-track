@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 const STRAVA_CLIENT_ID = '117183';
-const REDIRECT_URI = 'https://lovable.dev/strava-callback';
+const REDIRECT_URI = 'https://lovable.dev/projects/6eada54a-286e-4a45-a44f-46739891e395/strava-callback';
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
@@ -41,6 +41,8 @@ const More = () => {
 
     const scope = 'read,activity:read';
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${scope}&state=${user.id}`;
+    
+    console.log("Redirigiendo a Strava:", authUrl);
     window.location.href = authUrl;
   };
 
