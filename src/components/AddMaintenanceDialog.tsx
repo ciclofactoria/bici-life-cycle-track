@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PlusCircle } from "lucide-react";
 
 interface MaintenanceFormData {
   type: string;
@@ -28,6 +30,9 @@ interface AddMaintenanceDialogProps {
 
 const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMaintenanceDialogProps) => {
   const { toast } = useToast();
+  const [newTypeName, setNewTypeName] = useState("");
+  const [showNewTypeInput, setShowNewTypeInput] = useState(false);
+  
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
       type: '',
@@ -37,7 +42,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
     },
   });
 
-  const { data: maintenanceTypes } = useQuery({
+  const { data: maintenanceTypes, refetch } = useQuery({
     queryKey: ['maintenanceTypes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,9 +50,54 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
         .select('*')
         .order('name');
       if (error) throw error;
-      return data;
+      
+      // Remove duplicates by name
+      const uniqueTypes = data.filter((type, index, self) => 
+        index === self.findIndex(t => t.name === type.name)
+      );
+      
+      return uniqueTypes;
     },
   });
+
+  const handleAddNewType = async () => {
+    if (!newTypeName.trim()) return;
+    
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('maintenance_types')
+        .insert({
+          name: newTypeName.trim(),
+          user_id: user.user?.id
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Tipo agregado",
+        description: "Nuevo tipo de mantenimiento creado"
+      });
+      
+      // Select the new type
+      form.setValue("type", newTypeName.trim());
+      
+      // Reset UI state
+      setNewTypeName("");
+      setShowNewTypeInput(false);
+      
+      // Refresh the types list
+      refetch();
+    } catch (error) {
+      console.error("Error creating new maintenance type:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el nuevo tipo de mantenimiento",
+        variant: "destructive"
+      });
+    }
+  };
 
   const onSubmit = async (data: MaintenanceFormData) => {
     try {
@@ -95,30 +145,67 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tipo de mantenimiento</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona el tipo" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {maintenanceTypes?.map((type) => (
-                        <SelectItem key={type.id} value={type.name}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {showNewTypeInput ? (
+              <div className="space-y-2">
+                <FormLabel>Nuevo tipo de mantenimiento</FormLabel>
+                <div className="flex gap-2">
+                  <Input 
+                    value={newTypeName}
+                    onChange={(e) => setNewTypeName(e.target.value)}
+                    placeholder="Nombre del nuevo tipo"
+                    className="flex-1"
+                  />
+                  <div className="flex gap-1">
+                    <Button type="button" onClick={handleAddNewType}>
+                      Guardar
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setShowNewTypeInput(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de mantenimiento</FormLabel>
+                    <div className="flex gap-2">
+                      <Select onValueChange={field.onChange} value={field.value} className="flex-1">
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona el tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-background">
+                          {maintenanceTypes?.map((type) => (
+                            <SelectItem key={type.id} value={type.name}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <PlusCircle className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-background">
+                          <DropdownMenuItem onClick={() => setShowNewTypeInput(true)}>
+                            Añadir nuevo tipo
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="distance_at_maintenance"
@@ -137,6 +224,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="labor_cost"
@@ -155,6 +243,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="materials_cost"
@@ -173,6 +262,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="date"
@@ -186,6 +276,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="notes"
@@ -199,6 +290,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
                 </FormItem>
               )}
             />
+            
             <div className="flex justify-end gap-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
