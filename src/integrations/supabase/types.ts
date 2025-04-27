@@ -66,6 +66,8 @@ export type Database = {
           distance_at_maintenance: number | null
           has_receipt: boolean | null
           id: string
+          labor_cost: number | null
+          materials_cost: number | null
           notes: string | null
           receipt_image: string | null
           type: string
@@ -80,6 +82,8 @@ export type Database = {
           distance_at_maintenance?: number | null
           has_receipt?: boolean | null
           id?: string
+          labor_cost?: number | null
+          materials_cost?: number | null
           notes?: string | null
           receipt_image?: string | null
           type: string
@@ -94,6 +98,8 @@ export type Database = {
           distance_at_maintenance?: number | null
           has_receipt?: boolean | null
           id?: string
+          labor_cost?: number | null
+          materials_cost?: number | null
           notes?: string | null
           receipt_image?: string | null
           type?: string

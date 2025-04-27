@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, Settings } from 'lucide-react';
@@ -8,12 +7,14 @@ import FloatingActionButton from '@/components/FloatingActionButton';
 import BottomNav from '@/components/BottomNav';
 import { bikes, maintenanceLogs } from '@/data/mockData';
 import EmptyState from '@/components/EmptyState';
+import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 
 const BikeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [bike, setBike] = useState(bikes.find((b) => b.id === id));
   const [maintenance, setMaintenance] = useState<MaintenanceProps[]>([]);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -37,7 +38,7 @@ const BikeDetail = () => {
   };
 
   const handleAddMaintenance = () => {
-    console.log('Add maintenance clicked');
+    setIsAddDialogOpen(true);
   };
 
   if (!bike) {
@@ -125,6 +126,15 @@ const BikeDetail = () => {
       </div>
       
       <FloatingActionButton onClick={handleAddMaintenance} label="Agregar Mantenimiento" />
+      <AddMaintenanceDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen}
+        bikeId={id || ''}
+        onSuccess={() => {
+          // Here you would typically refresh the maintenance list
+          // This will be implemented when we connect to the real data
+        }}
+      />
       <BottomNav activePage="/" />
     </div>
   );
