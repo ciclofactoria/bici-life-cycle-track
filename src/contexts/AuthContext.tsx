@@ -26,11 +26,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth event:", event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Defer Supabase calls with setTimeout
-        if (currentSession?.user && event === 'SIGNED_IN') {
+        // Defer navigation with setTimeout to prevent React errors
+        if (currentSession?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           setTimeout(() => {
             navigate('/');
           }, 0);
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Initial session check:", currentSession ? "Session exists" : "No session");
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
@@ -72,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
+    console.log("Iniciando autenticación con Google");
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
