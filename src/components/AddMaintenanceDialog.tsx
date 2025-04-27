@@ -101,7 +101,27 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
 
   const onSubmit = async (data: MaintenanceFormData) => {
     try {
+      if (!bikeId) {
+        throw new Error("No se ha seleccionado una bicicleta");
+      }
+      
+      // Check if bike_id is a valid UUID
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(bikeId)) {
+        toast({
+          title: "Error",
+          description: "ID de bicicleta no válido",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const totalCost = Number(data.labor_cost) + Number(data.materials_cost);
+      
+      const { data: user } = await supabase.auth.getUser();
+      
+      if (!user.user) {
+        throw new Error("Usuario no autenticado");
+      }
       
       const { error } = await supabase
         .from('maintenance')
@@ -114,7 +134,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
           materials_cost: data.materials_cost,
           cost: totalCost,
           notes: data.notes,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.user.id,
         });
 
       if (error) throw error;

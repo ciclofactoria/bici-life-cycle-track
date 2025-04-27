@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, Settings } from 'lucide-react';
@@ -8,16 +9,50 @@ import BottomNav from '@/components/BottomNav';
 import { bikes, maintenanceLogs } from '@/data/mockData';
 import EmptyState from '@/components/EmptyState';
 import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const BikeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [bike, setBike] = useState(bikes.find((b) => b.id === id));
   const [maintenance, setMaintenance] = useState<MaintenanceProps[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [realBikeId, setRealBikeId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Fetch the actual bike by the display ID to get the UUID
+    const fetchBike = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bikes')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (error) {
+          // If not found by UUID, try to find by numeric ID or display ID
+          // This is a fallback for development with mock data
+          console.log('Using mock bike data as fallback');
+          setRealBikeId(id);
+        } else if (data) {
+          setBike(data);
+          setRealBikeId(data.id);
+        }
+      } catch (error) {
+        console.error('Error fetching bike:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar la bicicleta",
+          variant: "destructive"
+        });
+      }
+    };
+
     if (id) {
+      fetchBike();
+      
       const filteredLogs = maintenanceLogs
         .filter((log) => log.bikeId === id)
         .map((log) => ({ 
@@ -31,7 +66,7 @@ const BikeDetail = () => {
       
       setMaintenance(filteredLogs);
     }
-  }, [id]);
+  }, [id, toast]);
 
   const handleBack = () => {
     navigate('/');
@@ -39,6 +74,14 @@ const BikeDetail = () => {
 
   const handleAddMaintenance = () => {
     setIsAddDialogOpen(true);
+  };
+
+  const handleMaintenanceSuccess = async () => {
+    // Here you would fetch the updated maintenance list
+    toast({
+      title: "Registro creado",
+      description: "El registro de mantenimiento se ha añadido correctamente",
+    });
   };
 
   if (!bike) {
@@ -129,11 +172,8 @@ const BikeDetail = () => {
       <AddMaintenanceDialog 
         open={isAddDialogOpen} 
         onOpenChange={setIsAddDialogOpen}
-        bikeId={id || ''}
-        onSuccess={() => {
-          // Here you would typically refresh the maintenance list
-          // This will be implemented when we connect to the real data
-        }}
+        bikeId={realBikeId || ''}
+        onSuccess={handleMaintenanceSuccess}
       />
       <BottomNav activePage="/" />
     </div>
