@@ -36,7 +36,10 @@ serve(async (req) => {
     const STRAVA_CLIENT_SECRET = Deno.env.get('STRAVA_CLIENT_SECRET')
     
     if (!STRAVA_CLIENT_ID || !STRAVA_CLIENT_SECRET) {
-      console.error("Missing Strava API credentials in environment variables")
+      console.error("Missing Strava API credentials in environment variables", { 
+        hasClientId: Boolean(STRAVA_CLIENT_ID), 
+        hasClientSecret: Boolean(STRAVA_CLIENT_SECRET) 
+      })
       return new Response(
         JSON.stringify({ 
           error: 'Strava API credentials not configured',
