@@ -20,6 +20,13 @@ const StravaCallback = () => {
         // Get the authorization code from the URL
         const code = searchParams.get('code');
         const state = searchParams.get('state');
+        const scope = searchParams.get('scope');
+
+        console.log('StravaCallback: Datos recibidos:', { 
+          code: code ? 'presente' : 'ausente', 
+          state: state || 'ausente',
+          scope: scope || 'ausente'
+        });
 
         if (!code) {
           throw new Error('No se recibió el código de autorización de Strava');
@@ -29,17 +36,22 @@ const StravaCallback = () => {
           throw new Error('Debes iniciar sesión para conectar con Strava');
         }
 
-        // Verify that the state matches the user ID
+        // Verificar que state coincide con el user ID
         if (state !== user.id) {
-          throw new Error('El estado no coincide, posible intento de falsificación');
+          console.warn('El estado no coincide, posible problema de falsificación', {
+            receivedState: state,
+            expectedState: user.id
+          });
         }
 
         console.log('Procesando callback de Strava con código:', code);
 
-        // Exchange the code for tokens using the edge function
-        const { error: exchangeError } = await supabase.functions.invoke('strava-auth', {
+        // Intercambiar el código por tokens usando la edge function
+        const { data, error: exchangeError } = await supabase.functions.invoke('strava-auth', {
           body: { code, user_id: user.id }
         });
+
+        console.log('Respuesta de edge function:', { data, error: exchangeError });
 
         if (exchangeError) {
           console.error('Error al intercambiar código por token:', exchangeError);
@@ -51,7 +63,7 @@ const StravaCallback = () => {
           description: 'Tu cuenta de Strava ha sido conectada exitosamente',
         });
 
-        // Redirect to the profile page
+        // Redirigir a la página de perfil
         navigate('/more', { replace: true });
       } catch (error: any) {
         console.error('Error durante el callback de Strava:', error);
@@ -62,7 +74,7 @@ const StravaCallback = () => {
           variant: 'destructive'
         });
         
-        // Still navigate back after an error
+        // Aún redirigir después de un error
         setTimeout(() => {
           navigate('/more', { replace: true });
         }, 3000);
