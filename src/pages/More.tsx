@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Settings, Archive, FileText, Bike } from 'lucide-react';
+import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const STRAVA_CLIENT_ID = '117183';
 const REDIRECT_URI = 'https://lovable.dev/strava-callback';
@@ -26,9 +27,9 @@ const SettingsItem = ({ icon: Icon, label, onClick }: {
 
 const More = () => {
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
 
   const handleStravaConnect = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
         title: "Error",
@@ -47,6 +48,22 @@ const More = () => {
     <div className="pb-16">
       <div className="bici-container pt-6">
         <h1 className="text-2xl font-bold mb-6">Más</h1>
+        
+        {user && (
+          <div className="mb-6 p-4 bg-card rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-2 rounded-full">
+                <span className="text-lg font-semibold">
+                  {user.email?.[0].toUpperCase() || "U"}
+                </span>
+              </div>
+              <div>
+                <p className="font-medium">{user.user_metadata?.full_name || 'Usuario'}</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="bg-card rounded-lg divide-y divide-border">
           <SettingsItem 
@@ -68,6 +85,11 @@ const More = () => {
             icon={Bike}
             label="Conectar con Strava"
             onClick={handleStravaConnect}
+          />
+          <SettingsItem 
+            icon={LogOut}
+            label="Cerrar Sesión"
+            onClick={signOut}
           />
         </div>
         
