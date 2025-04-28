@@ -5,12 +5,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Bike, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { importBikesToDatabase } from '@/services/stravaService'; // Importamos la función
+import { importBikesToDatabase } from '@/services/stravaService'; 
 
 const StravaCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, loading: userLoading } = useAuth(); // <- Asegúrate de obtener también `loading` del AuthContext
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [importedBikes, setImportedBikes] = useState(0);
@@ -23,13 +23,6 @@ const StravaCallback = () => {
         const error = searchParams.get('error');
         const state = searchParams.get('state');
         const scope = searchParams.get('scope');
-        
-        console.log('StravaCallback: Datos recibidos:', { 
-          code: code ? `${code.substring(0, 5)}...` : 'ausente',
-          error: error || 'ninguno',
-          state: state || 'ausente',
-          scope: scope || 'ausente'
-        });
 
         if (error) {
           throw new Error(`Strava devolvió un error: ${error}`);
@@ -39,23 +32,12 @@ const StravaCallback = () => {
           throw new Error('No se recibió el código de autorización o estado de Strava');
         }
 
-        console.log("Iniciando intercambio de código por token...");
-        
-        // Use the hardcoded client values for simplicity and reliability
         const clientId = '157332';
         const clientSecret = '38c60b9891cea2fb7053e185750c5345fab850f5';
-        
-        console.log("Datos para solicitud de token:", {
-          client_id: clientId,
-          code: `${code.substring(0, 5)}...`,
-          grant_type: 'authorization_code'
-        });
 
         const response = await fetch('https://www.strava.com/oauth/token', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             client_id: clientId,
             client_secret: clientSecret,
@@ -65,28 +47,8 @@ const StravaCallback = () => {
         });
 
         const responseText = await response.text();
-        console.log("Respuesta bruta del intercambio de token:", responseText);
-        
-        let data;
-        try {
-          data = JSON.parse(responseText);
-          
-          console.log("Respuesta del token analizada:", {
-            status: response.status,
-            ok: response.ok,
-            token_type: data.token_type || 'ausente',
-            access_token_presente: Boolean(data.access_token),
-            access_token_inicio: data.access_token ? `${data.access_token.substring(0, 5)}...` : 'ausente',
-            refresh_token_presente: Boolean(data.refresh_token),
-            expires_at_presente: Boolean(data.expires_at),
-            athlete_presente: Boolean(data.athlete),
-            athlete_id: data.athlete?.id || 'ausente'
-          });
-        } catch (error) {
-          console.error("Error al parsear respuesta JSON:", error);
-          throw new Error(`Error al parsear respuesta: ${responseText}`);
-        }
-        
+        let data = JSON.parse(responseText);
+
         if (!response.ok) {
           throw new Error(`Error al obtener token: ${data.message || responseText}`);
         }
@@ -102,32 +64,23 @@ const StravaCallback = () => {
         });
 
         if (saveError) {
-          console.error("Error al guardar token:", saveError);
           throw new Error(`Error al guardar tokens: ${saveError.message}`);
         }
-        
-        console.log("Token guardado correctamente, obteniendo bicicletas...");
 
         const { data: gearData, error: gearError } = await supabase.functions.invoke('get-strava-gear', {
           body: { access_token: data.access_token }
         });
-        
-        console.log("Respuesta de get-strava-gear:", gearData);
 
         if (gearError) {
-          console.error("Error al obtener bicicletas:", gearError);
           throw new Error(`Error al obtener bicicletas: ${gearError.message}`);
         }
 
         const bikes = gearData.gear || [];
-        console.log(`Se encontraron ${bikes.length} bicicletas:`, bikes);
-        
-        // PUNTO CLAVE: Asegurarnos de importar las bicicletas
-        if (user && bikes.length > 0) {
-          console.log("Llamando a importBikesToDatabase con UserId:", user.id);
+
+        // ✅ ESPERAR A QUE EL USER ESTÉ LISTO
+        if (!userLoading && user && bikes.length > 0) {
           const importedCount = await importBikesToDatabase(user.id, bikes);
           setImportedBikes(importedCount);
-          console.log(`Se importaron ${importedCount} bicicletas a la base de datos`);
         } else {
           console.error("No se puede importar - usuario no disponible o no hay bicicletas", {
             userPresent: !!user,
@@ -144,25 +97,33 @@ const StravaCallback = () => {
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 1500);
+
       } catch (error: any) {
-        console.error('Error completo durante el callback de Strava:', error);
+        console.error('Error durante el callback de Strava:', error);
         setError(error.message || 'Error al importar bicicletas de Strava');
         toast({
           title: 'Error de conexión',
           description: error.message || 'Error al importar bicicletas de Strava',
           variant: 'destructive'
         });
-        
+
         setTimeout(() => {
           navigate('/more', { replace: true });
         }, 3000);
+
       } finally {
         setLoading(false);
       }
     };
 
-    handleStravaCallback();
-  }, [navigate, searchParams, user, toast]);
+    // 👉 SOLO lanzar la función cuando:
+    // - NO esté cargando user
+    // - El usuario esté disponible
+    if (!userLoading) {
+      handleStravaCallback();
+    }
+
+  }, [navigate, searchParams, user, userLoading, toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
