@@ -96,21 +96,21 @@ export const getStravaBikes = async (accessToken: string) => {
 export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
   console.log(`Importando ${bikes.length} bicicletas para el usuario ${userId}`);
   let importedCount = 0;
-  
+
   for (const bike of bikes) {
     console.log("Importando bicicleta:", bike);
-    
+
     const { error } = await supabase
       .from('bikes')
       .upsert({
         name: bike.name || `Bicicleta ${bike.id}`,
         type: bike.type || 'Road',
         strava_id: bike.id,
-        user_id: userId,
         total_distance: bike.distance || 0,
-        image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
+        image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+        user_id: userId // 👈 AÑADIDO para cumplir la Policy de seguridad
       });
-      
+
     if (!error) {
       importedCount++;
       console.log(`Bicicleta ${bike.name || bike.id} importada correctamente`);
@@ -118,7 +118,7 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
       console.error(`Error al importar bicicleta ${bike.name || bike.id}:`, error);
     }
   }
-  
+
   console.log(`Se importaron ${importedCount} de ${bikes.length} bicicletas`);
   return importedCount;
 };
