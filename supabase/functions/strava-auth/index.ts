@@ -147,6 +147,81 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+    
+    // Fetch user bikes from Strava
+    console.log("Fetching bikes from Strava API")
+    try {
+      const bikesResponse = await fetch('https://www.strava.com/api/v3/athlete', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`
+        }
+      });
+      
+      const athleteData = await bikesResponse.json();
+      
+      if (!bikesResponse.ok) {
+        console.error('Error fetching athlete data:', athleteData);
+      } else if (athleteData.bikes && athleteData.bikes.length > 0) {
+        console.log(`Found ${athleteData.bikes.length} bikes in Strava`);
+        
+        // Insert each bike into our database
+        for (const bike of athleteData.bikes) {
+          const { data: existingBike, error: checkBikeError } = await supabase
+            .from('bikes')
+            .select('id')
+            .eq('strava_id', bike.id)
+            .eq('user_id', user_id)
+            .limit(1);
+            
+          if (checkBikeError) {
+            console.error('Error checking for existing bike:', checkBikeError);
+            continue;
+          }
+          
+          if (existingBike && existingBike.length > 0) {
+            // Update existing bike
+            const { error: updateBikeError } = await supabase
+              .from('bikes')
+              .update({
+                name: bike.name,
+                total_distance: bike.distance || 0,
+                updated_at: new Date().toISOString()
+              })
+              .eq('strava_id', bike.id)
+              .eq('user_id', user_id);
+              
+            if (updateBikeError) {
+              console.error('Error updating bike from Strava:', updateBikeError);
+            } else {
+              console.log(`Updated bike from Strava: ${bike.name}`);
+            }
+          } else {
+            // Insert new bike
+            const { error: insertBikeError } = await supabase
+              .from('bikes')
+              .insert({
+                name: bike.name,
+                type: bike.type || 'Road',
+                strava_id: bike.id,
+                user_id: user_id,
+                total_distance: bike.distance || 0,
+                image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
+              });
+              
+            if (insertBikeError) {
+              console.error('Error inserting bike from Strava:', insertBikeError);
+            } else {
+              console.log(`Imported bike from Strava: ${bike.name}`);
+            }
+          }
+        }
+      } else {
+        console.log('No bikes found in Strava account');
+      }
+    } catch (bikesError) {
+      console.error('Exception fetching bikes from Strava:', bikesError);
+      // We don't want to fail the entire process if bike import fails
+    }
 
     console.log("Profile updated successfully with Strava credentials")
     
@@ -154,7 +229,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Strava account connected successfully'
+        message: 'Strava account connected successfully and bikes imported'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const STRAVA_CLIENT_ID = '157332'; // Client ID correcto de Strava
+const STRAVA_CLIENT_ID = '157332'; // Client ID de Strava
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
@@ -34,12 +34,13 @@ const More = () => {
     if (!user) {
       toast({
         title: "Error",
-        description: "Debes iniciar sesión para conectar con Strava",
+        description: "Debes iniciar sesión para importar bicicletas de Strava",
         variant: "destructive"
       });
       return;
     }
 
+    // Solo pedimos permisos para leer la información del atleta y actividades
     const scope = 'read,activity:read';
     
     // Store state in localStorage to retrieve after redirection
@@ -53,7 +54,7 @@ const More = () => {
     
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.id}`;
     
-    console.log("Redirigiendo a Strava:", authUrl);
+    console.log("Redirigiendo a Strava para importar bicicletas:", authUrl);
     window.location.href = authUrl;
   };
 
@@ -96,7 +97,7 @@ const More = () => {
           />
           <SettingsItem 
             icon={Bike}
-            label="Conectar con Strava"
+            label="Importar bicicletas de Strava"
             onClick={handleStravaConnect}
           />
           <SettingsItem 

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Bike } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 const StravaCallback = () => {
@@ -12,6 +12,7 @@ const StravaCallback = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [importedBikes, setImportedBikes] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,19 +55,27 @@ const StravaCallback = () => {
           throw new Error('Error al intercambiar el código de autorización por el token de acceso');
         }
 
-        toast({
-          title: 'Cuenta de Strava conectada',
-          description: 'Tu cuenta de Strava ha sido conectada exitosamente',
-        });
+        if (data?.success) {
+          // Si la importación fue exitosa, mostramos mensaje
+          setImportedBikes(data.importedBikes || 0);
+          toast({
+            title: 'Importación completada',
+            description: data.importedBikes > 0 
+              ? `Se importaron ${data.importedBikes} bicicletas desde Strava` 
+              : 'Conexión con Strava establecida',
+          });
+        }
 
         // Redirect to the profile page
-        navigate('/more', { replace: true });
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 1500);
       } catch (error: any) {
         console.error('Error durante el callback de Strava:', error);
-        setError(error.message || 'Error al conectar con Strava');
+        setError(error.message || 'Error al importar bicicletas de Strava');
         toast({
           title: 'Error de conexión',
-          description: error.message || 'Error al conectar con Strava',
+          description: error.message || 'Error al importar bicicletas de Strava',
           variant: 'destructive'
         });
         
@@ -88,8 +97,8 @@ const StravaCallback = () => {
         {loading ? (
           <div className="flex flex-col items-center">
             <Loader2 className="animate-spin mb-4 h-8 w-8" />
-            <h2 className="text-xl font-bold mb-2">Conectando con Strava...</h2>
-            <p className="text-muted-foreground">Estamos procesando tu autenticación de Strava.</p>
+            <h2 className="text-xl font-bold mb-2">Importando bicicletas de Strava...</h2>
+            <p className="text-muted-foreground">Estamos procesando tus datos de Strava.</p>
           </div>
         ) : error ? (
           <div className="text-red-500">
@@ -99,8 +108,15 @@ const StravaCallback = () => {
           </div>
         ) : (
           <div>
-            <h2 className="text-xl font-bold mb-2 text-green-600">¡Conexión exitosa!</h2>
-            <p className="text-muted-foreground">Tu cuenta de Strava ha sido conectada correctamente.</p>
+            <div className="flex justify-center mb-4">
+              <Bike className="h-12 w-12 text-green-500" />
+            </div>
+            <h2 className="text-xl font-bold mb-2 text-green-600">¡Importación exitosa!</h2>
+            {importedBikes > 0 ? (
+              <p className="text-muted-foreground">Se importaron {importedBikes} bicicletas desde tu cuenta de Strava.</p>
+            ) : (
+              <p className="text-muted-foreground">Conexión con Strava establecida correctamente.</p>
+            )}
             <p className="mt-4">Redirigiendo...</p>
           </div>
         )}
