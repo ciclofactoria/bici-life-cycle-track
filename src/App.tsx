@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -19,7 +18,6 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import StravaCallback from "./pages/StravaCallback";
 import ArchivedBikes from "./pages/ArchivedBikes";
-import StravaTest from "./pages/StravaTest";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +47,6 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/strava-callback" element={<StravaCallback />} />
-              <Route path="/strava-test" element={<ProtectedRoute><StravaTest /></ProtectedRoute>} />
               {/* Handle Strava redirect at root domain level */}
               <Route path="/" element={
                 <RootRouteHandler />
