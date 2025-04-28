@@ -2,14 +2,14 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export const exchangeCodeForToken = async (authCode: string, userEmail: string) => {
-  // Client ID and secret configuration
+  // Configuración de cliente y secreto
   const clientId = '157332';
   const clientSecret = '38c60b9891cea2fb7053e185750c5345fab850f5';
   
-  console.log("Performing code exchange for token");
-  console.log("Using auth code:", authCode.substring(0, 5) + "...");
+  console.log("Realizando intercambio de código por token");
+  console.log("Usando código de autorización:", authCode.substring(0, 5) + "...");
   
-  // Exchange auth code for token
+  // Realizar el intercambio de código por token
   const response = await fetch('https://www.strava.com/oauth/token', {
     method: 'POST',
     headers: {
@@ -24,13 +24,13 @@ export const exchangeCodeForToken = async (authCode: string, userEmail: string) 
   });
   
   const responseText = await response.text();
-  console.log("Raw exchange response:", responseText);
+  console.log("Respuesta bruta de intercambio:", responseText);
   
   let data;
   try {
     data = JSON.parse(responseText);
   } catch (e) {
-    throw new Error(`Error parsing response: ${responseText}`);
+    throw new Error(`Error al parsear respuesta: ${responseText}`);
   }
   
   if (!response.ok) {
@@ -45,7 +45,7 @@ export const exchangeCodeForToken = async (authCode: string, userEmail: string) 
 };
 
 export const saveStravaToken = async (userId: string, userEmail: string, data: any) => {
-  // Save token to Supabase
+  // Guardar el token en Supabase
   const { error: saveError } = await supabase.functions.invoke('save-strava-token', {
     body: {
       email: userEmail,
@@ -57,19 +57,19 @@ export const saveStravaToken = async (userId: string, userEmail: string, data: a
   });
   
   if (saveError) {
-    throw new Error(`Error saving token: ${saveError.message}`);
+    throw new Error(`Error al guardar token: ${saveError.message}`);
   }
 };
 
 export const getStravaBikes = async (accessToken: string) => {
-  // Get bikes with the token
-  console.log("Getting bikes with token...");
+  // Obtener bicicletas con el token
+  console.log("Obteniendo bicicletas con el token...");
   const { data, error } = await supabase.functions.invoke('get-strava-gear', {
     body: { access_token: accessToken }
   });
   
   if (error) {
-    throw new Error(`Error getting bikes: ${error.message}`);
+    throw new Error(`Error al obtener bicicletas: ${error.message}`);
   }
   
   return data.gear || [];
@@ -82,7 +82,7 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
     const { error } = await supabase
       .from('bikes')
       .upsert({
-        name: bike.name || `Bike ${bike.id}`,
+        name: bike.name || `Bicicleta ${bike.id}`,
         type: bike.type || 'Road',
         strava_id: bike.id,
         user_id: userId,
@@ -105,6 +105,6 @@ export const initiateStravaAuthorization = (userEmail: string) => {
   
   const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${userEmail}`;
   
-  console.log("Redirecting to Strava for authorization:", authUrl);
+  console.log("Redirigiendo a Strava para autorización:", authUrl);
   window.location.href = authUrl;
 };
