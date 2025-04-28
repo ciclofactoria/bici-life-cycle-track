@@ -45,7 +45,7 @@ const More = () => {
     // Store state in localStorage to retrieve after redirection
     localStorage.setItem('stravaAuthState', user.id);
     
-    // IMPORTANTE: Usar "lovable.dev" como dominio de callback tal como está configurado en Strava
+    // Use "lovable.dev" as domain as configured in Strava
     const redirectUri = encodeURIComponent('lovable.dev');
     
     console.log("Usando dominio para redirección configurado en Strava:", redirectUri);

@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -89,7 +90,7 @@ const RootRouteHandler = () => {
   const state = params.get('state');
   
   // If there's a code in the URL and scope includes 'read' or 'activity', this is likely a Strava redirect
-  if (code) {
+  if (code && (scope?.includes('read') || scope?.includes('activity'))) {
     console.log("Detectado código de Strava en URL raíz:", { code, scope, state });
     
     // Redirect to the strava-callback page with all the parameters
