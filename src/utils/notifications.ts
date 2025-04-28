@@ -1,4 +1,5 @@
 
+// Funciones para notificaciones web (navegador)
 export async function registerServiceWorker() {
   if ('serviceWorker' in navigator && 'Notification' in window) {
     try {
@@ -20,6 +21,9 @@ export async function registerServiceWorker() {
             applicationServerKey: 'BBAJw1KgWsL0cG9kXVjn8vKwKq6QMXU977U_BbgHQjz4xoEtxoCKd5gqHHGxR_0FQSP-6tfXmh1eJEB6IiFiHNI'
           });
           console.log('Nueva suscripción creada:', subscription);
+          
+          // Aquí podrías enviar la suscripción al servidor
+          // Esto es similar a saveTokenToSupabase en mobileNotifications.ts
         }
         
         return true;
@@ -33,8 +37,15 @@ export async function registerServiceWorker() {
   return false;
 }
 
+// Verificar si la plataforma actual es una aplicación móvil
+export function isMobileApp() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window as any).Capacitor !== undefined;
+}
+
+// Comprobar citas para el día siguiente (para navegadores web)
 export async function checkNextDayAppointments(bike: any) {
-  if (!bike?.next_check_date) return;
+  if (!bike?.next_check_date || isMobileApp()) return;
 
   try {
     const appointmentDate = new Date(bike.next_check_date);

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { registerServiceWorker } from "@/utils/notifications";
+import { initPushNotifications } from "@/utils/mobileNotifications";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import BikeDetail from "./pages/BikeDetail";
@@ -21,7 +22,17 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    registerServiceWorker();
+    // Detectar si estamos en un entorno móvil o web
+    const isMobileApp = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window as any).Capacitor !== undefined;
+    
+    if (isMobileApp) {
+      // Inicializar notificaciones móviles si estamos en app capacitor
+      initPushNotifications();
+    } else {
+      // Inicializar notificaciones web
+      registerServiceWorker();
+    }
   }, []);
 
   return (

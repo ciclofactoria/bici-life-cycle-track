@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import BikeHeader from './BikeHeader';
 import BikeStats from './BikeStats';
 import MaintenanceHistory from './MaintenanceHistory';
 import { MaintenanceProps } from '@/components/MaintenanceItem';
 import { format } from 'date-fns';
+import { checkNextDayAppointments } from '@/utils/notifications';
+import { checkNextDayAppointmentsMobile } from '@/utils/mobileNotifications';
+import { isMobileApp } from '@/utils/notifications';
 
 interface BikeDetailContentProps {
   bike: {
@@ -47,6 +50,15 @@ const BikeDetailContent = ({
       }
     })() : 
     undefined;
+
+  // Verificar notificaciones cuando el componente se monta
+  useEffect(() => {
+    if (isMobileApp()) {
+      checkNextDayAppointmentsMobile(bike);
+    } else {
+      checkNextDayAppointments(bike);
+    }
+  }, [bike]);
 
   return (
     <div className="pb-16">
