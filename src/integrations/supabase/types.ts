@@ -148,6 +148,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           email: string | null
+          fcm_token: string | null
           full_name: string | null
           id: string
           strava_access_token: string | null
@@ -160,6 +161,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          fcm_token?: string | null
           full_name?: string | null
           id: string
           strava_access_token?: string | null
@@ -172,6 +174,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          fcm_token?: string | null
           full_name?: string | null
           id?: string
           strava_access_token?: string | null

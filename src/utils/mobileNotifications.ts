@@ -9,9 +9,15 @@ const saveTokenToSupabase = async (token: string) => {
     if (!user) return;
 
     // Guardar el token FCM en el perfil del usuario
-    await supabase.from('profiles')
+    const { error } = await supabase
+      .from('profiles')
       .update({ fcm_token: token })
       .eq('id', user.id);
+    
+    if (error) {
+      console.error('Error al guardar token FCM:', error);
+      return;
+    }
     
     console.log('Token FCM guardado en Supabase');
   } catch (error) {
