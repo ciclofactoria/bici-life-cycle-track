@@ -34,22 +34,22 @@ const BikeHeader = ({
       
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
-          className="bg-white/80 backdrop-blur-sm"
+          className="bg-secondary/90 hover:bg-secondary"
           onClick={onBack}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex gap-2">
           <Button
-            variant="ghost"
-            className="bg-white/80 backdrop-blur-sm"
+            variant="secondary"
+            className="bg-secondary/90 hover:bg-secondary"
             onClick={onEdit}
           >
             Editar
           </Button>
-          <div className="bg-white/80 backdrop-blur-sm rounded-md">
+          <div className="bg-secondary/90 hover:bg-secondary rounded-md">
             <BikeSettings bikeId={bikeId} />
           </div>
         </div>
