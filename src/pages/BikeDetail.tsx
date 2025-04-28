@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -324,6 +323,10 @@ const BikeDetail = () => {
     }
   };
 
+  const handleOpenNextAppointmentDialog = () => {
+    setIsNextAppointmentDialogOpen(true);
+  };
+
   if (isLoading) {
     return <div className="p-4 flex justify-center items-center h-screen">Cargando...</div>;
   }
@@ -363,6 +366,8 @@ const BikeDetail = () => {
         <BikeStats
           totalSpent={bike.totalSpent}
           lastMaintenance={bike.lastMaintenance}
+          nextCheckDate={bike.next_check_date ? format(new Date(bike.next_check_date), 'dd/MM/yyyy') : undefined}
+          onScheduleAppointment={handleOpenNextAppointmentDialog}
         />
         
         <MaintenanceHistory
@@ -401,7 +406,7 @@ const BikeDetail = () => {
       <NextAppointmentDialog
         open={isNextAppointmentDialogOpen}
         onOpenChange={setIsNextAppointmentDialogOpen}
-        currentDate={bike?.next_check_date ? new Date(bike.next_check_date.split('/').reverse().join('-')) : null}
+        currentDate={bike?.next_check_date ? new Date(bike.next_check_date) : undefined}
         onDateSelect={handleSetNextAppointment}
       />
       <BottomNav activePage="/" />

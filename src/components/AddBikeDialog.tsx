@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import BikeImageUpload from "@/components/bike/BikeImageUpload";
 
 interface BikeFormData {
   name: string;
@@ -22,6 +23,7 @@ interface AddBikeDialogProps {
 
 const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) => {
   const { toast } = useToast();
+  const [imageUrl, setImageUrl] = useState<string>('');
   const form = useForm<BikeFormData>({
     defaultValues: {
       name: '',
@@ -56,6 +58,7 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
           type: data.type,
           year: data.year || null,
           user_id: userId,
+          image: imageUrl || null,
         });
 
       if (error) throw error;
@@ -66,6 +69,7 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
       });
 
       form.reset();
+      setImageUrl('');
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -78,6 +82,10 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
     }
   };
 
+  const handleImageChange = (url: string) => {
+    setImageUrl(url);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -86,6 +94,10 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <BikeImageUpload 
+              currentImage={imageUrl} 
+              onImageChange={handleImageChange}
+            />
             <FormField
               control={form.control}
               name="name"
