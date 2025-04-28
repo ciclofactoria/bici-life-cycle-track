@@ -100,6 +100,23 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
     }
   };
 
+  const validateBikeId = (id: string): boolean => {
+    if (!id || id.trim() === '') {
+      console.error("No bike ID provided");
+      return false;
+    }
+    
+    // Basic UUID validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isValid = uuidRegex.test(id);
+    
+    if (!isValid) {
+      console.error("Invalid bike ID format:", id);
+    }
+    
+    return isValid;
+  };
+
   const onSubmit = async (data: MaintenanceFormData) => {
     if (isSubmitting) return;
     
@@ -107,22 +124,18 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
     
     try {
       // Validate that we have a bikeId
-      if (!bikeId || bikeId.trim() === '') {
-        throw new Error("No se ha seleccionado una bicicleta");
-      }
-      
-      // Check if bike_id is a valid UUID (basic validation)
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(bikeId)) {
-        console.error("Invalid bike ID format:", bikeId);
+      if (!validateBikeId(bikeId)) {
         toast({
           title: "Error",
           description: "ID de bicicleta no válido. Por favor, vuelve a intentarlo.",
           variant: "destructive"
         });
+        setIsSubmitting(false);
         return;
       }
 
+      console.log("Submitting maintenance with bike ID:", bikeId);
+      
       const totalCost = Number(data.labor_cost) + Number(data.materials_cost);
       
       const { data: user } = await supabase.auth.getUser();
@@ -131,7 +144,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
         throw new Error("Usuario no autenticado");
       }
       
-      const { error } = await supabase
+      const { data: result, error } = await supabase
         .from('maintenance')
         .insert({
           bike_id: bikeId,
@@ -143,12 +156,15 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
           cost: totalCost,
           notes: data.notes,
           user_id: user.user.id,
-        });
+        })
+        .select();
 
       if (error) {
         console.error("Error inserting maintenance:", error);
         throw error;
       }
+      
+      console.log("Maintenance record created:", result);
 
       toast({
         title: "Mantenimiento registrado",
