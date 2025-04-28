@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,90 +20,52 @@ const StravaCallback = () => {
       try {
         const code = searchParams.get('code');
         const error = searchParams.get('error');
-        const state = searchParams.get('state');
-        const scope = searchParams.get('scope');
+        const state = searchParams.get('state'); // Este es el email del usuario que enviamos
         
         console.log('StravaCallback: Datos recibidos:', { 
           code: code || 'ausente',
           error: error || 'ninguno',
-          state: state || 'ausente',
-          scope: scope || 'ausente'
+          state: state || 'ausente'
         });
 
         if (error) {
           throw new Error(`Strava devolvió un error: ${error}`);
         }
 
-        if (!code || !state) {
-          throw new Error('No se recibió el código de autorización o estado de Strava');
+        if (!code) {
+          throw new Error('No se recibió el código de autorización de Strava');
         }
 
-        const response = await fetch('https://www.strava.com/oauth/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            client_id: '157332',
-            client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5',
-            code,
-            grant_type: 'authorization_code'
-          })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(`Error al obtener token: ${data.message}`);
+        if (!user) {
+          throw new Error('Debes iniciar sesión para conectar con Strava');
         }
 
-        const { error: saveError } = await supabase.functions.invoke('save-strava-token', {
+        // Llamar a nuestra nueva función strava-auth para procesar todo
+        const { data, error: authError } = await supabase.functions.invoke('strava-auth', {
           body: {
-            email: state,
-            strava_user_id: data.athlete?.id?.toString(),
-            access_token: data.access_token,
-            refresh_token: data.refresh_token,
-            expires_at: data.expires_at
+            code: code,
+            user_id: user.id
           }
         });
 
-        if (saveError) {
-          throw new Error(`Error al guardar tokens: ${saveError.message}`);
+        if (authError) {
+          console.error('Error llamando a strava-auth:', authError);
+          throw new Error(`Error procesando autenticación de Strava: ${authError.message}`);
         }
 
-        const { data: gearData, error: gearError } = await supabase.functions.invoke('get-strava-gear', {
-          body: { access_token: data.access_token }
-        });
-
-        if (gearError) {
-          throw new Error(`Error al obtener bicicletas: ${gearError.message}`);
+        if (!data.success) {
+          throw new Error(data.error || 'Error desconocido conectando con Strava');
         }
 
-        const bikes = gearData.gear || [];
-        setImportedBikes(bikes.length);
-
-        for (const bike of bikes) {
-          const { error: bikeError } = await supabase
-            .from('bikes')
-            .upsert({
-              name: bike.name || `Bicicleta ${bike.id}`,
-              type: bike.type || 'Road',
-              strava_id: bike.id,
-              user_id: user?.id,
-              total_distance: bike.distance || 0,
-              image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
-            });
-
-          if (bikeError) {
-            console.error('Error importing bike:', bikeError);
-          }
-        }
+        // Actualizar el estado con el número de bicicletas importadas
+        setImportedBikes(data.importedBikes || 0);
 
         toast({
           title: 'Conexión exitosa',
-          description: `Se importaron ${bikes.length} bicicletas desde Strava`,
+          description: `Se importaron ${data.importedBikes || 0} bicicletas desde Strava`,
         });
 
+        // Esperar un breve momento para mostrar el mensaje de éxito
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 1500);

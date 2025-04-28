@@ -44,7 +44,9 @@ const More = () => {
     const scope = 'read,activity:read_all';
     
     // Use the full URL for the redirect (including https://)
-    const redirectUri = encodeURIComponent("https://lovable.dev");
+    // IMPORTANTE: Aseguramos que la URL de redirección incluya la ruta /strava-callback
+    // La URL de redirección debe ser una ruta absoluta completa
+    const redirectUri = encodeURIComponent("https://lovable.dev/strava-callback");
     
     console.log("URL de redirección para Strava:", redirectUri);
     
@@ -53,8 +55,7 @@ const More = () => {
     
     console.log("URL completa de autorización Strava:", authUrl);
     
-    // Open in external browser by using window.location.href
-    // This ensures the URL opens in the device's default browser instead of within an iframe
+    // Open in external browser
     window.open(authUrl, '_blank');
   };
 

@@ -2,153 +2,33 @@
 project_id = "tyqmfhtfvrffkaqttbcf"
 
 [api]
-port = 54321
-schemas = ["public", "storage", "graphql_public"]
-extra_search_path = ["public", "extensions"]
-max_rows = 1000
+enabled = true
 
 [db]
-port = 54322
-major_version = 15
+enabled = true
+
+[realtime]
+enabled = true
+wal_level = "logical"
 
 [studio]
-port = 54323
-
-[inbucket]
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
-
-[storage]
-file_size_limit = "50MiB"
+enabled = true
 
 [auth]
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000", "https://lovable.dev"]
-jwt_expiry = 3600
-enable_signup = true
-double_confirm_changes = true
-enable_confirmations = false
-
-[auth.external.apple]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.azure]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.bitbucket]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.discord]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.facebook]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.github]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.gitlab]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.google]
 enabled = true
-client_id = "991968033828-ke6i3tul92avh7j65kuipddtg875hci2.apps.googleusercontent.com"
-secret = "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"
-redirect_uri = "https://tyqmfhtfvrffkaqttbcf.supabase.co/auth/v1/callback"
-url = ""
 
-[auth.external.keycloak]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.linkedin]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.notion]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.twitch]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.twitter]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.slack]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.spotify]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.workos]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.zoom]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
+[storage]
+enabled = true
 
 [functions]
+[functions.save-strava-token]
+verify_jwt = true
+
+[functions.refresh-strava-token]
+verify_jwt = true
+
+[functions.get-strava-gear]
+verify_jwt = true
+
 [functions.strava-auth]
 verify_jwt = true
