@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -6,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const STRAVA_CLIENT_ID = '117183';
+const STRAVA_CLIENT_ID = '157332';
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
