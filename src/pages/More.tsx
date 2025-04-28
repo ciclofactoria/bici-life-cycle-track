@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, Archive, FileText, Bike, LogOut, Tool } from 'lucide-react';
+import { Settings, Archive, FileText, Bike, LogOut, Wrench } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -100,7 +100,7 @@ const More = () => {
             onClick={handleStravaConnect}
           />
           <SettingsItem 
-            icon={Tool}
+            icon={Wrench}
             label="Prueba de conexión Strava"
             onClick={() => navigate('/strava-test')}
           />
