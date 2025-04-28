@@ -47,29 +47,38 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
     if (!files || files.length === 0) return;
     
     const file = files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `bikes/${fileName}`;
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    
+    if (!fileExt || !allowedExtensions.includes(fileExt)) {
+      toast({
+        title: "Formato no válido",
+        description: "Por favor sube una imagen en formato jpg, png, gif o webp",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "Archivo muy grande",
+        description: "El tamaño máximo permitido es 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsUploading(true);
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
 
     try {
-      // Create bucket if it doesn't exist
-      const { data: bucketExists } = await supabase.storage.getBucket('bike-images');
-      if (!bucketExists) {
-        await supabase.storage.createBucket('bike-images', {
-          public: true
-        });
-      }
-      
-      // Upload the file
       const { error: uploadError } = await supabase.storage
         .from('bike-images')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
       const { data: publicUrl } = supabase.storage
         .from('bike-images')
         .getPublicUrl(filePath);
@@ -78,6 +87,11 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
         setImageUrl(publicUrl.publicUrl);
         form.setValue('image', publicUrl.publicUrl);
       }
+
+      toast({
+        title: "Imagen subida",
+        description: "La imagen se ha subido correctamente",
+      });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
@@ -158,11 +172,14 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
                 <input
                   id="picture"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={handleImageUpload}
                   disabled={isUploading}
                   className="hidden"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Formatos permitidos: JPG, PNG, GIF, WEBP. Máximo 5MB
+                </p>
               </div>
             </div>
             
