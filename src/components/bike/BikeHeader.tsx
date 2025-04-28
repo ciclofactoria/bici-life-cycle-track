@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BikeSettings } from "./BikeSettings";
 
 interface BikeHeaderProps {
   image: string;
@@ -10,40 +10,56 @@ interface BikeHeaderProps {
   year: number;
   onBack: () => void;
   onEdit: () => void;
+  bikeId: string;
 }
 
-const BikeHeader = ({ image, name, type, year, onBack, onEdit }: BikeHeaderProps) => {
+const BikeHeader = ({
+  image,
+  name,
+  type,
+  year,
+  onBack,
+  onEdit,
+  bikeId
+}: BikeHeaderProps) => {
   return (
-    <div className="relative aspect-video w-full">
-      <img 
-        src={image} 
-        alt={name} 
-        className="object-cover w-full h-full"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent">
-        <div className="flex justify-between items-start p-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={onBack}
-            className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 rounded-full"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 rounded-full"
+    <div className="relative">
+      <div className="h-48 bg-gray-200">
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      
+      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="bg-white/80 backdrop-blur-sm"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            className="bg-white/80 backdrop-blur-sm"
             onClick={onEdit}
           >
-            <Settings className="h-5 w-5" />
+            Editar
           </Button>
+          <div className="bg-white/80 backdrop-blur-sm rounded-md">
+            <BikeSettings bikeId={bikeId} />
+          </div>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent pt-16 px-4 pb-4">
-        <h1 className="text-2xl font-bold">{name}</h1>
-        <p className="text-muted-foreground">{type}, {year}</p>
+      
+      <div className="p-4 bg-background border-b">
+        <h1 className="text-2xl font-bold mb-1">{name}</h1>
+        <p className="text-muted-foreground">
+          {type} • {year}
+        </p>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import BikeHeader from './BikeHeader';
 import BikeStats from './BikeStats';
@@ -51,7 +50,6 @@ const BikeDetailContent = ({
     })() : 
     undefined;
 
-  // Verificar notificaciones cuando el componente se monta
   useEffect(() => {
     if (isMobileApp()) {
       checkNextDayAppointmentsMobile(bike);
@@ -69,6 +67,7 @@ const BikeDetailContent = ({
         year={bike.year}
         onBack={onBack}
         onEdit={onEdit}
+        bikeId={bike.id}
       />
       
       <div className="bici-container">

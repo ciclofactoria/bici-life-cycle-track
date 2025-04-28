@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const STRAVA_CLIENT_ID = '117183';
 
@@ -27,6 +27,7 @@ const SettingsItem = ({ icon: Icon, label, onClick }: {
 const More = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleStravaConnect = async () => {
     if (!user) {
@@ -80,7 +81,7 @@ const More = () => {
           <SettingsItem 
             icon={Archive}
             label="Bicicletas Archivadas"
-            onClick={() => console.log('Archived bikes clicked')}
+            onClick={() => navigate('/archived-bikes')}
           />
           <SettingsItem 
             icon={FileText}
