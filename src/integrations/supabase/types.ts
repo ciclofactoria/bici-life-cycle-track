@@ -18,6 +18,7 @@ export type Database = {
           last_maintenance_date: string | null
           name: string
           next_check_date: string | null
+          next_check_notes: string | null
           strava_id: string | null
           total_distance: number | null
           type: string
@@ -33,6 +34,7 @@ export type Database = {
           last_maintenance_date?: string | null
           name: string
           next_check_date?: string | null
+          next_check_notes?: string | null
           strava_id?: string | null
           total_distance?: number | null
           type: string
@@ -48,6 +50,7 @@ export type Database = {
           last_maintenance_date?: string | null
           name?: string
           next_check_date?: string | null
+          next_check_notes?: string | null
           strava_id?: string | null
           total_distance?: number | null
           type?: string

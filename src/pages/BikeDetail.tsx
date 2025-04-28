@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns'; // Added missing import
+import { format } from 'date-fns';
 import { generateMaintenancePDF } from '@/utils/pdfGenerator';
 import { Button } from "@/components/ui/button";
 import BikeDetailContent from '@/components/bike/BikeDetailContent';
@@ -162,7 +161,7 @@ const BikeDetail = () => {
     }
   };
 
-  const handleSetNextAppointment = async (date: Date | undefined) => {
+  const handleSetNextAppointment = async (date: Date | undefined, notes: string) => {
     if (!realBikeId || !date) return;
 
     try {
@@ -171,7 +170,8 @@ const BikeDetail = () => {
       const { error } = await supabase
         .from('bikes')
         .update({
-          next_check_date: formattedDate
+          next_check_date: formattedDate,
+          next_check_notes: notes
         })
         .eq('id', realBikeId);
 
@@ -185,7 +185,8 @@ const BikeDetail = () => {
       if (bike) {
         setBike({
           ...bike,
-          next_check_date: formattedDate
+          next_check_date: formattedDate,
+          next_check_notes: notes
         });
       }
     } catch (error) {
@@ -264,7 +265,8 @@ const BikeDetail = () => {
         open={isNextAppointmentDialogOpen}
         onOpenChange={setIsNextAppointmentDialogOpen}
         currentDate={bike.next_check_date ? new Date(bike.next_check_date) : undefined}
-        onDateSelect={handleSetNextAppointment}
+        currentNotes={bike.next_check_notes}
+        onSave={handleSetNextAppointment}
       />
       <BottomNav activePage="/" />
     </>

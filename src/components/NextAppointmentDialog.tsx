@@ -3,40 +3,45 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { CalendarClock } from 'lucide-react';
 
 interface NextAppointmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentDate?: Date | null;
-  onDateSelect: (date: Date | undefined) => void;
+  currentNotes?: string | null;
+  onSave: (date: Date | undefined, notes: string) => void;
 }
 
 const NextAppointmentDialog = ({ 
   open, 
   onOpenChange, 
   currentDate, 
-  onDateSelect 
+  currentNotes,
+  onSave 
 }: NextAppointmentDialogProps) => {
-  // Make sure we're using a valid date object
   const validCurrentDate = currentDate && !isNaN(currentDate.getTime()) ? currentDate : undefined;
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(validCurrentDate);
+  const [notes, setNotes] = React.useState(currentNotes || '');
 
-  // Reset the selected date when the dialog opens with a new current date
+  // Reset form when dialog opens with new data
   React.useEffect(() => {
     if (open) {
       setSelectedDate(validCurrentDate);
+      setNotes(currentNotes || '');
     }
-  }, [open, validCurrentDate]);
+  }, [open, validCurrentDate, currentNotes]);
 
   const handleSave = () => {
-    onDateSelect(selectedDate);
+    onSave(selectedDate, notes);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Programar próxima cita</DialogTitle>
         </DialogHeader>
@@ -50,6 +55,19 @@ const NextAppointmentDialog = ({
             initialFocus
             className="rounded-md border pointer-events-auto"
           />
+        </div>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notas adicionales</Label>
+            <Textarea
+              id="notes"
+              placeholder="Taller, tipo de reparación, etc."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end gap-4">
