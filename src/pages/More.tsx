@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -43,10 +42,9 @@ const More = () => {
     // Only request scopes for reading athlete info and activities
     const scope = encodeURIComponent('read,activity:read_all');
     
-    // Use the full URL for the redirect (including https://)
-    // IMPORTANTE: Aseguramos que la URL de redirección incluya la ruta /strava-callback
-    // La URL de redirección debe ser una ruta absoluta completa incluyendo el dominio
-    const redirectUri = encodeURIComponent(window.location.origin + "/strava-callback");
+    // IMPORTANTE: Usa exactamente la misma URL de redirección que registraste en la consola de desarrolladores de Strava
+    // Esta URL debe estar registrada en la aplicación Strava
+    const redirectUri = encodeURIComponent("https://6eada54a-286e-4a45-a44f-46739891e395.lovableproject.com/strava-callback");
     
     console.log("URL de redirección para Strava:", redirectUri);
     
