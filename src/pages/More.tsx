@@ -41,12 +41,12 @@ const More = () => {
     }
 
     // Only request scopes for reading athlete info and activities
-    const scope = 'read,activity:read_all';
+    const scope = encodeURIComponent('read,activity:read_all');
     
     // Use the full URL for the redirect (including https://)
     // IMPORTANTE: Aseguramos que la URL de redirección incluya la ruta /strava-callback
-    // La URL de redirección debe ser una ruta absoluta completa
-    const redirectUri = encodeURIComponent("https://lovable.dev/strava-callback");
+    // La URL de redirección debe ser una ruta absoluta completa incluyendo el dominio
+    const redirectUri = encodeURIComponent(window.location.origin + "/strava-callback");
     
     console.log("URL de redirección para Strava:", redirectUri);
     
@@ -55,7 +55,7 @@ const More = () => {
     
     console.log("URL completa de autorización Strava:", authUrl);
     
-    // Open in external browser
+    // Open in external browser (new tab or window) to avoid X-Frame-Options: DENY issue
     window.open(authUrl, '_blank');
   };
 

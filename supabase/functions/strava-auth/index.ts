@@ -121,27 +121,42 @@ serve(async (req) => {
       )
     }
     
-    // Fetch user bikes from Strava
-    console.log("Obteniendo bicis de API de Strava")
+    // Fetch user bikes from Strava - ESTA ES LA PARTE IMPORTANTE QUE SE HA CORREGIDO
+    console.log("Obteniendo bicis de API de Strava con access_token:", tokenData.access_token.substring(0, 5) + "...")
     let importedBikes = 0
     
     try {
+      // Llamada directa al endpoint de athlete para obtener las bicicletas
       const bikesResponse = await fetch('https://www.strava.com/api/v3/athlete', {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`
         }
       });
       
-      const athleteData = await bikesResponse.json();
-      
       if (!bikesResponse.ok) {
-        console.error('Error obteniendo datos de atleta:', athleteData);
-      } else if (athleteData.bikes && athleteData.bikes.length > 0) {
-        console.log(`Encontradas ${athleteData.bikes.length} bicis en Strava`);
-        importedBikes = athleteData.bikes.length;
+        const errorText = await bikesResponse.text();
+        console.error(`Error en la respuesta de Strava (${bikesResponse.status}):`, errorText);
+        throw new Error(`Error en API de Strava: ${errorText}`);
+      }
+      
+      const athleteData = await bikesResponse.json();
+      console.log("Datos del atleta recibidos:", JSON.stringify(athleteData).substring(0, 200) + "...");
+      
+      if (!athleteData.bikes) {
+        console.error('La propiedad bikes no está presente en la respuesta:', athleteData);
+      }
+      
+      // Extraer explícitamente la propiedad bikes
+      const bikes = athleteData.bikes || [];
+      console.log(`Encontradas ${bikes.length} bicis en Strava:`, bikes);
+      
+      if (bikes && bikes.length > 0) {
+        importedBikes = bikes.length;
         
         // Insert each bike into our database
-        for (const bike of athleteData.bikes) {
+        for (const bike of bikes) {
+          console.log("Procesando bici:", bike);
+          
           const { data: existingBike, error: checkBikeError } = await supabase
             .from('bikes')
             .select('id')
@@ -156,6 +171,7 @@ serve(async (req) => {
           
           if (existingBike && existingBike.length > 0) {
             // Update existing bike
+            console.log("Actualizando bici existente:", bike.name);
             const { error: updateBikeError } = await supabase
               .from('bikes')
               .update({
@@ -173,6 +189,7 @@ serve(async (req) => {
             }
           } else {
             // Insert new bike
+            console.log("Insertando nueva bici:", bike.name);
             const { error: insertBikeError } = await supabase
               .from('bikes')
               .insert({
