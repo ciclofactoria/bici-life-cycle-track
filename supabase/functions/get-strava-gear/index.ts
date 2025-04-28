@@ -14,14 +14,14 @@ serve(async (req) => {
   try {
     const { access_token } = await req.json()
     
-    console.log("Edge Function get-strava-gear llamada con token:", 
-      access_token ? `${access_token.substring(0, 5)}...` : "token ausente");
+    console.log("Edge Function get-strava-gear called with token:", 
+      access_token ? `${access_token.substring(0, 5)}...` : "token absent");
     
     if (!access_token) {
       throw new Error('Access token is required')
     }
 
-    console.log("Llamando a API de Strava para obtener datos del atleta");
+    console.log("Calling Strava API to get athlete data");
     const response = await fetch('https://www.strava.com/api/v3/athlete', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
@@ -29,50 +29,50 @@ serve(async (req) => {
     })
 
     const responseText = await response.text();
-    console.log("Respuesta bruta de Strava API:", responseText);
+    console.log("Raw response from Strava API:", responseText);
     
     let data;
     try {
       data = JSON.parse(responseText);
       
-      console.log("Respuesta de Strava API parseada:", {
+      console.log("Parsed Strava API response:", {
         status: response.status,
         ok: response.ok,
-        id: data.id || "ausente",
-        username: data.username || "ausente",
-        firstname: data.firstname || "ausente",
-        lastname: data.lastname || "ausente",
-        tiene_bicis: Boolean(data.bikes) && Array.isArray(data.bikes),
-        numero_bicis: data.bikes ? data.bikes.length : 0
+        id: data.id || "absent",
+        username: data.username || "absent",
+        firstname: data.firstname || "absent",
+        lastname: data.lastname || "absent",
+        has_bikes: Boolean(data.bikes) && Array.isArray(data.bikes),
+        bikes_count: data.bikes ? data.bikes.length : 0
       });
       
       if (data.bikes && data.bikes.length > 0) {
-        console.log("Bicis encontradas:", data.bikes);
+        console.log("Bikes found:", data.bikes);
       } else {
-        console.log("No se encontraron bicicletas en los datos del atleta");
+        console.log("No bikes found in athlete data");
       }
     } catch (error) {
-      console.error("Error al parsear respuesta de Strava:", error);
-      throw new Error(`Error al parsear respuesta de Strava: ${responseText}`);
+      console.error("Error parsing Strava response:", error);
+      throw new Error(`Error parsing Strava response: ${responseText}`);
     }
 
     if (!response.ok) {
-      console.error("Error de API de Strava:", {
+      console.error("Strava API error:", {
         status: response.status,
-        message: data.message || "Error desconocido"
+        message: data.message || "Unknown error"
       });
       throw new Error(`Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`)
     }
 
-    // Extract only the bikes array from the athlete data
+    // Extract only the bikes array from athlete data
     const result = { gear: data.bikes || [] };
-    console.log(`Devolviendo ${result.gear.length} bicicletas`);
+    console.log(`Returning ${result.gear.length} bikes`);
     
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error("Error en get-strava-gear:", error.message);
+    console.error("Error in get-strava-gear:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
