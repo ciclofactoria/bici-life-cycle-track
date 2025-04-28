@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns'; // Added missing import
 import { generateMaintenancePDF } from '@/utils/pdfGenerator';
 import { Button } from "@/components/ui/button";
 import BikeDetailContent from '@/components/bike/BikeDetailContent';
