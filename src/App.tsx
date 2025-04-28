@@ -85,15 +85,15 @@ const App = () => {
 const RootRouteHandler = () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
+  const scope = params.get('scope');
+  const state = params.get('state');
   
-  // If there's a code in the URL, this is likely a Strava redirect
-  if (code) {
-    console.log("Detectado código de Strava en URL raíz:", { code });
-    // Get the state from localStorage instead of URL
-    const state = localStorage.getItem('stravaAuthState');
-    localStorage.removeItem('stravaAuthState'); // Clean up
+  // If there's a code in the URL and scope includes 'read' or 'activity', this is likely a Strava redirect
+  if (code && scope && (scope.includes('read') || scope.includes('activity'))) {
+    console.log("Detectado código de Strava en URL raíz:", { code, scope, state });
     
-    return <Navigate to={`/strava-callback?code=${code}&state=${state || ''}`} replace />;
+    // Redirect to the strava-callback page with all the parameters
+    return <Navigate to={`/strava-callback?code=${code}&scope=${scope}&state=${state || ''}`} replace />;
   }
   
   // Otherwise, show the normal home page

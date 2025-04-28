@@ -37,14 +37,6 @@ const StravaCallback = () => {
           throw new Error('Debes iniciar sesión para conectar con Strava');
         }
 
-        // Verify that state matches the user ID (or whatever we stored)
-        if (state && state !== user.id) {
-          console.warn('El estado no coincide, posible problema de falsificación', {
-            receivedState: state,
-            expectedState: user.id
-          });
-        }
-
         console.log('Procesando callback de Strava con código:', code);
 
         // Exchange the code for tokens using the edge function
@@ -52,7 +44,6 @@ const StravaCallback = () => {
           body: { 
             code, 
             user_id: user.id,
-            redirect_uri: 'lovable.dev' // Pass the same redirect_uri used in the auth request
           }
         });
 

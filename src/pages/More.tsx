@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -44,8 +45,16 @@ const More = () => {
     // Store state in localStorage to retrieve after redirection
     localStorage.setItem('stravaAuthState', user.id);
     
-    // Use just the domain for the redirect URL as required by Strava
-    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=lovable.dev&response_type=code&scope=${scope}`;
+    // Use absolute URLs to avoid redirection issues
+    // IMPORTANT: This should match exactly what's configured in Strava dashboard
+    
+    // Get the current domain
+    const currentDomain = window.location.origin;
+    const redirectUri = encodeURIComponent(currentDomain);
+    
+    console.log("Usando dominio para redirección:", currentDomain);
+    
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.id}`;
     
     console.log("Redirigiendo a Strava:", authUrl);
     window.location.href = authUrl;

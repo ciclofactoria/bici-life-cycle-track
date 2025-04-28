@@ -58,10 +58,8 @@ serve(async (req) => {
 
     console.log("Exchanging code for token with Strava API")
     
-    // Use the same redirect_uri that was used in the authorization request
-    const finalRedirectUri = redirect_uri || 'lovable.dev'
-    
-    // Exchange code for tokens
+    // Exchange code for tokens - IMPORTANT: DO NOT send redirect_uri in token exchange
+    // Strava doesn't expect the redirect_uri during token exchange, only during authorization
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: {
@@ -71,8 +69,7 @@ serve(async (req) => {
         client_id: STRAVA_CLIENT_ID,
         client_secret: STRAVA_CLIENT_SECRET,
         code: code,
-        grant_type: 'authorization_code',
-        redirect_uri: finalRedirectUri, // Include the redirect_uri in the token exchange
+        grant_type: 'authorization_code'
       }),
     })
 
@@ -90,8 +87,7 @@ serve(async (req) => {
           requestBody: {
             client_id: STRAVA_CLIENT_ID,
             code: code,
-            grant_type: 'authorization_code',
-            redirect_uri: finalRedirectUri,
+            grant_type: 'authorization_code'
           }
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
