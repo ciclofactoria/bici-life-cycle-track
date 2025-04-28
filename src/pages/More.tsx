@@ -46,15 +46,15 @@ const More = () => {
     // Store state in localStorage to retrieve after redirection
     localStorage.setItem('stravaAuthState', user.id);
     
-    // Use "lovable.dev" as domain as configured in Strava
-    const redirectUri = encodeURIComponent('lovable.dev');
+    // Use the full URL for redirect - VERY IMPORTANT
+    const redirectUri = encodeURIComponent(`${window.location.origin}/strava-callback`);
     
-    console.log("Usando dominio para redirección configurado en Strava:", redirectUri);
-    console.log("Usando Client ID para Strava:", STRAVA_CLIENT_ID);
+    console.log("URL de redirección para Strava:", redirectUri);
+    console.log("ID de cliente para Strava:", STRAVA_CLIENT_ID);
     
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.id}`;
     
-    console.log("Redirigiendo a Strava para importar bicicletas:", authUrl);
+    console.log("URL completa de autorización Strava:", authUrl);
     window.location.href = authUrl;
   };
 

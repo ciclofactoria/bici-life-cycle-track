@@ -22,12 +22,13 @@ const StravaCallback = () => {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const scope = searchParams.get('scope');
+        const fullUrl = window.location.href;
 
-        console.log('StravaCallback: Datos recibidos:', { 
-          code: code ? 'presente' : 'ausente', 
+        console.log('StravaCallback: Datos recibidos completos:', { 
+          code: code || 'ausente',
           state: state || 'ausente',
           scope: scope || 'ausente',
-          fullUrl: window.location.href
+          fullUrl
         });
 
         if (!code) {
@@ -45,17 +46,23 @@ const StravaCallback = () => {
           body: { 
             code, 
             user_id: user.id,
+            redirect_uri: `${window.location.origin}/strava-callback`
           }
         });
 
-        console.log('Respuesta de edge function:', { data, error: exchangeError });
+        console.log('Respuesta completa de edge function:', data);
 
         if (exchangeError) {
-          console.error('Error al intercambiar código por token:', exchangeError);
+          console.error('Error detallado al intercambiar código por token:', exchangeError);
           throw new Error('Error al intercambiar el código de autorización por el token de acceso');
         }
 
-        if (data?.success) {
+        if (!data || data.error) {
+          console.error('Error en la respuesta de la edge function:', data?.error || 'Respuesta vacía');
+          throw new Error(data?.error || 'Error en la respuesta del servidor');
+        }
+
+        if (data.success) {
           // Si la importación fue exitosa, mostramos mensaje
           setImportedBikes(data.importedBikes || 0);
           toast({
@@ -71,7 +78,7 @@ const StravaCallback = () => {
           navigate('/', { replace: true });
         }, 1500);
       } catch (error: any) {
-        console.error('Error durante el callback de Strava:', error);
+        console.error('Error completo durante el callback de Strava:', error);
         setError(error.message || 'Error al importar bicicletas de Strava');
         toast({
           title: 'Error de conexión',
