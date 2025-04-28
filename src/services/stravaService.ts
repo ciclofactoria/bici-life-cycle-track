@@ -122,14 +122,3 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
   console.log(`Se importaron ${importedCount} de ${bikes.length} bicicletas`);
   return importedCount;
 };
-
-export const initiateStravaAuthorization = (userEmail: string) => {
-  const clientId = '157332';
-  const redirectUri = encodeURIComponent(window.location.href);
-  const scope = 'read,profile:read_all';
-  
-  const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${userEmail}`;
-  
-  console.log("Redirigiendo a Strava para autorización:", authUrl);
-  window.location.href = authUrl;
-};
