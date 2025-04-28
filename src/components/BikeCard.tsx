@@ -29,7 +29,7 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
       </div>
       
       <CardContent className="pt-4">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col items-center">
             <ChartBar className="h-5 w-5 text-bicicare-green mb-1" />
             <p className="text-xs text-muted-foreground">Gasto Total</p>
@@ -40,14 +40,12 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
             <p className="text-xs text-muted-foreground">Último Servicio</p>
             <p className="font-medium">{bike.lastMaintenance}</p>
           </div>
-        </div>
-        {bike.next_check_date && (
-          <div className="flex flex-col items-center col-span-2 mt-2 pt-2 border-t">
+          <div className="flex flex-col items-center">
             <CalendarClock className="h-5 w-5 text-bicicare-green mb-1" />
             <p className="text-xs text-muted-foreground">Próxima Cita</p>
-            <p className="font-medium">{bike.next_check_date}</p>
+            <p className="font-medium">{bike.next_check_date || 'No programada'}</p>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
