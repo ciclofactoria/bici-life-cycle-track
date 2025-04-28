@@ -47,7 +47,7 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/strava-callback" element={<StravaCallback />} />
-              {/* Handle Strava redirect at the root */}
+              {/* Handle Strava redirect at root domain level */}
               <Route path="/" element={
                 <RootRouteHandler />
               } />
@@ -89,11 +89,18 @@ const RootRouteHandler = () => {
   const state = params.get('state');
   
   // If there's a code in the URL and scope includes 'read' or 'activity', this is likely a Strava redirect
-  if (code && scope && (scope.includes('read') || scope.includes('activity'))) {
+  if (code) {
     console.log("Detectado código de Strava en URL raíz:", { code, scope, state });
     
     // Redirect to the strava-callback page with all the parameters
-    return <Navigate to={`/strava-callback?code=${code}&scope=${scope}&state=${state || ''}`} replace />;
+    const redirectUrl = `/strava-callback?code=${code}`;
+    
+    // Add scope and state if they exist
+    const fullRedirectUrl = scope 
+      ? `${redirectUrl}&scope=${encodeURIComponent(scope || '')}&state=${encodeURIComponent(state || '')}`
+      : redirectUrl;
+      
+    return <Navigate to={fullRedirectUrl} replace />;
   }
   
   // Otherwise, show the normal home page

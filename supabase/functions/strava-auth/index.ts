@@ -19,12 +19,11 @@ serve(async (req) => {
   try {
     // Parse request body
     const requestData = await req.json()
-    const { code, user_id, redirect_uri } = requestData
+    const { code, user_id } = requestData
     
     console.log("Strava auth function called with:", { 
       code: code ? "PRESENT" : "MISSING", 
-      user_id,
-      redirect_uri
+      user_id
     })
     
     if (!code || !user_id) {
