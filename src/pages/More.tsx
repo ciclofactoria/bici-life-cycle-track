@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -40,21 +39,20 @@ const More = () => {
       return;
     }
 
-    // Only request scopes for reading athlete info and activities
-    const scope = 'read,activity:read_all';
+    // Use the corrected scope as provided, which includes profile:read_all
+    const scope = 'read,profile:read_all';
     
-    // Use the full URL for the redirect (including https://)
-    const redirectUri = encodeURIComponent("https://lovable.dev");
+    // Use the specific redirect URI provided
+    const redirectUri = encodeURIComponent("https://lovable.dev/projects/6eada54a-286e-4a45-a44f-46739891e395");
     
     console.log("URL de redirección para Strava:", redirectUri);
     
-    // Construct the authorization URL with the proper redirect URI
+    // Construct the authorization URL with the proper redirect URI and scopes
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.email}`;
     
     console.log("URL completa de autorización Strava:", authUrl);
     
-    // Open in external browser by using window.location.href
-    // This ensures the URL opens in the device's default browser instead of within an iframe
+    // Open in external browser by using window.open
     window.open(authUrl, '_blank');
   };
 
