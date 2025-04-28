@@ -32,6 +32,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
   const { toast } = useToast();
   const [newTypeName, setNewTypeName] = useState("");
   const [showNewTypeInput, setShowNewTypeInput] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
@@ -100,16 +101,23 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
   };
 
   const onSubmit = async (data: MaintenanceFormData) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
     try {
-      if (!bikeId) {
+      // Validate that we have a bikeId
+      if (!bikeId || bikeId.trim() === '') {
         throw new Error("No se ha seleccionado una bicicleta");
       }
       
-      // Check if bike_id is a valid UUID
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(bikeId)) {
+      // Check if bike_id is a valid UUID (basic validation)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(bikeId)) {
+        console.error("Invalid bike ID format:", bikeId);
         toast({
           title: "Error",
-          description: "ID de bicicleta no válido",
+          description: "ID de bicicleta no válido. Por favor, vuelve a intentarlo.",
           variant: "destructive"
         });
         return;
@@ -137,7 +145,10 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
           user_id: user.user.id,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting maintenance:", error);
+        throw error;
+      }
 
       toast({
         title: "Mantenimiento registrado",
@@ -154,6 +165,8 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
         description: "No se pudo crear el registro de mantenimiento",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -315,7 +328,9 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Crear</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Creando...' : 'Crear'}
+              </Button>
             </div>
           </form>
         </Form>

@@ -21,23 +21,46 @@ const BikeDetail = () => {
   const [maintenance, setMaintenance] = useState<MaintenanceProps[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [realBikeId, setRealBikeId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Fetch the actual bike by the display ID to get the UUID
     const fetchBike = async () => {
+      setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        // First try to fetch by ID directly (in case it's already a UUID)
+        let { data, error } = await supabase
           .from('bikes')
           .select('*')
           .eq('id', id)
           .single();
         
         if (error) {
-          // If not found by UUID, try to find by numeric ID or display ID
-          // This is a fallback for development with mock data
-          console.log('Using mock bike data as fallback');
-          setRealBikeId(id);
-        } else if (data) {
+          // If that fails, try to fetch by numeric ID (fallback for non-UUID IDs)
+          console.log('Could not find bike by direct ID, trying other methods');
+          
+          // Get all bikes for the current user and find the one with matching display ID
+          const { data: userBikes, error: userBikesError } = await supabase
+            .from('bikes')
+            .select('*');
+            
+          if (userBikesError) {
+            throw userBikesError;
+          }
+          
+          // Find the bike that matches either by ID or by position in the list
+          data = userBikes.find((b, index) => b.id === id || (id && index + 1 === parseInt(id)));
+          
+          if (!data) {
+            // If still not found, use mock data as fallback
+            console.log('Using mock bike data as fallback');
+            setRealBikeId(id);
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        if (data) {
           // Map the Supabase data to match our Bike interface
           const mappedBike = {
             id: data.id,
@@ -52,6 +75,45 @@ const BikeDetail = () => {
           
           setBike(mappedBike);
           setRealBikeId(data.id);
+          
+          // Now fetch maintenance records for this bike
+          const { data: maintenanceData, error: maintenanceError } = await supabase
+            .from('maintenance')
+            .select('*')
+            .eq('bike_id', data.id)
+            .order('date', { ascending: false });
+            
+          if (!maintenanceError && maintenanceData) {
+            const formattedMaintenance = maintenanceData.map(record => ({
+              id: record.id,
+              date: format(new Date(record.date), 'dd/MM/yyyy'),
+              type: record.type,
+              cost: record.cost,
+              notes: record.notes || '',
+              hasReceipt: record.has_receipt || false
+            }));
+            
+            setMaintenance(formattedMaintenance);
+            
+            // Calculate total spent
+            const totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
+            mappedBike.totalSpent = totalSpent;
+            setBike(mappedBike);
+          } else {
+            // Fallback to mock maintenance data
+            const filteredLogs = maintenanceLogs
+              .filter((log) => log.bikeId === id)
+              .map((log) => ({ 
+                id: log.id,
+                date: log.date,
+                type: log.type,
+                cost: log.cost,
+                notes: log.notes,
+                hasReceipt: log.hasReceipt
+              }));
+            
+            setMaintenance(filteredLogs);
+          }
         }
       } catch (error) {
         console.error('Error fetching bike:', error);
@@ -60,24 +122,13 @@ const BikeDetail = () => {
           description: "No se pudo cargar la bicicleta",
           variant: "destructive"
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (id) {
       fetchBike();
-      
-      const filteredLogs = maintenanceLogs
-        .filter((log) => log.bikeId === id)
-        .map((log) => ({ 
-          id: log.id,
-          date: log.date,
-          type: log.type,
-          cost: log.cost,
-          notes: log.notes,
-          hasReceipt: log.hasReceipt
-        }));
-      
-      setMaintenance(filteredLogs);
     }
   }, [id, toast]);
 
@@ -90,15 +141,52 @@ const BikeDetail = () => {
   };
 
   const handleMaintenanceSuccess = async () => {
-    // Here you would fetch the updated maintenance list
+    // Refetch bike and maintenance data to update the UI
     toast({
       title: "Registro creado",
       description: "El registro de mantenimiento se ha añadido correctamente",
     });
+    
+    // Reload data
+    if (realBikeId) {
+      try {
+        const { data: maintenanceData } = await supabase
+          .from('maintenance')
+          .select('*')
+          .eq('bike_id', realBikeId)
+          .order('date', { ascending: false });
+          
+        if (maintenanceData) {
+          const formattedMaintenance = maintenanceData.map(record => ({
+            id: record.id,
+            date: format(new Date(record.date), 'dd/MM/yyyy'),
+            type: record.type,
+            cost: record.cost,
+            notes: record.notes || '',
+            hasReceipt: record.has_receipt || false
+          }));
+          
+          setMaintenance(formattedMaintenance);
+          
+          // Update total spent
+          const totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
+          if (bike) {
+            const updatedBike = { ...bike, totalSpent };
+            setBike(updatedBike);
+          }
+        }
+      } catch (error) {
+        console.error('Error refreshing maintenance data:', error);
+      }
+    }
   };
 
+  if (isLoading) {
+    return <div className="p-4 flex justify-center items-center h-screen">Cargando...</div>;
+  }
+
   if (!bike) {
-    return <div>Bicicleta no encontrada</div>;
+    return <div className="p-4">Bicicleta no encontrada</div>;
   }
 
   return (
