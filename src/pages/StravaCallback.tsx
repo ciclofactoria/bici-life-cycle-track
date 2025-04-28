@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,73 +17,92 @@ const StravaCallback = () => {
   useEffect(() => {
     const handleStravaCallback = async () => {
       try {
-        // Get the authorization code from the URL
         const code = searchParams.get('code');
         const error = searchParams.get('error');
         const state = searchParams.get('state');
         const scope = searchParams.get('scope');
-        const fullUrl = window.location.href;
-
-        console.log('StravaCallback: Datos recibidos completos:', { 
+        
+        console.log('StravaCallback: Datos recibidos:', { 
           code: code || 'ausente',
           error: error || 'ninguno',
           state: state || 'ausente',
-          scope: scope || 'ausente',
-          fullUrl
+          scope: scope || 'ausente'
         });
 
-        // Check if Strava returned an error
         if (error) {
           throw new Error(`Strava devolvió un error: ${error}`);
         }
 
-        if (!code) {
-          throw new Error('No se recibió el código de autorización de Strava');
+        if (!code || !state) {
+          throw new Error('No se recibió el código de autorización o estado de Strava');
         }
 
-        if (!user) {
-          throw new Error('Debes iniciar sesión para conectar con Strava');
+        const response = await fetch('https://www.strava.com/oauth/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            client_id: '157332',
+            client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5',
+            code,
+            grant_type: 'authorization_code'
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(`Error al obtener token: ${data.message}`);
         }
 
-        console.log('Procesando callback de Strava con código:', code);
-
-        // Get the redirect URI the same way we build it in More.tsx
-        const baseUrl = window.location.origin.replace(/\/+$/, '');
-        const redirectUri = `${baseUrl}/strava-callback`;
-
-        // Exchange the code for tokens using the edge function
-        const { data, error: exchangeError } = await supabase.functions.invoke('strava-auth', {
-          body: { 
-            code, 
-            user_id: user.id,
-            redirect_uri: redirectUri
+        const { error: saveError } = await supabase.functions.invoke('save-strava-token', {
+          body: {
+            email: state,
+            strava_user_id: data.athlete?.id?.toString(),
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            expires_at: data.expires_at
           }
         });
 
-        console.log('Respuesta completa de edge function:', data);
-
-        if (exchangeError) {
-          console.error('Error detallado al intercambiar código por token:', exchangeError);
-          throw new Error('Error al intercambiar el código de autorización por el token de acceso');
+        if (saveError) {
+          throw new Error(`Error al guardar tokens: ${saveError.message}`);
         }
 
-        if (!data || data.error) {
-          console.error('Error en la respuesta de la edge function:', data?.error || 'Respuesta vacía');
-          throw new Error(data?.error || 'Error en la respuesta del servidor');
+        const { data: gearData, error: gearError } = await supabase.functions.invoke('get-strava-gear', {
+          body: { access_token: data.access_token }
+        });
+
+        if (gearError) {
+          throw new Error(`Error al obtener bicicletas: ${gearError.message}`);
         }
 
-        if (data.success) {
-          // Si la importación fue exitosa, mostramos mensaje
-          setImportedBikes(data.importedBikes || 0);
-          toast({
-            title: 'Importación completada',
-            description: data.importedBikes > 0 
-              ? `Se importaron ${data.importedBikes} bicicletas desde Strava` 
-              : 'Conexión con Strava establecida',
-          });
+        const bikes = gearData.gear || [];
+        setImportedBikes(bikes.length);
+
+        for (const bike of bikes) {
+          const { error: bikeError } = await supabase
+            .from('bikes')
+            .upsert({
+              name: bike.name || `Bicicleta ${bike.id}`,
+              type: bike.type || 'Road',
+              strava_id: bike.id,
+              user_id: user?.id,
+              total_distance: bike.distance || 0,
+              image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
+            });
+
+          if (bikeError) {
+            console.error('Error importing bike:', bikeError);
+          }
         }
 
-        // Redirect to the profile page
+        toast({
+          title: 'Conexión exitosa',
+          description: `Se importaron ${bikes.length} bicicletas desde Strava`,
+        });
+
         setTimeout(() => {
           navigate('/', { replace: true });
         }, 1500);
@@ -97,7 +115,6 @@ const StravaCallback = () => {
           variant: 'destructive'
         });
         
-        // Still redirect after an error
         setTimeout(() => {
           navigate('/more', { replace: true });
         }, 3000);

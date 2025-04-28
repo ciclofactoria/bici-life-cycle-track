@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -40,22 +39,17 @@ const More = () => {
       return;
     }
 
-    // Solo pedimos permisos para leer la información del atleta y actividades
-    const scope = 'read,activity:read';
-    
-    // Store state in localStorage to retrieve after redirection
-    localStorage.setItem('stravaAuthState', user.id);
+    // Only request scopes for reading athlete info and activities
+    const scope = 'read,activity:read_all';
     
     // Create a base URL without trailing slashes for Strava's requirements
-    // Remove any trailing slashes from the origin
-    const baseUrl = window.location.origin.replace(/\/+$/, '');
-    const redirectUri = encodeURIComponent(`${baseUrl}/strava-callback`);
+    const baseUrl = "lovable.dev";
+    const redirectUri = encodeURIComponent(baseUrl);
     
     console.log("URL de redirección para Strava:", redirectUri);
-    console.log("ID de cliente para Strava:", STRAVA_CLIENT_ID);
     
     // Construct the authorization URL
-    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.id}`;
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=157332&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.email}`;
     
     console.log("URL completa de autorización Strava:", authUrl);
     window.location.href = authUrl;

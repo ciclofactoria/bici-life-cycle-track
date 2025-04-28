@@ -188,6 +188,36 @@ export type Database = {
         }
         Relationships: []
       }
+      strava_tokens: {
+        Row: {
+          access_token: string | null
+          created_at: string | null
+          email: string
+          expires_at: number | null
+          id: number
+          refresh_token: string | null
+          strava_user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: number | null
+          id?: number
+          refresh_token?: string | null
+          strava_user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: number | null
+          id?: number
+          refresh_token?: string | null
+          strava_user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
