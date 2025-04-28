@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Wrench, ChartBar } from "lucide-react";
+import { Wrench, ChartBar, CalendarClock } from "lucide-react";
 
 export interface BikeProps {
   id: string;
@@ -11,7 +10,7 @@ export interface BikeProps {
   image: string;
   totalSpent: number;
   lastMaintenance: string;
-  nextCheck?: string; // Making this optional since we're removing it
+  next_check_date?: string;
 }
 
 const BikeCard = ({ bike }: { bike: BikeProps }) => {
@@ -42,6 +41,13 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
             <p className="font-medium">{bike.lastMaintenance}</p>
           </div>
         </div>
+        {bike.next_check_date && (
+          <div className="flex flex-col items-center col-span-2 mt-2 pt-2 border-t">
+            <CalendarClock className="h-5 w-5 text-bicicare-green mb-1" />
+            <p className="text-xs text-muted-foreground">Próxima Cita</p>
+            <p className="font-medium">{bike.next_check_date}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

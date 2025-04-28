@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, Settings, Search, Filter } from 'lucide-react';
@@ -10,12 +9,13 @@ import EmptyState from '@/components/EmptyState';
 import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 import EditBikeDialog from '@/components/EditBikeDialog';
 import FilterMaintenanceDialog from '@/components/FilterMaintenanceDialog';
+import NextAppointmentDialog from '@/components/NextAppointmentDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { generateMaintenancePDF } from '@/utils/pdfGenerator';
+import { CalendarClock } from 'lucide-react';
 
-// Define Bike interface to match expected structure
 interface Bike {
   id: string;
   name: string;
@@ -24,6 +24,7 @@ interface Bike {
   image: string;
   totalSpent: number;
   lastMaintenance: string;
+  next_check_date: string;
 }
 
 const BikeDetail = () => {
@@ -38,16 +39,15 @@ const BikeDetail = () => {
   const [realBikeId, setRealBikeId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isNextAppointmentDialogOpen, setIsNextAppointmentDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch the actual bike by the display ID to get the UUID
     const fetchBike = async () => {
       setIsLoading(true);
       setError(null);
       try {
         console.log("Fetching bike with ID:", id);
         
-        // Try to get all bikes first to find the correct one
         const { data: userBikes, error: userBikesError } = await supabase
           .from('bikes')
           .select('*');
@@ -59,14 +59,11 @@ const BikeDetail = () => {
         
         console.log("All bikes:", userBikes);
         
-        // Find the bike by UUID or index
         let selectedBike = null;
         
         if (id) {
-          // First try direct UUID match
           selectedBike = userBikes.find(b => b.id === id);
           
-          // If not found, try by index position
           if (!selectedBike && userBikes.length > 0 && !isNaN(Number(id))) {
             const numId = parseInt(id);
             if (numId > 0 && numId <= userBikes.length) {
@@ -84,7 +81,6 @@ const BikeDetail = () => {
         console.log("Found bike:", selectedBike);
         setRealBikeId(selectedBike.id);
         
-        // Now fetch maintenance records for this bike
         const { data: maintenanceData, error: maintenanceError } = await supabase
           .from('maintenance')
           .select('*')
@@ -96,20 +92,17 @@ const BikeDetail = () => {
           throw maintenanceError;
         }
         
-        // Calculate total spent and find last maintenance date
         let totalSpent = 0;
         let lastMaintenanceDate = null;
         
         if (maintenanceData && maintenanceData.length > 0) {
           totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
           
-          // Find most recent maintenance date
           const sortedMaintenance = [...maintenanceData].sort((a, b) => 
             new Date(b.date).getTime() - new Date(a.date).getTime()
           );
           lastMaintenanceDate = sortedMaintenance[0].date;
           
-          // Format maintenance records
           const formattedMaintenance = maintenanceData.map(record => ({
             id: record.id,
             date: format(new Date(record.date), 'dd/MM/yyyy'),
@@ -122,7 +115,6 @@ const BikeDetail = () => {
           setMaintenance(formattedMaintenance);
         }
 
-        // Map the Supabase data to match our Bike interface
         const mappedBike: Bike = {
           id: selectedBike.id,
           name: selectedBike.name,
@@ -131,6 +123,7 @@ const BikeDetail = () => {
           image: selectedBike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
           totalSpent: totalSpent,
           lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
+          next_check_date: selectedBike.next_check_date || ''
         };
         
         setBike(mappedBike);
@@ -151,6 +144,25 @@ const BikeDetail = () => {
       fetchBike();
     }
   }, [id, toast]);
+
+  useEffect(() => {
+    if (bike?.next_check_date) {
+      const appointmentDate = new Date(bike.next_check_date);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      if (
+        appointmentDate.getDate() === tomorrow.getDate() &&
+        appointmentDate.getMonth() === tomorrow.getMonth() &&
+        appointmentDate.getFullYear() === tomorrow.getFullYear()
+      ) {
+        toast({
+          title: "Recordatorio de cita",
+          description: `Tienes una cita programada mañana para tu bicicleta ${bike.name}`,
+        });
+      }
+    }
+  }, [bike]);
 
   const handleBack = () => {
     navigate('/');
@@ -196,13 +208,11 @@ const BikeDetail = () => {
   };
 
   const handleMaintenanceSuccess = async () => {
-    // Refetch bike and maintenance data to update the UI
     toast({
       title: "Registro creado",
       description: "El registro de mantenimiento se ha añadido correctamente",
     });
     
-    // Reload data
     if (realBikeId) {
       try {
         const { data: maintenanceData } = await supabase
@@ -223,10 +233,8 @@ const BikeDetail = () => {
           
           setMaintenance(formattedMaintenance);
           
-          // Update total spent and last maintenance
           const totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
           
-          // Find most recent maintenance date
           if (maintenanceData.length > 0) {
             const sortedMaintenance = [...maintenanceData].sort((a, b) => 
               new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -253,7 +261,6 @@ const BikeDetail = () => {
     if (!realBikeId) return;
 
     try {
-      // Fetch the updated bike data
       const { data: updatedBikeData, error } = await supabase
         .from('bikes')
         .select('*')
@@ -263,7 +270,6 @@ const BikeDetail = () => {
       if (error) throw error;
 
       if (updatedBikeData) {
-        // Update bike state with new data
         const updatedBike: Bike = {
           ...bike!,
           name: updatedBikeData.name,
@@ -280,6 +286,40 @@ const BikeDetail = () => {
       }
     } catch (error) {
       console.error('Error fetching updated bike data:', error);
+    }
+  };
+
+  const handleSetNextAppointment = async (date: Date | undefined) => {
+    if (!realBikeId || !date) return;
+
+    try {
+      const { error } = await supabase
+        .from('bikes')
+        .update({
+          next_check_date: format(date, 'yyyy-MM-dd')
+        })
+        .eq('id', realBikeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cita programada",
+        description: "La próxima cita ha sido programada correctamente",
+      });
+
+      if (bike) {
+        setBike({
+          ...bike,
+          next_check_date: format(date, 'dd/MM/yyyy')
+        });
+      }
+    } catch (error) {
+      console.error('Error setting next appointment:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo programar la cita",
+        variant: "destructive"
+      });
     }
   };
 
@@ -417,6 +457,12 @@ const BikeDetail = () => {
         open={isFilterDialogOpen}
         onOpenChange={setIsFilterDialogOpen}
         maintenance={maintenance}
+      />
+      <NextAppointmentDialog
+        open={isNextAppointmentDialogOpen}
+        onOpenChange={setIsNextAppointmentDialogOpen}
+        currentDate={bike?.next_check_date ? new Date(bike.next_check_date.split('/').reverse().join('-')) : null}
+        onDateSelect={handleSetNextAppointment}
       />
       <BottomNav activePage="/" />
     </div>
