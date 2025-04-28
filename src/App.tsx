@@ -22,15 +22,15 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Detectar si estamos en un entorno móvil o web
-    const isMobileApp = window.matchMedia('(display-mode: standalone)').matches || 
-                      (window as any).Capacitor !== undefined;
+    // Desactivamos temporalmente las notificaciones móviles
+    // Mantenemos las notificaciones web para desarrollo
+    const isMobileApp = false; // Forzamos a false mientras estamos en pruebas
     
     if (isMobileApp) {
-      // Inicializar notificaciones móviles si estamos en app capacitor
-      initPushNotifications();
+      // No inicializamos notificaciones móviles por ahora
+      console.log("Las notificaciones móviles se activarán cuando la app esté lista para producción");
     } else {
-      // Inicializar notificaciones web
+      // Solo inicializamos las notificaciones web en desarrollo
       registerServiceWorker();
     }
   }, []);
