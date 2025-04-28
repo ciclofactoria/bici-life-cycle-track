@@ -16,7 +16,7 @@ const BikeStats = ({ totalSpent, lastMaintenance, nextCheckDate, onScheduleAppoi
       <div className="grid grid-cols-2 gap-2 mb-4">
         <div className="flex flex-col items-center">
           <p className="text-xs text-muted-foreground">Gasto Total</p>
-          <p className="font-medium text-bicicare-green">${totalSpent}</p>
+          <p className="font-medium text-bicicare-green">{totalSpent} €</p>
         </div>
         <div className="flex flex-col items-center">
           <p className="text-xs text-muted-foreground">Último Servicio</p>

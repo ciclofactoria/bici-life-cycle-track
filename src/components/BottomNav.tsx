@@ -13,22 +13,22 @@ const BottomNav = ({ activePage }: { activePage: string }) => {
   const navItems: NavItem[] = [
     {
       icon: Bike,
-      label: 'Bikes',
+      label: 'Bicicletas',
       route: '/'
     },
     {
       icon: Calendar,
-      label: 'Calendar',
+      label: 'Calendario',
       route: '/calendar'
     },
     {
       icon: ChartBar,
-      label: 'Summary',
+      label: 'Resumen',
       route: '/summary'
     },
     {
       icon: MoreHorizontal,
-      label: 'More',
+      label: 'Más',
       route: '/more'
     }
   ];

@@ -26,11 +26,11 @@ const MaintenanceItem = ({ maintenance }: { maintenance: MaintenanceProps }) => 
             )}
           </div>
           <div className="text-right">
-            <p className="text-bicicare-green font-medium">${maintenance.cost}</p>
+            <p className="text-bicicare-green font-medium">{maintenance.cost} €</p>
             {maintenance.hasReceipt && (
               <div className="flex items-center justify-end mt-1 text-xs text-muted-foreground">
                 <FileImage className="h-3 w-3 mr-1" />
-                Receipt
+                Factura
               </div>
             )}
           </div>

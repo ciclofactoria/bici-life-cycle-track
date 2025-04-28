@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Wrench, ChartBar, CalendarClock } from "lucide-react";
@@ -33,7 +34,7 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
           <div className="flex flex-col items-center">
             <ChartBar className="h-5 w-5 text-bicicare-green mb-1" />
             <p className="text-xs text-muted-foreground">Gasto Total</p>
-            <p className="font-medium">${bike.totalSpent}</p>
+            <p className="font-medium">{bike.totalSpent} €</p>
           </div>
           <div className="flex flex-col items-center">
             <Wrench className="h-5 w-5 text-bicicare-green mb-1" />

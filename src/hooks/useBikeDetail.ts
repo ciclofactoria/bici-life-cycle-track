@@ -14,6 +14,7 @@ export interface BikeData {
   totalSpent: number;
   lastMaintenance: string;
   next_check_date: string | null;
+  next_check_notes: string | null;
 }
 
 export const useBikeDetail = (bikeId: string | undefined) => {
