@@ -3,7 +3,6 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { format } from 'date-fns';
 import { CalendarClock } from 'lucide-react';
 
 interface NextAppointmentDialogProps {
@@ -19,9 +18,16 @@ const NextAppointmentDialog = ({
   currentDate, 
   onDateSelect 
 }: NextAppointmentDialogProps) => {
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    currentDate || undefined
-  );
+  // Make sure we're using a valid date object
+  const validCurrentDate = currentDate && !isNaN(currentDate.getTime()) ? currentDate : undefined;
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(validCurrentDate);
+
+  // Reset the selected date when the dialog opens with a new current date
+  React.useEffect(() => {
+    if (open) {
+      setSelectedDate(validCurrentDate);
+    }
+  }, [open, validCurrentDate]);
 
   const handleSave = () => {
     onDateSelect(selectedDate);

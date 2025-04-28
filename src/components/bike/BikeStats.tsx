@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 interface BikeStatsProps {
   totalSpent: number;
   lastMaintenance: string;
-  nextCheckDate?: string;
+  nextCheckDate?: string | null;
   onScheduleAppointment: () => void;
 }
 

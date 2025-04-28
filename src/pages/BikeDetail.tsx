@@ -24,7 +24,7 @@ interface Bike {
   image: string;
   totalSpent: number;
   lastMaintenance: string;
-  next_check_date: string;
+  next_check_date: string | null;
 }
 
 const BikeDetail = () => {
@@ -123,7 +123,7 @@ const BikeDetail = () => {
           image: selectedBike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
           totalSpent: totalSpent,
           lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
-          next_check_date: selectedBike.next_check_date || ''
+          next_check_date: selectedBike.next_check_date
         };
         
         setBike(mappedBike);
@@ -147,22 +147,29 @@ const BikeDetail = () => {
 
   useEffect(() => {
     if (bike?.next_check_date) {
-      const appointmentDate = new Date(bike.next_check_date);
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      if (
-        appointmentDate.getDate() === tomorrow.getDate() &&
-        appointmentDate.getMonth() === tomorrow.getMonth() &&
-        appointmentDate.getFullYear() === tomorrow.getFullYear()
-      ) {
-        toast({
-          title: "Recordatorio de cita",
-          description: `Tienes una cita programada mañana para tu bicicleta ${bike.name}`,
-        });
+      try {
+        const appointmentDate = new Date(bike.next_check_date);
+        
+        if (!isNaN(appointmentDate.getTime())) {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          if (
+            appointmentDate.getDate() === tomorrow.getDate() &&
+            appointmentDate.getMonth() === tomorrow.getMonth() &&
+            appointmentDate.getFullYear() === tomorrow.getFullYear()
+          ) {
+            toast({
+              title: "Recordatorio de cita",
+              description: `Tienes una cita programada mañana para tu bicicleta ${bike.name}`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error processing appointment date:', error);
       }
     }
-  }, [bike]);
+  }, [bike, toast]);
 
   const handleBack = () => {
     navigate('/');
@@ -293,10 +300,12 @@ const BikeDetail = () => {
     if (!realBikeId || !date) return;
 
     try {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      
       const { error } = await supabase
         .from('bikes')
         .update({
-          next_check_date: format(date, 'yyyy-MM-dd')
+          next_check_date: formattedDate
         })
         .eq('id', realBikeId);
 
@@ -310,7 +319,7 @@ const BikeDetail = () => {
       if (bike) {
         setBike({
           ...bike,
-          next_check_date: format(date, 'dd/MM/yyyy')
+          next_check_date: formattedDate
         });
       }
     } catch (error) {
@@ -351,6 +360,18 @@ const BikeDetail = () => {
     );
   }
 
+  const formattedNextCheckDate = bike.next_check_date ? 
+    (() => {
+      try {
+        const date = new Date(bike.next_check_date);
+        return !isNaN(date.getTime()) ? format(date, 'dd/MM/yyyy') : undefined;
+      } catch (error) {
+        console.error('Error formatting next check date:', error);
+        return undefined;
+      }
+    })() : 
+    undefined;
+
   return (
     <div className="pb-16">
       <BikeHeader
@@ -366,7 +387,7 @@ const BikeDetail = () => {
         <BikeStats
           totalSpent={bike.totalSpent}
           lastMaintenance={bike.lastMaintenance}
-          nextCheckDate={bike.next_check_date ? format(new Date(bike.next_check_date), 'dd/MM/yyyy') : undefined}
+          nextCheckDate={formattedNextCheckDate}
           onScheduleAppointment={handleOpenNextAppointmentDialog}
         />
         
@@ -406,7 +427,7 @@ const BikeDetail = () => {
       <NextAppointmentDialog
         open={isNextAppointmentDialogOpen}
         onOpenChange={setIsNextAppointmentDialogOpen}
-        currentDate={bike?.next_check_date ? new Date(bike.next_check_date) : undefined}
+        currentDate={bike.next_check_date ? new Date(bike.next_check_date) : undefined}
         onDateSelect={handleSetNextAppointment}
       />
       <BottomNav activePage="/" />
