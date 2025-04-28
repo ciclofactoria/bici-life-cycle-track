@@ -5,21 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import BikeCard from '@/components/BikeCard';
+import BikeCard, { BikeProps } from '@/components/BikeCard';
 import BottomNav from '@/components/BottomNav';
-
-interface ArchivedBike {
-  id: string;
-  name: string;
-  type: string;
-  year: number;
-  image: string;
-  totalSpent: number;
-  lastMaintenance: string;
-}
+import { format } from 'date-fns';
 
 const ArchivedBikes = () => {
-  const [bikes, setBikes] = useState<ArchivedBike[]>([]);
+  const [bikes, setBikes] = useState<BikeProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,14 +18,43 @@ const ArchivedBikes = () => {
   useEffect(() => {
     const fetchArchivedBikes = async () => {
       try {
+        setIsLoading(true);
         const { data: archivedBikes, error } = await supabase
           .from('bikes')
-          .select('*')
+          .select('*, maintenance(date, cost)')
           .eq('archived', true);
 
         if (error) throw error;
 
-        setBikes(archivedBikes || []);
+        if (archivedBikes) {
+          const mappedBikes: BikeProps[] = archivedBikes.map(bike => {
+            // Calculate total spent from maintenance records
+            const totalSpent = bike.maintenance?.reduce((sum: number, record: any) => sum + (record.cost || 0), 0) || 0;
+            
+            // Find the most recent maintenance date
+            let lastMaintenanceDate = null;
+            if (bike.maintenance && bike.maintenance.length > 0) {
+              // Sort maintenance by date (most recent first)
+              const sortedMaintenance = [...bike.maintenance].sort((a: any, b: any) => 
+                new Date(b.date).getTime() - new Date(a.date).getTime()
+              );
+              lastMaintenanceDate = sortedMaintenance[0].date;
+            }
+
+            return {
+              id: bike.id,
+              name: bike.name,
+              type: bike.type,
+              year: bike.year || 0,
+              image: bike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+              totalSpent: totalSpent,
+              lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
+              next_check_date: bike.next_check_date,
+            };
+          });
+          
+          setBikes(mappedBikes);
+        }
       } catch (error) {
         console.error('Error fetching archived bikes:', error);
         toast({
@@ -95,10 +115,9 @@ const ArchivedBikes = () => {
           <div className="grid gap-4">
             {bikes.map((bike) => (
               <div key={bike.id} className="relative">
-                <BikeCard
-                  bike={bike}
-                  onClick={() => navigate(`/bike/${bike.id}`)}
-                />
+                <div onClick={() => navigate(`/bike/${bike.id}`)}>
+                  <BikeCard bike={bike} />
+                </div>
                 <Button
                   className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm hover:bg-white/90"
                   onClick={() => handleRestoreBike(bike.id)}
