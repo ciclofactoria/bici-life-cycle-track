@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const STRAVA_CLIENT_ID = '157332';
+const STRAVA_CLIENT_ID = '157332'; // Client ID correcto de Strava
 
 const SettingsItem = ({ icon: Icon, label, onClick }: { 
   icon: React.ElementType;
@@ -49,6 +49,7 @@ const More = () => {
     const redirectUri = encodeURIComponent('lovable.dev');
     
     console.log("Usando dominio para redirección configurado en Strava:", redirectUri);
+    console.log("Usando Client ID para Strava:", STRAVA_CLIENT_ID);
     
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.id}`;
     

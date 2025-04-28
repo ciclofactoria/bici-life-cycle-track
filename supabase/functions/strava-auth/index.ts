@@ -21,9 +21,17 @@ serve(async (req) => {
     const requestData = await req.json()
     const { code, user_id } = requestData
     
+    // Get Strava API credentials from environment variables
+    const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID')
+    const STRAVA_CLIENT_SECRET = Deno.env.get('STRAVA_CLIENT_SECRET')
+    
     console.log("Strava auth function called with:", { 
       code: code ? "PRESENT" : "MISSING", 
-      user_id
+      user_id,
+      hasClientId: Boolean(STRAVA_CLIENT_ID), 
+      clientIdFirstChars: STRAVA_CLIENT_ID ? STRAVA_CLIENT_ID.substring(0, 5) + "..." : "MISSING",
+      hasClientSecret: Boolean(STRAVA_CLIENT_SECRET),
+      clientSecretLength: STRAVA_CLIENT_SECRET ? STRAVA_CLIENT_SECRET.length : 0
     })
     
     if (!code || !user_id) {
@@ -33,10 +41,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Get Strava API credentials from environment variables
-    const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID')
-    const STRAVA_CLIENT_SECRET = Deno.env.get('STRAVA_CLIENT_SECRET')
     
     if (!STRAVA_CLIENT_ID || !STRAVA_CLIENT_SECRET) {
       console.error("Missing Strava API credentials in environment variables", { 
