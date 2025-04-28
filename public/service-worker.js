@@ -4,8 +4,9 @@ self.addEventListener('push', function(event) {
     body: event.data.text(),
     icon: '/favicon.ico',
     badge: '/favicon.ico',
+    vibrate: [200, 100, 200],
     data: {
-      url: '/'
+      url: event.data?.json()?.url || '/'
     }
   };
 
@@ -16,6 +17,7 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
+
   event.waitUntil(
     clients.openWindow(event.notification.data.url)
   );

@@ -3,29 +3,30 @@ export async function registerServiceWorker() {
   if ('serviceWorker' in navigator && 'Notification' in window) {
     try {
       const registration = await navigator.serviceWorker.register('/service-worker.js');
-      console.log('Service Worker registered:', registration);
+      console.log('Service Worker registrado:', registration);
       
       const permission = await Notification.requestPermission();
-      console.log('Notification permission:', permission);
+      console.log('Permiso de notificación:', permission);
       
       if (permission === 'granted') {
-        // Get the subscription
+        // Obtener la suscripción
         let subscription = await registration.pushManager.getSubscription();
         
         if (!subscription) {
-          // Create a new subscription if we don't have one
+          // Crear una nueva suscripción si no existe
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            // In a production environment, you would need to add your VAPID keys here
+            // En un entorno de producción, necesitarías agregar tus claves VAPID aquí
             applicationServerKey: 'BBAJw1KgWsL0cG9kXVjn8vKwKq6QMXU977U_BbgHQjz4xoEtxoCKd5gqHHGxR_0FQSP-6tfXmh1eJEB6IiFiHNI'
           });
+          console.log('Nueva suscripción creada:', subscription);
         }
         
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      console.error('Error al registrar el Service Worker:', error);
       return false;
     }
   }
@@ -56,6 +57,6 @@ export async function checkNextDayAppointments(bike: any) {
       }
     }
   } catch (error) {
-    console.error('Error processing appointment date:', error);
+    console.error('Error al procesar la fecha de la cita:', error);
   }
 }
