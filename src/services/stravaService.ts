@@ -63,22 +63,43 @@ export const saveStravaToken = async (userId: string, userEmail: string, data: a
 
 export const getStravaBikes = async (accessToken: string) => {
   // Obtener bicicletas con el token
-  console.log("Obteniendo bicicletas con el token...");
-  const { data, error } = await supabase.functions.invoke('get-strava-gear', {
-    body: { access_token: accessToken }
-  });
+  console.log("Obteniendo bicicletas con el token:", accessToken.substring(0, 5) + "...");
   
-  if (error) {
-    throw new Error(`Error al obtener bicicletas: ${error.message}`);
+  try {
+    const { data, error } = await supabase.functions.invoke('get-strava-gear', {
+      body: { access_token: accessToken }
+    });
+    
+    if (error) {
+      console.error("Error en la función get-strava-gear:", error);
+      throw new Error(`Error al obtener bicicletas: ${error.message}`);
+    }
+    
+    if (!data) {
+      console.error("No se recibieron datos de get-strava-gear");
+      return [];
+    }
+    
+    if (!data.gear || !Array.isArray(data.gear)) {
+      console.error("Formato de datos incorrecto:", data);
+      return [];
+    }
+    
+    console.log(`Se encontraron ${data.gear.length} bicicletas desde get-strava-gear:`, data.gear);
+    return data.gear || [];
+  } catch (err) {
+    console.error("Error al obtener bicicletas de Strava:", err);
+    throw err;
   }
-  
-  return data.gear || [];
 };
 
 export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
+  console.log(`Importando ${bikes.length} bicicletas para el usuario ${userId}`);
   let importedCount = 0;
   
   for (const bike of bikes) {
+    console.log("Importando bicicleta:", bike);
+    
     const { error } = await supabase
       .from('bikes')
       .upsert({
@@ -92,9 +113,13 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
       
     if (!error) {
       importedCount++;
+      console.log(`Bicicleta ${bike.name || bike.id} importada correctamente`);
+    } else {
+      console.error(`Error al importar bicicleta ${bike.name || bike.id}:`, error);
     }
   }
   
+  console.log(`Se importaron ${importedCount} de ${bikes.length} bicicletas`);
   return importedCount;
 };
 

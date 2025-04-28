@@ -20,6 +20,7 @@ const Index = () => {
   const fetchBikes = async () => {
     setIsLoading(true);
     try {
+      console.log("Fetching bikes data...");
       const { data: bikes, error } = await supabase
         .from('bikes')
         .select('*, maintenance(date, cost)')
@@ -27,11 +28,16 @@ const Index = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error("Error fetching bikes:", error);
         throw error;
       }
 
+      console.log("Bikes data received:", bikes);
+      
       if (bikes) {
         const mappedBikes: BikeProps[] = bikes.map(bike => {
+          console.log("Processing bike:", bike);
+          
           // Calculate total spent from maintenance records
           const totalSpent = bike.maintenance?.reduce((sum: number, record: any) => sum + (record.cost || 0), 0) || 0;
           
@@ -53,10 +59,12 @@ const Index = () => {
             image: bike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
             totalSpent: totalSpent,
             lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
-            nextCheck: 'N/A', // We're removing this feature as requested
+            strava_id: bike.strava_id,
+            total_distance: bike.total_distance
           };
         });
         
+        console.log("Processed bikes:", mappedBikes);
         setBikeData(mappedBikes);
       }
     } catch (error) {
