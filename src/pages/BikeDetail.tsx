@@ -1,16 +1,19 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, Settings } from 'lucide-react';
+import { ArrowLeft, FileText, Settings, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MaintenanceItem, { MaintenanceProps } from '@/components/MaintenanceItem';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import BottomNav from '@/components/BottomNav';
 import EmptyState from '@/components/EmptyState';
 import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
+import EditBikeDialog from '@/components/EditBikeDialog';
+import FilterMaintenanceDialog from '@/components/FilterMaintenanceDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { generateMaintenancePDF } from '@/utils/pdfGenerator';
 
 // Define Bike interface to match expected structure
 interface Bike {
@@ -30,6 +33,8 @@ const BikeDetail = () => {
   const [bike, setBike] = useState<Bike | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceProps[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [realBikeId, setRealBikeId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,6 +168,33 @@ const BikeDetail = () => {
     setIsAddDialogOpen(true);
   };
 
+  const handleEditBike = () => {
+    setIsEditDialogOpen(true);
+  };
+
+  const handleExportPDF = () => {
+    if (!bike) return;
+    
+    try {
+      generateMaintenancePDF(bike, maintenance);
+      toast({
+        title: "Exportado con éxito",
+        description: "El historial de mantenimiento se ha exportado a PDF",
+      });
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo exportar el historial",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleOpenFilter = () => {
+    setIsFilterDialogOpen(true);
+  };
+
   const handleMaintenanceSuccess = async () => {
     // Refetch bike and maintenance data to update the UI
     toast({
@@ -217,6 +249,40 @@ const BikeDetail = () => {
     }
   };
 
+  const handleBikeUpdate = async () => {
+    if (!realBikeId) return;
+
+    try {
+      // Fetch the updated bike data
+      const { data: updatedBikeData, error } = await supabase
+        .from('bikes')
+        .select('*')
+        .eq('id', realBikeId)
+        .single();
+
+      if (error) throw error;
+
+      if (updatedBikeData) {
+        // Update bike state with new data
+        const updatedBike: Bike = {
+          ...bike!,
+          name: updatedBikeData.name,
+          type: updatedBikeData.type,
+          year: updatedBikeData.year || 0,
+          image: updatedBikeData.image || bike!.image
+        };
+        
+        setBike(updatedBike);
+        toast({
+          title: "Bicicleta actualizada",
+          description: "Los datos de la bicicleta se han actualizado correctamente",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching updated bike data:', error);
+    }
+  };
+
   if (isLoading) {
     return <div className="p-4 flex justify-center items-center h-screen">Cargando...</div>;
   }
@@ -264,7 +330,7 @@ const BikeDetail = () => {
               variant="ghost" 
               size="icon"
               className="bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 rounded-full"
-              onClick={() => console.log('Edit bike settings')}
+              onClick={handleEditBike}
             >
               <Settings className="h-5 w-5" />
             </Button>
@@ -290,15 +356,26 @@ const BikeDetail = () => {
         
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-medium">Historial de Mantenimiento</h2>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="flex items-center gap-1 text-muted-foreground hover:text-bicicare-green"
-            onClick={() => console.log('Export history')}
-          >
-            <FileText className="h-4 w-4" />
-            <span className="text-sm">Exportar</span>
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="flex items-center gap-1 text-muted-foreground hover:text-bicicare-green"
+              onClick={handleOpenFilter}
+            >
+              <Filter className="h-4 w-4" />
+              <span className="text-sm">Filtrar</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="flex items-center gap-1 text-muted-foreground hover:text-bicicare-green"
+              onClick={handleExportPDF}
+            >
+              <FileText className="h-4 w-4" />
+              <span className="text-sm">Exportar</span>
+            </Button>
+          </div>
         </div>
         
         {maintenance.length > 0 ? (
@@ -323,6 +400,23 @@ const BikeDetail = () => {
         onOpenChange={setIsAddDialogOpen}
         bikeId={realBikeId || ''}
         onSuccess={handleMaintenanceSuccess}
+      />
+      <EditBikeDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        bikeId={realBikeId || ''}
+        bikeData={{
+          name: bike.name,
+          type: bike.type,
+          year: bike.year,
+          image: bike.image
+        }}
+        onSuccess={handleBikeUpdate}
+      />
+      <FilterMaintenanceDialog
+        open={isFilterDialogOpen}
+        onOpenChange={setIsFilterDialogOpen}
+        maintenance={maintenance}
       />
       <BottomNav activePage="/" />
     </div>
