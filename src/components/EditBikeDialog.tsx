@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import BikeImageUpload from './bike/BikeImageUpload';
 
 interface BikeFormData {
   name: string;
@@ -30,9 +30,6 @@ interface EditBikeDialogProps {
 
 const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: EditBikeDialogProps) => {
   const { toast } = useToast();
-  const [imageUrl, setImageUrl] = useState<string | undefined>(bikeData?.image);
-  const [isUploading, setIsUploading] = useState(false);
-  
   const form = useForm<BikeFormData>({
     defaultValues: {
       name: bikeData?.name || '',
@@ -42,78 +39,15 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
     },
   });
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    const fileExt = file.name.split('.').pop()?.toLowerCase();
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    
-    if (!fileExt || !allowedExtensions.includes(fileExt)) {
-      toast({
-        title: "Formato no válido",
-        description: "Por favor sube una imagen en formato jpg, png, gif o webp",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      toast({
-        title: "Archivo muy grande",
-        description: "El tamaño máximo permitido es 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploading(true);
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    try {
-      const { error: uploadError } = await supabase.storage
-        .from('bike-images')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrl } = supabase.storage
-        .from('bike-images')
-        .getPublicUrl(filePath);
-
-      if (publicUrl) {
-        setImageUrl(publicUrl.publicUrl);
-        form.setValue('image', publicUrl.publicUrl);
-      }
-
-      toast({
-        title: "Imagen subida",
-        description: "La imagen se ha subido correctamente",
-      });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo subir la imagen",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const onSubmit = async (data: BikeFormData) => {
     try {
-      // Update the bike data
       const { error } = await supabase
         .from('bikes')
         .update({
           name: data.name,
           type: data.type,
           year: data.year || null,
-          image: imageUrl || data.image
+          image: data.image
         })
         .eq('id', bikeId);
 
@@ -145,43 +79,10 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Image Upload Preview */}
-            <div className="mb-4">
-              <div className="relative aspect-video mb-2 overflow-hidden rounded-md bg-muted">
-                {imageUrl ? (
-                  <img 
-                    src={imageUrl} 
-                    alt="Vista previa" 
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-sm text-muted-foreground">
-                      {isUploading ? 'Subiendo imagen...' : 'No hay imagen'}
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label 
-                  htmlFor="picture" 
-                  className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-3"
-                >
-                  {isUploading ? 'Subiendo...' : 'Cambiar imagen'}
-                </label>
-                <input
-                  id="picture"
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  onChange={handleImageUpload}
-                  disabled={isUploading}
-                  className="hidden"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Formatos permitidos: JPG, PNG, GIF, WEBP. Máximo 5MB
-                </p>
-              </div>
-            </div>
+            <BikeImageUpload
+              currentImage={form.watch('image')}
+              onImageChange={(url) => form.setValue('image', url)}
+            />
             
             <FormField
               control={form.control}
@@ -234,7 +135,7 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isUploading}>Guardar</Button>
+              <Button type="submit">Guardar</Button>
             </div>
           </form>
         </Form>
