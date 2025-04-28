@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +24,7 @@ const StravaCallback = () => {
         const scope = searchParams.get('scope');
         
         console.log('StravaCallback: Datos recibidos:', { 
-          code: code || 'ausente',
+          code: code ? `${code.substring(0, 5)}...` : 'ausente', // Show only first 5 chars for security
           error: error || 'ninguno',
           state: state || 'ausente',
           scope: scope || 'ausente'
@@ -37,23 +38,56 @@ const StravaCallback = () => {
           throw new Error('No se recibió el código de autorización o estado de Strava');
         }
 
+        console.log("Iniciando intercambio de código por token...");
+        
+        // Use the hardcoded client values for simplicity and reliability
+        const clientId = '157332';
+        const clientSecret = '38c60b9891cea2fb7053e185750c5345fab850f5';
+        
+        console.log("Datos para solicitud de token:", {
+          client_id: clientId,
+          code: `${code.substring(0, 5)}...`, // Show only first 5 chars for security
+          grant_type: 'authorization_code'
+        });
+
         const response = await fetch('https://www.strava.com/oauth/token', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            client_id: '157332',
-            client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5',
+            client_id: clientId,
+            client_secret: clientSecret,
             code,
             grant_type: 'authorization_code'
           })
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
+        console.log("Respuesta bruta del intercambio de token:", responseText);
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+          
+          console.log("Respuesta del token analizada:", {
+            status: response.status,
+            ok: response.ok,
+            token_type: data.token_type || 'ausente',
+            access_token_presente: Boolean(data.access_token),
+            access_token_inicio: data.access_token ? `${data.access_token.substring(0, 5)}...` : 'ausente',
+            refresh_token_presente: Boolean(data.refresh_token),
+            expires_at_presente: Boolean(data.expires_at),
+            athlete_presente: Boolean(data.athlete),
+            athlete_id: data.athlete?.id || 'ausente'
+          });
+        } catch (error) {
+          console.error("Error al parsear respuesta JSON:", error);
+          throw new Error(`Error al parsear respuesta: ${responseText}`);
+        }
         
         if (!response.ok) {
-          throw new Error(`Error al obtener token: ${data.message}`);
+          throw new Error(`Error al obtener token: ${data.message || responseText}`);
         }
 
         const { error: saveError } = await supabase.functions.invoke('save-strava-token', {
@@ -67,21 +101,31 @@ const StravaCallback = () => {
         });
 
         if (saveError) {
+          console.error("Error al guardar token:", saveError);
           throw new Error(`Error al guardar tokens: ${saveError.message}`);
         }
+        
+        console.log("Token guardado correctamente, obteniendo bicicletas...");
 
         const { data: gearData, error: gearError } = await supabase.functions.invoke('get-strava-gear', {
           body: { access_token: data.access_token }
         });
+        
+        console.log("Respuesta de get-strava-gear:", gearData);
 
         if (gearError) {
+          console.error("Error al obtener bicicletas:", gearError);
           throw new Error(`Error al obtener bicicletas: ${gearError.message}`);
         }
 
         const bikes = gearData.gear || [];
+        console.log(`Se encontraron ${bikes.length} bicicletas:`, bikes);
+        
         setImportedBikes(bikes.length);
 
         for (const bike of bikes) {
+          console.log("Importando bicicleta:", bike);
+          
           const { error: bikeError } = await supabase
             .from('bikes')
             .upsert({
@@ -95,6 +139,8 @@ const StravaCallback = () => {
 
           if (bikeError) {
             console.error('Error importing bike:', bikeError);
+          } else {
+            console.log(`Bicicleta ${bike.name} importada correctamente`);
           }
         }
 
