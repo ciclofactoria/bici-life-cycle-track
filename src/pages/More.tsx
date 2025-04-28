@@ -46,12 +46,15 @@ const More = () => {
     // Store state in localStorage to retrieve after redirection
     localStorage.setItem('stravaAuthState', user.id);
     
-    // Use the full URL for redirect - VERY IMPORTANT
-    const redirectUri = encodeURIComponent(`${window.location.origin}/strava-callback`);
+    // Create a base URL without trailing slashes for Strava's requirements
+    // Remove any trailing slashes from the origin
+    const baseUrl = window.location.origin.replace(/\/+$/, '');
+    const redirectUri = encodeURIComponent(`${baseUrl}/strava-callback`);
     
     console.log("URL de redirección para Strava:", redirectUri);
     console.log("ID de cliente para Strava:", STRAVA_CLIENT_ID);
     
+    // Construct the authorization URL
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.id}`;
     
     console.log("URL completa de autorización Strava:", authUrl);

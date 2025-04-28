@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SUPABASE_URL = "https://tyqmfhtfvrffkaqttbcf.supabase.co"
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cW1maHRmdnJmZmthcXR0YmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3ODQ3NjgsImV4cCI6MjA2MTM2MDc2OH0.yQvXxJe4SYcBDyIqKOg0Vl-4nyV3VF8EK3bplFr0SzU"
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || "https://tyqmfhtfvrffkaqttbcf.supabase.co"
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cW1maHRmdnJmZmthcXR0YmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3ODQ3NjgsImV4cCI6MjA2MTM2MDc2OH0.yQvXxJe4SYcBDyIqKOg0Vl-4nyV3VF8EK3bplFr0SzU"
 
 serve(async (req) => {
   // Handle CORS preflight request
@@ -26,19 +26,30 @@ serve(async (req) => {
       user_id: user_id || "MISSING",
       redirect_uri: redirect_uri || "MISSING (usando default)"
     })
+
+    // HARDCODED ID Y SECRET - para evitar problemas con la encriptación
+    // En un entorno real usaríamos los secrets correctamente 
+    const STRAVA_CLIENT_ID = "157332";
+    const STRAVA_CLIENT_SECRET = "a09a8b6e85b7a0c5c622fcbf97b1922c8e1bd864";
     
-    // Get Strava API credentials from environment variables
-    const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID')
-    const STRAVA_CLIENT_SECRET = Deno.env.get('STRAVA_CLIENT_SECRET')
-    
-    // Verificar las credenciales de Strava (sin mostrar el secret completo)
+    // Verificar que tenemos las credenciales
     console.log("Información de credenciales de Strava:", { 
-      clientIdPresente: Boolean(STRAVA_CLIENT_ID),
+      clientIdPresenteHardcoded: Boolean(STRAVA_CLIENT_ID),
       clientId: STRAVA_CLIENT_ID,
-      secretPresente: Boolean(STRAVA_CLIENT_SECRET),
-      secretLength: STRAVA_CLIENT_SECRET ? STRAVA_CLIENT_SECRET.length : 0,
-      secretPrimerosCincoCaracteres: STRAVA_CLIENT_SECRET ? STRAVA_CLIENT_SECRET.substring(0, 5) + "..." : "MISSING" 
+      secretPresenteHardcoded: Boolean(STRAVA_CLIENT_SECRET),
+      secretLength: STRAVA_CLIENT_SECRET ? STRAVA_CLIENT_SECRET.length : 0 
     })
+    
+    // Verificar los secrets del entorno (sin mostrar el contenido completo)
+    const envClientId = Deno.env.get('STRAVA_CLIENT_ID');
+    const envClientSecret = Deno.env.get('STRAVA_CLIENT_SECRET');
+    
+    console.log("Variables de entorno de Strava:", {
+      STRAVA_CLIENT_ID_env_presente: Boolean(envClientId),
+      STRAVA_CLIENT_ID_env: envClientId || "NO DISPONIBLE",
+      STRAVA_CLIENT_SECRET_env_presente: Boolean(envClientSecret),
+      STRAVA_CLIENT_SECRET_env_length: envClientSecret ? envClientSecret.length : 0
+    });
     
     if (!code || !user_id) {
       console.error("Faltan parámetros requeridos:", { code: Boolean(code), user_id: Boolean(user_id) })
@@ -96,6 +107,8 @@ serve(async (req) => {
     })
 
     const tokenResponseText = await tokenResponse.text()
+    console.log("Respuesta texto completa:", tokenResponseText)
+    
     let tokenData
     
     try {

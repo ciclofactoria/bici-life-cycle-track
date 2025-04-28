@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Bike } from 'lucide-react';
+import { Loader2, Bike, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 const StravaCallback = () => {
@@ -20,16 +20,23 @@ const StravaCallback = () => {
       try {
         // Get the authorization code from the URL
         const code = searchParams.get('code');
+        const error = searchParams.get('error');
         const state = searchParams.get('state');
         const scope = searchParams.get('scope');
         const fullUrl = window.location.href;
 
         console.log('StravaCallback: Datos recibidos completos:', { 
           code: code || 'ausente',
+          error: error || 'ninguno',
           state: state || 'ausente',
           scope: scope || 'ausente',
           fullUrl
         });
+
+        // Check if Strava returned an error
+        if (error) {
+          throw new Error(`Strava devolvió un error: ${error}`);
+        }
 
         if (!code) {
           throw new Error('No se recibió el código de autorización de Strava');
@@ -41,12 +48,16 @@ const StravaCallback = () => {
 
         console.log('Procesando callback de Strava con código:', code);
 
+        // Get the redirect URI the same way we build it in More.tsx
+        const baseUrl = window.location.origin.replace(/\/+$/, '');
+        const redirectUri = `${baseUrl}/strava-callback`;
+
         // Exchange the code for tokens using the edge function
         const { data, error: exchangeError } = await supabase.functions.invoke('strava-auth', {
           body: { 
             code, 
             user_id: user.id,
-            redirect_uri: `${window.location.origin}/strava-callback`
+            redirect_uri: redirectUri
           }
         });
 
@@ -109,6 +120,7 @@ const StravaCallback = () => {
           </div>
         ) : error ? (
           <div className="text-red-500">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Error de conexión</h2>
             <p className="text-muted-foreground">{error}</p>
             <p className="mt-4">Redirigiendo...</p>
