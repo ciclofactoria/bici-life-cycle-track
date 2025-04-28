@@ -83,7 +83,8 @@ const StravaTest = () => {
       const bikes = await getStravaBikes(tokenData.access_token);
       console.log(`Se encontraron ${bikes.length} bicicletas:`, bikes);
       
-      // Import bikes to database
+      // Import bikes to database - ASEGURAMOS QUE SE LLAME AQUÍ
+      console.log("Llamando a importBikesToDatabase con UserId:", user.id);
       const importedCount = await importBikesToDatabase(user.id, bikes);
       
       setResult({

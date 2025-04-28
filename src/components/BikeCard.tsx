@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Wrench, ChartBar, CalendarClock } from "lucide-react";
+import { Wrench, ChartBar, CalendarClock, Bike } from "lucide-react";
 
 export interface BikeProps {
   id: string;
@@ -17,6 +17,11 @@ export interface BikeProps {
 }
 
 const BikeCard = ({ bike }: { bike: BikeProps }) => {
+  // Formato para mostrar la distancia en km con 2 decimales
+  const formattedDistance = bike.total_distance ? 
+    `${(bike.total_distance / 1000).toFixed(0)} km` : 
+    'N/A';
+
   return (
     <Card className="overflow-hidden mb-4 bg-card hover:bg-secondary transition-colors cursor-pointer animate-fade-in">
       <div className="aspect-video relative overflow-hidden">
@@ -26,11 +31,18 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
           className="object-cover w-full h-full"
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-          <h3 className="text-xl font-bold text-white">{bike.name}</h3>
+          <div className="flex items-center">
+            <h3 className="text-xl font-bold text-white">{bike.name}</h3>
+            {bike.strava_id && (
+              <div className="ml-2 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center">
+                <Bike className="h-3 w-3 mr-1" />
+                Strava
+              </div>
+            )}
+          </div>
           <p className="text-sm text-gray-300">
             {bike.type}
             {bike.year ? `, ${bike.year}` : ''}
-            {bike.strava_id ? ' (Strava)' : ''}
           </p>
         </div>
       </div>
@@ -48,9 +60,19 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
             <p className="font-medium">{bike.lastMaintenance || 'N/A'}</p>
           </div>
           <div className="flex flex-col items-center">
-            <CalendarClock className="h-5 w-5 text-bicicare-green mb-1" />
-            <p className="text-xs text-muted-foreground">Próxima Cita</p>
-            <p className="font-medium">{bike.next_check_date || 'No programada'}</p>
+            {bike.strava_id ? (
+              <>
+                <Bike className="h-5 w-5 text-orange-500 mb-1" />
+                <p className="text-xs text-muted-foreground">Distancia</p>
+                <p className="font-medium">{formattedDistance}</p>
+              </>
+            ) : (
+              <>
+                <CalendarClock className="h-5 w-5 text-bicicare-green mb-1" />
+                <p className="text-xs text-muted-foreground">Próxima Cita</p>
+                <p className="font-medium">{bike.next_check_date || 'No programada'}</p>
+              </>
+            )}
           </div>
         </div>
       </CardContent>

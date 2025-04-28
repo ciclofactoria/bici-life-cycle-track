@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Bike, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { importBikesToDatabase } from '@/services/stravaService'; // Importamos la función
 
 const StravaCallback = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const StravaCallback = () => {
         const scope = searchParams.get('scope');
         
         console.log('StravaCallback: Datos recibidos:', { 
-          code: code ? `${code.substring(0, 5)}...` : 'ausente', // Show only first 5 chars for security
+          code: code ? `${code.substring(0, 5)}...` : 'ausente',
           error: error || 'ninguno',
           state: state || 'ausente',
           scope: scope || 'ausente'
@@ -46,7 +47,7 @@ const StravaCallback = () => {
         
         console.log("Datos para solicitud de token:", {
           client_id: clientId,
-          code: `${code.substring(0, 5)}...`, // Show only first 5 chars for security
+          code: `${code.substring(0, 5)}...`,
           grant_type: 'authorization_code'
         });
 
@@ -121,27 +122,18 @@ const StravaCallback = () => {
         const bikes = gearData.gear || [];
         console.log(`Se encontraron ${bikes.length} bicicletas:`, bikes);
         
-        setImportedBikes(bikes.length);
-
-        for (const bike of bikes) {
-          console.log("Importando bicicleta:", bike);
-          
-          const { error: bikeError } = await supabase
-            .from('bikes')
-            .upsert({
-              name: bike.name || `Bicicleta ${bike.id}`,
-              type: bike.type || 'Road',
-              strava_id: bike.id,
-              user_id: user?.id,
-              total_distance: bike.distance || 0,
-              image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
-            });
-
-          if (bikeError) {
-            console.error('Error importing bike:', bikeError);
-          } else {
-            console.log(`Bicicleta ${bike.name} importada correctamente`);
-          }
+        // PUNTO CLAVE: Asegurarnos de importar las bicicletas
+        if (user && bikes.length > 0) {
+          console.log("Llamando a importBikesToDatabase con UserId:", user.id);
+          const importedCount = await importBikesToDatabase(user.id, bikes);
+          setImportedBikes(importedCount);
+          console.log(`Se importaron ${importedCount} bicicletas a la base de datos`);
+        } else {
+          console.error("No se puede importar - usuario no disponible o no hay bicicletas", {
+            userPresent: !!user,
+            bikeCount: bikes.length
+          });
+          setImportedBikes(0);
         }
 
         toast({
