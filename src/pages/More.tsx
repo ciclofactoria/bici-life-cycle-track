@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Settings, Archive, FileText, Bike, LogOut } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -42,17 +43,19 @@ const More = () => {
     // Only request scopes for reading athlete info and activities
     const scope = 'read,activity:read_all';
     
-    // Create a base URL without trailing slashes for Strava's requirements
-    const baseUrl = "lovable.dev";
-    const redirectUri = encodeURIComponent(baseUrl);
+    // Use the full URL for the redirect (including https://)
+    const redirectUri = encodeURIComponent("https://lovable.dev");
     
     console.log("URL de redirección para Strava:", redirectUri);
     
-    // Construct the authorization URL
-    const authUrl = `https://www.strava.com/oauth/authorize?client_id=157332&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.email}`;
+    // Construct the authorization URL with the proper redirect URI
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${user.email}`;
     
     console.log("URL completa de autorización Strava:", authUrl);
-    window.location.href = authUrl;
+    
+    // Open in external browser by using window.location.href
+    // This ensures the URL opens in the device's default browser instead of within an iframe
+    window.open(authUrl, '_blank');
   };
 
   return (
