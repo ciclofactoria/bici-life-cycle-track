@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Wrench, Calendar, ChartBar } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Wrench, ChartBar } from "lucide-react";
 
 export interface BikeProps {
   id: string;
@@ -11,7 +11,7 @@ export interface BikeProps {
   image: string;
   totalSpent: number;
   lastMaintenance: string;
-  nextCheck: string;
+  nextCheck?: string; // Making this optional since we're removing it
 }
 
 const BikeCard = ({ bike }: { bike: BikeProps }) => {
@@ -30,21 +30,16 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
       </div>
       
       <CardContent className="pt-4">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col items-center">
             <ChartBar className="h-5 w-5 text-bicicare-green mb-1" />
-            <p className="text-xs text-muted-foreground">Total Spent</p>
+            <p className="text-xs text-muted-foreground">Gasto Total</p>
             <p className="font-medium">${bike.totalSpent}</p>
           </div>
           <div className="flex flex-col items-center">
             <Wrench className="h-5 w-5 text-bicicare-green mb-1" />
-            <p className="text-xs text-muted-foreground">Last Service</p>
+            <p className="text-xs text-muted-foreground">Último Servicio</p>
             <p className="font-medium">{bike.lastMaintenance}</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <Calendar className="h-5 w-5 text-bicicare-green mb-1" />
-            <p className="text-xs text-muted-foreground">Next Check</p>
-            <p className="font-medium">{bike.nextCheck}</p>
           </div>
         </div>
       </CardContent>

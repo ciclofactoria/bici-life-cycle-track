@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import MaintenanceItem, { MaintenanceProps } from '@/components/MaintenanceItem';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import BottomNav from '@/components/BottomNav';
-import { bikes, maintenanceLogs } from '@/data/mockData';
 import EmptyState from '@/components/EmptyState';
 import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +21,6 @@ interface Bike {
   image: string;
   totalSpent: number;
   lastMaintenance: string;
-  nextCheck: string;
 }
 
 const BikeDetail = () => {
@@ -64,9 +62,9 @@ const BikeDetail = () => {
           selectedBike = userBikes.find(b => b.id === id);
           
           // If not found, try by index position
-          if (!selectedBike) {
+          if (!selectedBike && userBikes.length > 0 && !isNaN(Number(id))) {
             const numId = parseInt(id);
-            if (!isNaN(numId) && numId > 0 && numId <= userBikes.length) {
+            if (numId > 0 && numId <= userBikes.length) {
               selectedBike = userBikes[numId - 1];
             }
           }
@@ -79,20 +77,6 @@ const BikeDetail = () => {
         }
         
         console.log("Found bike:", selectedBike);
-        
-        // Map the Supabase data to match our Bike interface
-        const mappedBike: Bike = {
-          id: selectedBike.id,
-          name: selectedBike.name,
-          type: selectedBike.type,
-          year: selectedBike.year || 0,
-          image: selectedBike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
-          totalSpent: 0, // We'll calculate this from maintenance records later
-          lastMaintenance: selectedBike.last_maintenance_date ? format(new Date(selectedBike.last_maintenance_date), 'MMM dd') : 'N/A',
-          nextCheck: selectedBike.next_check_date ? format(new Date(selectedBike.next_check_date), 'MMM dd') : 'N/A'
-        };
-        
-        setBike(mappedBike);
         setRealBikeId(selectedBike.id);
         
         // Now fetch maintenance records for this bike
@@ -102,8 +86,25 @@ const BikeDetail = () => {
           .eq('bike_id', selectedBike.id)
           .order('date', { ascending: false });
           
-        if (!maintenanceError && maintenanceData) {
-          console.log("Maintenance data:", maintenanceData);
+        if (maintenanceError) {
+          console.error("Error fetching maintenance:", maintenanceError);
+          throw maintenanceError;
+        }
+        
+        // Calculate total spent and find last maintenance date
+        let totalSpent = 0;
+        let lastMaintenanceDate = null;
+        
+        if (maintenanceData && maintenanceData.length > 0) {
+          totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
+          
+          // Find most recent maintenance date
+          const sortedMaintenance = [...maintenanceData].sort((a, b) => 
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          lastMaintenanceDate = sortedMaintenance[0].date;
+          
+          // Format maintenance records
           const formattedMaintenance = maintenanceData.map(record => ({
             id: record.id,
             date: format(new Date(record.date), 'dd/MM/yyyy'),
@@ -114,14 +115,20 @@ const BikeDetail = () => {
           }));
           
           setMaintenance(formattedMaintenance);
-          
-          // Calculate total spent
-          const totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
-          mappedBike.totalSpent = totalSpent;
-          setBike(mappedBike);
-        } else if (maintenanceError) {
-          console.error("Error fetching maintenance:", maintenanceError);
         }
+
+        // Map the Supabase data to match our Bike interface
+        const mappedBike: Bike = {
+          id: selectedBike.id,
+          name: selectedBike.name,
+          type: selectedBike.type,
+          year: selectedBike.year || 0,
+          image: selectedBike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+          totalSpent: totalSpent,
+          lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
+        };
+        
+        setBike(mappedBike);
       } catch (error) {
         console.error('Error fetching bike:', error);
         setError("No se pudo cargar la bicicleta");
@@ -184,11 +191,24 @@ const BikeDetail = () => {
           
           setMaintenance(formattedMaintenance);
           
-          // Update total spent
+          // Update total spent and last maintenance
           const totalSpent = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
-          if (bike) {
-            const updatedBike = { ...bike, totalSpent };
-            setBike(updatedBike);
+          
+          // Find most recent maintenance date
+          if (maintenanceData.length > 0) {
+            const sortedMaintenance = [...maintenanceData].sort((a, b) => 
+              new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+            const lastMaintenanceDate = sortedMaintenance[0].date;
+            
+            if (bike) {
+              const updatedBike = { 
+                ...bike, 
+                totalSpent,
+                lastMaintenance: format(new Date(lastMaintenanceDate), 'dd/MM/yyyy')
+              };
+              setBike(updatedBike);
+            }
           }
         }
       } catch (error) {
@@ -257,7 +277,7 @@ const BikeDetail = () => {
       </div>
       
       <div className="bici-container">
-        <div className="grid grid-cols-3 gap-2 my-6 bg-card rounded-lg p-4">
+        <div className="grid grid-cols-2 gap-2 my-6 bg-card rounded-lg p-4">
           <div className="flex flex-col items-center">
             <p className="text-xs text-muted-foreground">Gasto Total</p>
             <p className="font-medium text-bicicare-green">${bike.totalSpent}</p>
@@ -265,10 +285,6 @@ const BikeDetail = () => {
           <div className="flex flex-col items-center">
             <p className="text-xs text-muted-foreground">Último Servicio</p>
             <p className="font-medium">{bike.lastMaintenance}</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <p className="text-xs text-muted-foreground">Próxima Revisión</p>
-            <p className="font-medium">{bike.nextCheck}</p>
           </div>
         </div>
         
