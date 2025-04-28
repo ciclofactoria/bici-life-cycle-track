@@ -107,7 +107,8 @@ export const useBikeDetail = (bikeId: string | undefined) => {
           image: selectedBike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
           totalSpent: totalSpent,
           lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
-          next_check_date: selectedBike.next_check_date
+          next_check_date: selectedBike.next_check_date,
+          next_check_notes: selectedBike.next_check_notes
         };
         
         setBike(mappedBike);
