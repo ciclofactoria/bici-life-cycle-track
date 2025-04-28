@@ -15,7 +15,12 @@ interface FilterMaintenanceDialogProps {
 const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMaintenanceDialogProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredMaintenance, setFilteredMaintenance] = useState<MaintenanceProps[]>(maintenance);
-  const [repairTypeSummary, setRepairTypeSummary] = useState<{type: string, count: number, totalCost: number}[]>([]);
+  const [repairTypeSummary, setRepairTypeSummary] = useState<{
+    type: string;
+    count: number;
+    lastDate: string;
+    totalCost: number;
+  }[]>([]);
   
   // Filter and summarize maintenance by type
   useEffect(() => {
@@ -26,22 +31,41 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
     setFilteredMaintenance(filtered);
     
     // Create summary by type
-    const typeSummary: Record<string, {count: number, totalCost: number}> = {};
+    const typeSummary: Record<string, {
+      count: number;
+      dates: string[];
+      totalCost: number;
+    }> = {};
     
     filtered.forEach(item => {
       if (!typeSummary[item.type]) {
-        typeSummary[item.type] = {count: 0, totalCost: 0};
+        typeSummary[item.type] = {
+          count: 0,
+          dates: [],
+          totalCost: 0
+        };
       }
       typeSummary[item.type].count += 1;
+      typeSummary[item.type].dates.push(item.date);
       typeSummary[item.type].totalCost += item.cost;
     });
     
-    // Convert to array for display
-    const summaryArray = Object.keys(typeSummary).map(type => ({
-      type,
-      count: typeSummary[type].count,
-      totalCost: typeSummary[type].totalCost
-    }));
+    // Convert to array for display and find last date for each type
+    const summaryArray = Object.keys(typeSummary).map(type => {
+      // Sort dates in descending order to get the most recent
+      const sortedDates = typeSummary[type].dates.sort((a, b) => {
+        const dateA = new Date(a.split('/').reverse().join('-'));
+        const dateB = new Date(b.split('/').reverse().join('-'));
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      return {
+        type,
+        count: typeSummary[type].count,
+        lastDate: sortedDates[0], // Most recent date
+        totalCost: typeSummary[type].totalCost
+      };
+    });
     
     // Sort by count (most frequent first)
     summaryArray.sort((a, b) => b.count - a.count);
@@ -51,7 +75,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Buscar por tipo de reparación</DialogTitle>
         </DialogHeader>
@@ -72,6 +96,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
               <TableRow>
                 <TableHead>Tipo de Reparación</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
+                <TableHead className="text-right">Último Servicio</TableHead>
                 <TableHead className="text-right">Costo Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -81,12 +106,13 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
                   <TableRow key={item.type}>
                     <TableCell className="font-medium">{item.type}</TableCell>
                     <TableCell className="text-right">{item.count}</TableCell>
+                    <TableCell className="text-right">{item.lastDate}</TableCell>
                     <TableCell className="text-right">${item.totalCost}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
                     No se encontraron resultados
                   </TableCell>
                 </TableRow>
