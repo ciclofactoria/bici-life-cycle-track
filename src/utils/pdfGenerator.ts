@@ -12,7 +12,20 @@ declare module 'jspdf' {
     lastAutoTable: {
       finalY: number;
     };
-    internal: any; // Using 'any' to avoid type conflicts
+    // Define internal with a more permissive type that still includes the required properties
+    internal: {
+      events: any;
+      scaleFactor: number;
+      pageSize: { 
+        width: number; 
+        getWidth: () => number; 
+        height: number; 
+        getHeight: () => number; 
+      };
+      pages: number[];
+      getEncryptor(objectId: number): (data: string) => string;
+      getNumberOfPages?: () => number;
+    };
   }
 }
 
@@ -195,3 +208,4 @@ export const generateFullMaintenancePDF = async (userId?: string) => {
     throw error;
   }
 };
+
