@@ -5,18 +5,12 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import type { MaintenanceProps } from '@/components/MaintenanceItem';
 
+// Extender la interfaz de jsPDF con los métodos y propiedades que necesitamos
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
     lastAutoTable: {
       finalY: number;
-    };
-    internal: {
-      getNumberOfPages: () => number;
-      pageSize: {
-        width: number;
-        height: number;
-      };
     };
   }
 }
@@ -68,7 +62,9 @@ export const generateMaintenancePDF = (bike: BikeInfo, maintenance: MaintenanceP
   });
   
   // Add footer
-  const pageCount = doc.internal.getNumberOfPages();
+  const pageCount = doc.internal.getNumberOfPages?.() || 
+                    (doc as any).internal.pages?.length || 1;
+  
   for(let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(10);
@@ -181,7 +177,9 @@ export const generateFullMaintenancePDF = async (userId?: string) => {
     }
     
     // Añadir numeración de páginas
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = doc.internal.getNumberOfPages?.() || 
+                      (doc as any).internal.pages?.length || 1;
+                      
     for(let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
