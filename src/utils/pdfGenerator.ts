@@ -12,6 +12,7 @@ declare module 'jspdf' {
     lastAutoTable: {
       finalY: number;
     };
+    internal: any; // Using 'any' to avoid type conflicts
   }
 }
 
@@ -62,8 +63,7 @@ export const generateMaintenancePDF = (bike: BikeInfo, maintenance: MaintenanceP
   });
   
   // Add footer
-  const pageCount = doc.internal.getNumberOfPages?.() || 
-                    (doc as any).internal.pages?.length || 1;
+  const pageCount = (doc.internal.pages || []).length - 1;
   
   for(let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -177,8 +177,7 @@ export const generateFullMaintenancePDF = async (userId?: string) => {
     }
     
     // Añadir numeración de páginas
-    const pageCount = doc.internal.getNumberOfPages?.() || 
-                      (doc as any).internal.pages?.length || 1;
+    const pageCount = (doc.internal.pages || []).length - 1;
                       
     for(let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
