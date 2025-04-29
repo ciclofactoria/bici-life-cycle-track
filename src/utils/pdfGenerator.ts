@@ -5,6 +5,21 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import type { MaintenanceProps } from '@/components/MaintenanceItem';
 
+// Definir la interfaz para jsPDF sin conflictos de tipos
+interface InternalJsPDF {
+  events: any;
+  scaleFactor: number;
+  pageSize: { 
+    width: number; 
+    getWidth: () => number; 
+    height: number; 
+    getHeight: () => number; 
+  };
+  pages: number[];
+  getEncryptor(objectId: number): (data: string) => string;
+  getNumberOfPages(): number;
+}
+
 // Extender la interfaz de jsPDF con los métodos y propiedades que necesitamos
 declare module 'jspdf' {
   interface jsPDF {
@@ -12,20 +27,7 @@ declare module 'jspdf' {
     lastAutoTable: {
       finalY: number;
     };
-    // Define internal with a more permissive type that still includes the required properties
-    internal: {
-      events: any;
-      scaleFactor: number;
-      pageSize: { 
-        width: number; 
-        getWidth: () => number; 
-        height: number; 
-        getHeight: () => number; 
-      };
-      pages: number[];
-      getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages?: () => number;
-    };
+    internal: InternalJsPDF;
   }
 }
 
@@ -76,7 +78,7 @@ export const generateMaintenancePDF = (bike: BikeInfo, maintenance: MaintenanceP
   });
   
   // Add footer
-  const pageCount = (doc.internal.pages || []).length - 1;
+  const pageCount = doc.internal.getNumberOfPages();
   
   for(let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -190,7 +192,7 @@ export const generateFullMaintenancePDF = async (userId?: string) => {
     }
     
     // Añadir numeración de páginas
-    const pageCount = (doc.internal.pages || []).length - 1;
+    const pageCount = doc.internal.getNumberOfPages();
                       
     for(let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -208,4 +210,3 @@ export const generateFullMaintenancePDF = async (userId?: string) => {
     throw error;
   }
 };
-
