@@ -12,6 +12,7 @@ import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 import EditBikeDialog from '@/components/EditBikeDialog';
 import FilterMaintenanceDialog from '@/components/FilterMaintenanceDialog';
 import NextAppointmentDialog from '@/components/NextAppointmentDialog';
+import AppointmentDialog from '@/components/AppointmentDialog';
 import { useBikeDetail } from '@/hooks/useBikeDetail';
 import { checkNextDayAppointments } from '@/utils/notifications';
 
@@ -23,6 +24,7 @@ const BikeDetail = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isNextAppointmentDialogOpen, setIsNextAppointmentDialogOpen] = useState(false);
+  const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
 
   const {
     bike,
@@ -168,27 +170,20 @@ const BikeDetail = () => {
       const formattedDate = format(date, 'yyyy-MM-dd');
       
       const { error } = await supabase
-        .from('bikes')
-        .update({
-          next_check_date: formattedDate,
-          next_check_notes: notes
-        })
-        .eq('id', realBikeId);
+        .from('appointments')
+        .insert({
+          bike_id: realBikeId,
+          date: formattedDate,
+          notes: notes
+        });
 
       if (error) throw error;
 
       toast({
         title: "Cita programada",
-        description: "La próxima cita ha sido programada correctamente",
+        description: "La cita ha sido programada correctamente",
       });
 
-      if (bike) {
-        setBike({
-          ...bike,
-          next_check_date: formattedDate,
-          next_check_notes: notes
-        });
-      }
     } catch (error) {
       console.error('Error setting next appointment:', error);
       toast({
@@ -196,6 +191,14 @@ const BikeDetail = () => {
         description: "No se pudo programar la cita",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleAppointmentSuccess = () => {
+    // Actualizar la vista después de cambios en citas
+    if (bike) {
+      // Forzar actualización del componente
+      setBike({...bike});
     }
   };
 
@@ -233,7 +236,7 @@ const BikeDetail = () => {
         onFilter={() => setIsFilterDialogOpen(true)}
         onExport={handleExportPDF}
         onAddMaintenance={handleAddMaintenance}
-        onScheduleAppointment={() => setIsNextAppointmentDialogOpen(true)}
+        onScheduleAppointment={() => setIsAppointmentDialogOpen(true)}
       />
       
       <FloatingActionButton onClick={handleAddMaintenance} label="Agregar Mantenimiento" />
@@ -261,12 +264,12 @@ const BikeDetail = () => {
         onOpenChange={setIsFilterDialogOpen}
         maintenance={maintenance}
       />
-      <NextAppointmentDialog
-        open={isNextAppointmentDialogOpen}
-        onOpenChange={setIsNextAppointmentDialogOpen}
-        currentDate={bike.next_check_date ? new Date(bike.next_check_date) : undefined}
-        currentNotes={bike.next_check_notes}
-        onSave={handleSetNextAppointment}
+      <AppointmentDialog
+        open={isAppointmentDialogOpen}
+        onOpenChange={setIsAppointmentDialogOpen}
+        bikeId={realBikeId || ''}
+        bikeName={bike.name}
+        onSaved={handleAppointmentSuccess}
       />
       <BottomNav activePage="/" />
     </>

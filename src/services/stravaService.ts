@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export const exchangeCodeForToken = async (authCode: string, userEmail: string) => {
-  // Configuración de cliente y secreto
+  // Configuración de cliente y secreto - Estos vendrán de variables de entorno en producción
   const clientId = '157332';
   const clientSecret = '38c60b9891cea2fb7053e185750c5345fab850f5';
   
@@ -108,7 +108,7 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
         strava_id: bike.id,
         total_distance: bike.distance || 0,
         image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
-        user_id: userId // 👈 AÑADIDO para cumplir la Policy de seguridad
+        user_id: userId
       });
 
     if (!error) {

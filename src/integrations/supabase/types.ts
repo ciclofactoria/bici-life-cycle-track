@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          bike_id: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          bike_id: string
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          bike_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_bike_id_fkey"
+            columns: ["bike_id"]
+            isOneToOne: false
+            referencedRelation: "bikes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bikes: {
         Row: {
           archived: boolean | null

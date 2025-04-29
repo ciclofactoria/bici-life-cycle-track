@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import BikeHeader from './BikeHeader';
 import BikeStats from './BikeStats';
@@ -72,6 +73,7 @@ const BikeDetailContent = ({
       
       <div className="bici-container">
         <BikeStats
+          bikeId={bike.id}
           totalSpent={bike.totalSpent}
           lastMaintenance={bike.lastMaintenance}
           nextCheckDate={formattedNextCheckDate}
