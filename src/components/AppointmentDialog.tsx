@@ -36,6 +36,19 @@ const AppointmentDialog = ({
   const [notes, setNotes] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Obtener el ID del usuario actual
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUserId(data.session.user.id);
+      }
+    };
+    
+    getUserId();
+  }, []);
 
   const fetchAppointments = async () => {
     if (!bikeId) return;
@@ -84,6 +97,15 @@ const AppointmentDialog = ({
       return;
     }
 
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Usuario no autenticado",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -94,6 +116,7 @@ const AppointmentDialog = ({
         .from('appointments')
         .insert({
           bike_id: bikeId,
+          user_id: userId,
           date: formattedDate,
           notes: notes.trim(),
         });
@@ -189,7 +212,7 @@ const AppointmentDialog = ({
 
             <Button 
               onClick={handleSave} 
-              disabled={loading || !selectedDate}
+              disabled={loading || !selectedDate || !userId}
               className="w-full"
             >
               Añadir cita

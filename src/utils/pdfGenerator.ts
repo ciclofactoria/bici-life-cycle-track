@@ -8,6 +8,16 @@ import type { MaintenanceProps } from '@/components/MaintenanceItem';
 declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
+    lastAutoTable: {
+      finalY: number;
+    };
+    internal: {
+      getNumberOfPages: () => number;
+      pageSize: {
+        width: number;
+        height: number;
+      };
+    };
   }
 }
 
@@ -161,7 +171,7 @@ export const generateFullMaintenancePDF = async (userId?: string) => {
         });
         
         // Actualizar posición Y para la próxima bicicleta
-        yPosition = (doc as any).lastAutoTable.finalY + 20;
+        yPosition = doc.lastAutoTable.finalY + 20;
       } else {
         // Si no hay mantenimiento para esta bici
         doc.setFontSize(12);

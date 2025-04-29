@@ -167,12 +167,25 @@ const BikeDetail = () => {
     if (!realBikeId || !date) return;
 
     try {
+      // Obtener el ID del usuario actual
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.user?.id) {
+        toast({
+          title: "Error",
+          description: "Usuario no autenticado",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const userId = sessionData.session.user.id;
       const formattedDate = format(date, 'yyyy-MM-dd');
       
       const { error } = await supabase
         .from('appointments')
         .insert({
           bike_id: realBikeId,
+          user_id: userId,
           date: formattedDate,
           notes: notes
         });
