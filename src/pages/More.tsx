@@ -35,20 +35,47 @@ const More = () => {
 
   const handleConnectStrava = async () => {
     try {
+      // Primero comprobamos que el usuario esté autenticado
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'Necesitas iniciar sesión para conectar con Strava',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      console.log("Iniciando conexión con Strava...");
+      
+      const redirectUrl = window.location.origin + '/strava-callback';
+      console.log("URL de redirección:", redirectUrl);
+      
       const { data, error } = await supabase.functions.invoke('strava-auth', {
-        body: { redirect_url: window.location.origin + '/strava-callback' },
+        body: { 
+          redirect_uri: redirectUrl,
+          user_id: user.id
+        },
       });
 
-      if (error) throw error;
-      if (!data.url) throw new Error('No se recibió URL de autorización');
+      if (error) {
+        console.error('Error invocando función strava-auth:', error);
+        throw error;
+      }
+      
+      if (!data || !data.url) {
+        console.error('No se recibió URL de autorización:', data);
+        throw new Error('No se recibió URL de autorización');
+      }
 
+      console.log("URL de autorización recibida:", data.url);
+      
       // Redirigir a la URL de autorización de Strava
       window.location.href = data.url;
-    } catch (err) {
-      console.error('Error initiating Strava auth:', err);
+    } catch (err: any) {
+      console.error('Error iniciando auth de Strava:', err);
       toast({
         title: 'Error',
-        description: 'No se pudo iniciar la autenticación con Strava',
+        description: 'No se pudo iniciar la autenticación con Strava: ' + (err.message || 'Error desconocido'),
         variant: 'destructive',
       });
     }
