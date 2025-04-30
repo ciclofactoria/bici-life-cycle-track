@@ -10,6 +10,9 @@ export const exchangeToken = async (code: string) => {
       body: { 
         code,
         user_id: (await supabase.auth.getUser()).data.user?.id
+      },
+      headers: {
+        'Content-Type': 'application/json',
       }
     });
     
