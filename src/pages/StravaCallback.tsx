@@ -1,123 +1,114 @@
 
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { exchangeToken, getAthleteData } from '@/integrations/supabase/strava/api';
+import { importBikesFromActivities } from '@/services/stravaService/importBikesFromActivities';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Bike, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { exchangeCodeForToken, getStravaBikes, importBikesToDatabase, saveStravaToken } from '@/services/stravaService';
+import { supabase } from '@/integrations/supabase/client';
 
 const StravaCallback = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [importedBikes, setImportedBikes] = useState(0);
 
   useEffect(() => {
-    const handleStravaCallback = async () => {
+    const processStravaCallback = async () => {
+      const code = searchParams.get('code');
+      const error = searchParams.get('error');
+
+      if (error) {
+        console.error('🔴 Error recibido en callback:', error);
+        toast({
+          title: 'Error de Strava',
+          description: error,
+          variant: 'destructive',
+        });
+        return navigate('/more');
+      }
+
+      if (!code) {
+        console.error('⚠️ No se recibió el código de autorización');
+        toast({
+          title: 'Código ausente',
+          description: 'No se recibió ningún código desde Strava.',
+          variant: 'destructive',
+        });
+        return navigate('/more');
+      }
+
+      if (!user) {
+        toast({
+          title: 'Sesión no encontrada',
+          description: 'Debes estar autenticado para importar tus bicis.',
+          variant: 'destructive',
+        });
+        return navigate('/more');
+      }
+
       try {
-        const code = searchParams.get('code');
-        const state = searchParams.get('state'); // este es el email
-        const errorParam = searchParams.get('error');
+        const tokenData = await exchangeToken(code);
+        const athlete = await getAthleteData(tokenData.access_token);
 
-        if (errorParam) {
-          throw new Error(`Strava devolvió un error: ${errorParam}`);
+        // Importar bicis desde el objeto de atleta
+        let countFromAthlete = 0;
+        if (athlete?.bikes?.length) {
+          for (const gear of athlete.bikes) {
+            const { error } = await supabase.from('bikes').upsert({
+              user_id: user.id,
+              strava_id: gear.id,
+              name: gear.name,
+              type: gear.frame_type === 1 ? 'Road' : 'Other',
+              total_distance: gear.distance || 0,
+              image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+            });
+            if (!error) countFromAthlete++;
+          }
         }
 
-        if (!code || !state) {
-          throw new Error('No se recibió el código de autorización o el estado');
-        }
+        // Importar bicis desde actividades recientes
+        const countFromActivities = await importBikesFromActivities(user.id, tokenData.access_token);
 
-        console.log('✅ Código de Strava recibido:', code.substring(0, 5) + '...');
-
-        // 1. Obtener token de Strava
-        const tokenData = await exchangeCodeForToken(code, state);
-        console.log('✅ Token obtenido:', tokenData);
-
-        if (!tokenData.access_token) {
-          throw new Error('No se recibió access_token al intercambiar el código');
-        }
-
-        // 2. Guardar token en Supabase
-        if (user) {
-          await saveStravaToken(user.id, state, tokenData);
-          console.log('✅ Token guardado en Supabase para el usuario:', user.id);
-        } else {
-          throw new Error('Usuario no autenticado en Supabase');
-        }
-
-        // 3. Obtener bicis de Strava
-        const bikes = await getStravaBikes(tokenData.access_token);
-        console.log('✅ Bicis obtenidas de Strava:', bikes);
-
-        if (!bikes || bikes.length === 0) {
-          throw new Error('No se encontraron bicicletas en Strava');
-        }
-
-        // 4. Importar bicis a Supabase
-        const importedCount = await importBikesToDatabase(user.id, bikes);
-        console.log(`✅ Se importaron ${importedCount} de ${bikes.length} bicicletas`);
-
-        setImportedBikes(importedCount);
+        console.log(`📦 Bicis importadas desde atleta: ${countFromAthlete}`);
+        console.log(`📦 Bicis importadas desde actividades: ${countFromActivities}`);
 
         toast({
-          title: 'Conexión exitosa',
-          description: `Se importaron ${importedCount} bicicletas desde Strava`,
+          title: '¡Conexión exitosa!',
+          description: `Se importaron ${countFromAthlete + countFromActivities} bicicletas de Strava.`,
         });
 
         setTimeout(() => {
-          navigate('/', { replace: true });
+          navigate('/');
         }, 1500);
-
       } catch (err: any) {
-        console.error('❌ Error en StravaCallback:', err);
-        setError(err.message || 'Error desconocido');
+        console.error('❌ Error al importar bicis de Strava:', err);
         toast({
-          title: 'Error de conexión',
-          description: err.message || 'Error desconocido',
-          variant: 'destructive'
+          title: 'Error',
+          description: err.message || 'Error desconocido al conectar con Strava',
+          variant: 'destructive',
         });
-
-        setTimeout(() => {
-          navigate('/more', { replace: true });
-        }, 3000);
+        navigate('/more');
       } finally {
         setLoading(false);
       }
     };
 
-    handleStravaCallback();
-  }, [navigate, searchParams, toast, user]);
+    processStravaCallback();
+  }, [searchParams, navigate, toast, user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        {loading ? (
-          <div className="flex flex-col items-center">
-            <Loader2 className="animate-spin mb-4 h-8 w-8" />
-            <h2 className="text-xl font-bold mb-2">Importando bicicletas...</h2>
-            <p className="text-muted-foreground">Procesando datos de Strava...</p>
-          </div>
-        ) : error ? (
-          <div className="text-red-500">
-            <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Error</h2>
-            <p className="text-muted-foreground">{error}</p>
-            <p className="mt-4">Redirigiendo...</p>
-          </div>
-        ) : (
-          <div>
-            <div className="flex justify-center mb-4">
-              <Bike className="h-12 w-12 text-green-500" />
-            </div>
-            <h2 className="text-xl font-bold mb-2 text-green-600">¡Importación exitosa!</h2>
-            <p className="text-muted-foreground">Se importaron {importedBikes} bicicletas.</p>
-            <p className="mt-4">Redirigiendo...</p>
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <div className="text-center">
+          <Loader2 className="animate-spin mx-auto mb-4 h-8 w-8 text-muted" />
+          <p className="text-lg">Conectando con Strava...</p>
+        </div>
+      ) : (
+        <p className="text-muted">Redirigiendo...</p>
+      )}
     </div>
   );
 };
