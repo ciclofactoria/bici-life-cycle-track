@@ -37,6 +37,7 @@ const MaintenanceHistory = ({
             size="sm"
             className="flex items-center gap-1 text-muted-foreground hover:text-bicicare-green"
             onClick={onExport}
+            title="Exportar a Excel"
           >
             <FileText className="h-4 w-4" />
             <span className="text-sm">Exportar</span>

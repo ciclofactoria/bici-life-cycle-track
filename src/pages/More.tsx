@@ -16,7 +16,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FileText, Archive, LogOut, ChevronRight, Clock, ArrowRightCircle, Bike } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import { generateFullMaintenancePDF } from '@/utils/pdfGenerator';
+import { generateFullMaintenanceExcel } from '@/utils/excelGenerator';
 
 const More = () => {
   const { user, signOut } = useAuth();
@@ -67,10 +67,10 @@ const More = () => {
     setIsExporting(true);
     
     try {
-      await generateFullMaintenancePDF(user.id);
+      await generateFullMaintenanceExcel(user.id);
       toast({
         title: "Exportado con éxito",
-        description: "El historial completo se ha exportado a PDF",
+        description: "El historial completo se ha exportado a Excel",
       });
     } catch (error) {
       console.error("Error exportando historial completo:", error);

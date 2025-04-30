@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { generateMaintenancePDF } from '@/utils/pdfGenerator';
+import { generateMaintenanceExcel } from '@/utils/excelGenerator';
 import { Button } from "@/components/ui/button";
 import BikeDetailContent from '@/components/bike/BikeDetailContent';
 import BottomNav from '@/components/BottomNav';
@@ -62,17 +62,17 @@ const BikeDetail = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleExportPDF = () => {
+  const handleExportExcel = () => {
     if (!bike) return;
     
     try {
-      generateMaintenancePDF(bike, maintenance);
+      generateMaintenanceExcel(bike, maintenance);
       toast({
         title: "Exportado con éxito",
-        description: "El historial de mantenimiento se ha exportado a PDF",
+        description: "El historial de mantenimiento se ha exportado a Excel",
       });
     } catch (error) {
-      console.error('Error exporting to PDF:', error);
+      console.error('Error exporting to Excel:', error);
       toast({
         title: "Error",
         description: "No se pudo exportar el historial",
@@ -247,7 +247,7 @@ const BikeDetail = () => {
         onBack={handleBack}
         onEdit={handleEditBike}
         onFilter={() => setIsFilterDialogOpen(true)}
-        onExport={handleExportPDF}
+        onExport={handleExportExcel}
         onAddMaintenance={handleAddMaintenance}
         onScheduleAppointment={() => setIsAppointmentDialogOpen(true)}
       />
