@@ -23,7 +23,6 @@ const More = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
-  const [isConnectingStrava, setIsConnectingStrava] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -36,59 +35,22 @@ const More = () => {
 
   const handleConnectStrava = async () => {
     try {
-      // Primero comprobamos que el usuario esté autenticado
-      if (!user) {
-        toast({
-          title: 'Error',
-          description: 'Necesitas iniciar sesión para conectar con Strava',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setIsConnectingStrava(true);
-      console.log("Iniciando conexión con Strava...");
-      
-      const redirectUrl = window.location.origin + '/strava-callback';
-      console.log("URL de redirección:", redirectUrl);
-      
-      try {
-        const { data, error } = await supabase.functions.invoke('strava-auth', {
-          body: { 
-            redirect_uri: redirectUrl,
-            user_id: user.id
-          },
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+      const { data, error } = await supabase.functions.invoke('strava-auth', {
+        body: { redirect_url: window.location.origin + '/strava-callback' },
+      });
 
-        if (error) {
-          console.error('Error invocando función strava-auth:', error);
-          throw error;
-        }
-        
-        if (!data || !data.url) {
-          console.error('No se recibió URL de autorización:', data);
-          throw new Error('No se recibió URL de autorización');
-        }
+      if (error) throw error;
+      if (!data.url) throw new Error('No se recibió URL de autorización');
 
-        console.log("URL de autorización recibida:", data.url);
-        
-        // Redirigir a la URL de autorización de Strava
-        window.location.href = data.url;
-      } catch (error: any) {
-        console.error('Error específico al invocar función:', error);
-        throw new Error('Error al comunicarse con el servidor: ' + (error.message || 'Error desconocido'));
-      }
-    } catch (err: any) {
-      console.error('Error iniciando auth de Strava:', err);
+      // Redirigir a la URL de autorización de Strava
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('Error initiating Strava auth:', err);
       toast({
         title: 'Error',
-        description: 'No se pudo iniciar la autenticación con Strava: ' + (err.message || 'Error desconocido'),
+        description: 'No se pudo iniciar la autenticación con Strava',
         variant: 'destructive',
       });
-      setIsConnectingStrava(false);
     }
   };
 
@@ -169,13 +131,12 @@ const More = () => {
               <Button 
                 onClick={handleConnectStrava}
                 className="w-full bg-[#FC4C02] hover:bg-[#e8440c] text-white"
-                disabled={isConnectingStrava}
               >
                 <div className="flex items-center gap-2">
                   <svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                     <path d="M12.0002944,0 C5.37321219,0 0,5.37360294 0,12.0002944 C0,18.627693 5.37321219,24 12.0002944,24 C18.6270837,24 24,18.627693 24,12.0002944 C24,5.37360294 18.6270837,0 12.0002944,0 Z M17.8255796,18 L14.9215449,18 L13.9998355,16.1545586 L11.0003824,16.1545586 L10.0792167,18 L7.17467572,18 L12.0000589,8 L17.8255796,18 Z M10.4127964,14.2344142 L11.9997767,11.2752987 L13.5879511,14.2344142 L10.4127964,14.2344142 Z"></path>
                   </svg>
-                  <span>{isConnectingStrava ? 'Conectando...' : 'Conectar con Strava'}</span>
+                  <span>Conectar con Strava</span>
                 </div>
               </Button>
             </CardContent>

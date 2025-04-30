@@ -7,13 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const exchangeToken = async (code: string) => {
   try {
     const { data, error } = await supabase.functions.invoke('strava-auth', {
-      body: { 
-        code,
-        user_id: (await supabase.auth.getUser()).data.user?.id
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      body: { code }
     });
     
     if (error) {
