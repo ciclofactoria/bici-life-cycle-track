@@ -38,19 +38,21 @@ const More = () => {
     try {
       setIsConnecting(true);
       
-      // Redirect directly to Strava's authorization page
-      // Bypass the edge function for now as it seems to be failing
+      // Actualizado con los valores correctos según lo proporcionado por el usuario
       const clientId = '157332';
       const redirectUri = encodeURIComponent(`${window.location.origin}/strava-callback`);
+      // Ajustamos los scopes para que coincidan exactamente con lo que Strava espera
       const scope = encodeURIComponent('read,profile:read_all,activity:read_all');
       const responseType = 'code';
+      const approvalPrompt = 'auto';
       
-      const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&approval_prompt=auto`;
+      // URL formateada según la documentación oficial de Strava
+      const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&approval_prompt=${approvalPrompt}`;
       
-      console.log('Redirecting to Strava authorization page:', stravaAuthUrl);
+      console.log('Redirigiendo a página de autorización de Strava:', stravaAuthUrl);
       window.location.href = stravaAuthUrl;
     } catch (err) {
-      console.error('Error initiating Strava auth:', err);
+      console.error('Error al iniciar autenticación con Strava:', err);
       toast({
         title: 'Error',
         description: 'No se pudo iniciar la autenticación con Strava',

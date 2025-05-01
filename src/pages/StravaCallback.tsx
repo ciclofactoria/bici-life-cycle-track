@@ -25,7 +25,7 @@ const StravaCallback = () => {
         console.error('🔴 Error recibido en callback:', error);
         toast({
           title: 'Error de Strava',
-          description: error,
+          description: `Strava ha rechazado la conexión: ${error}`,
           variant: 'destructive',
         });
         return navigate('/more');
@@ -54,7 +54,7 @@ const StravaCallback = () => {
         setStatus('Intercambiando código por token...');
         console.log('Intercambiando código por token...', code.substring(0, 5) + '...');
         
-        // Intercambiar código directamente con la API de Strava en lugar de usar la función Edge
+        // Actualizando el client_secret con el valor correcto proporcionado por el usuario
         const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
           method: 'POST',
           headers: {
@@ -62,19 +62,29 @@ const StravaCallback = () => {
           },
           body: JSON.stringify({
             client_id: '157332',
-            client_secret: 'a09a8b6e85b7a0c5c622fcbf97b1922c8e1bd864',
+            client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5', // Secreto actualizado
             code: code,
             grant_type: 'authorization_code'
           })
         });
         
-        if (!tokenResponse.ok) {
-          const errorData = await tokenResponse.json();
-          console.error('Error en respuesta de token:', errorData);
-          throw new Error(errorData.message || `Error ${tokenResponse.status} al intercambiar token`);
+        console.log('Respuesta de token status:', tokenResponse.status);
+        const responseText = await tokenResponse.text();
+        console.log('Respuesta bruta:', responseText);
+        
+        let tokenData;
+        try {
+          tokenData = JSON.parse(responseText);
+        } catch (e) {
+          console.error('Error al parsear respuesta:', e);
+          throw new Error(`Error al procesar la respuesta: ${responseText}`);
         }
         
-        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok) {
+          console.error('Error en respuesta de token:', tokenData);
+          throw new Error(tokenData.message || `Error ${tokenResponse.status} al intercambiar token`);
+        }
+        
         console.log('Token recibido:', { 
           access_token: tokenData.access_token ? tokenData.access_token.substring(0, 5) + '...' : 'no disponible',
           expires_at: tokenData.expires_at,

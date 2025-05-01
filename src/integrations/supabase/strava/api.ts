@@ -7,7 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const exchangeToken = async (code: string) => {
   try {
-    // Realiza la llamada directamente a la API de Strava
+    console.log('Exchange token iniciado con código', code.substring(0, 5) + '...');
+    
+    // Realiza la llamada directamente a la API de Strava con el secreto actualizado
     const response = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: {
@@ -15,19 +17,28 @@ export const exchangeToken = async (code: string) => {
       },
       body: JSON.stringify({
         client_id: '157332',
-        client_secret: 'a09a8b6e85b7a0c5c622fcbf97b1922c8e1bd864',
+        client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5', // Secreto actualizado
         code: code,
         grant_type: 'authorization_code'
       })
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error en respuesta directa de token:', errorData);
-      throw new Error(errorData.message || `Error ${response.status} al intercambiar token`);
+    console.log('Respuesta de Strava status:', response.status);
+    const responseText = await response.text();
+    console.log('Respuesta bruta de Strava:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Error al parsear respuesta:', e);
+      throw new Error(`Error al procesar la respuesta: ${responseText}`);
     }
     
-    const data = await response.json();
+    if (!response.ok) {
+      console.error('Error en respuesta directa de token:', data);
+      throw new Error(data.message || `Error ${response.status} al intercambiar token`);
+    }
     
     if (!data || !data.access_token) {
       throw new Error('No se recibió un token válido');
