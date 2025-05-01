@@ -18,6 +18,9 @@ interface BikeRecord {
  */
 export const importBikesFromActivities = async (userId: string, accessToken: string): Promise<number> => {
   try {
+    console.log('Iniciando importación de bicis desde actividades');
+    console.log('Token de acceso:', accessToken.substring(0, 5) + '...');
+    
     // Obtenemos las últimas 100 actividades
     const activities = await getAthleteActivities(accessToken, 1, 100);
     
@@ -57,6 +60,7 @@ export const importBikesFromActivities = async (userId: string, accessToken: str
     let importCount = 0;
     
     for (const bike of bikesMap.values()) {
+      console.log(`Importando bici ${bike.name} (${bike.id})`);
       const { error } = await supabase.from('bikes').upsert({
         user_id: userId,
         strava_id: bike.id,
@@ -74,6 +78,7 @@ export const importBikesFromActivities = async (userId: string, accessToken: str
       }
     }
     
+    console.log(`Importación completada. Total de bicis importadas: ${importCount}`);
     return importCount;
   } catch (err) {
     console.error('Error en importBikesFromActivities:', err);

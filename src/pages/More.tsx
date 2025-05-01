@@ -23,6 +23,7 @@ const More = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -35,15 +36,19 @@ const More = () => {
 
   const handleConnectStrava = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('strava-auth', {
-        body: { redirect_url: window.location.origin + '/strava-callback' },
-      });
-
-      if (error) throw error;
-      if (!data.url) throw new Error('No se recibió URL de autorización');
-
-      // Redirigir a la URL de autorización de Strava
-      window.location.href = data.url;
+      setIsConnecting(true);
+      
+      // Redirect directly to Strava's authorization page
+      // Bypass the edge function for now as it seems to be failing
+      const clientId = '157332';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/strava-callback`);
+      const scope = encodeURIComponent('read,profile:read_all,activity:read_all');
+      const responseType = 'code';
+      
+      const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&approval_prompt=auto`;
+      
+      console.log('Redirecting to Strava authorization page:', stravaAuthUrl);
+      window.location.href = stravaAuthUrl;
     } catch (err) {
       console.error('Error initiating Strava auth:', err);
       toast({
@@ -51,6 +56,7 @@ const More = () => {
         description: 'No se pudo iniciar la autenticación con Strava',
         variant: 'destructive',
       });
+      setIsConnecting(false);
     }
   };
 
@@ -131,12 +137,13 @@ const More = () => {
               <Button 
                 onClick={handleConnectStrava}
                 className="w-full bg-[#FC4C02] hover:bg-[#e8440c] text-white"
+                disabled={isConnecting}
               >
                 <div className="flex items-center gap-2">
                   <svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                     <path d="M12.0002944,0 C5.37321219,0 0,5.37360294 0,12.0002944 C0,18.627693 5.37321219,24 12.0002944,24 C18.6270837,24 24,18.627693 24,12.0002944 C24,5.37360294 18.6270837,0 12.0002944,0 Z M17.8255796,18 L14.9215449,18 L13.9998355,16.1545586 L11.0003824,16.1545586 L10.0792167,18 L7.17467572,18 L12.0000589,8 L17.8255796,18 Z M10.4127964,14.2344142 L11.9997767,11.2752987 L13.5879511,14.2344142 L10.4127964,14.2344142 Z"></path>
                   </svg>
-                  <span>Conectar con Strava</span>
+                  <span>{isConnecting ? 'Conectando...' : 'Conectar con Strava'}</span>
                 </div>
               </Button>
             </CardContent>

@@ -86,20 +86,21 @@ const RootRouteHandler = () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const scope = params.get('scope');
-  const state = params.get('state');
   
-  // If there's a code in the URL and scope includes 'read' or 'activity', this is likely a Strava redirect
-  if (code && (scope?.includes('read') || scope?.includes('activity'))) {
-    console.log("Detectado código de Strava en URL raíz:", { code, scope, state });
+  // If there's a code in the URL and scope contains anything, this is likely a Strava redirect
+  if (code && scope) {
+    console.log("Detectado código de Strava en URL raíz:", { code: code.substring(0, 5) + '...', scope });
     
     // Redirect to the strava-callback page with all the parameters
-    const redirectUrl = `/strava-callback?code=${code}`;
+    const redirectUrl = `/strava-callback?code=${code}&scope=${encodeURIComponent(scope)}`;
     
-    // Add scope and state if they exist
-    const fullRedirectUrl = scope 
-      ? `${redirectUrl}&scope=${encodeURIComponent(scope || '')}&state=${encodeURIComponent(state || '')}`
+    // Add any other parameters that might be present
+    const state = params.get('state');
+    const fullRedirectUrl = state 
+      ? `${redirectUrl}&state=${encodeURIComponent(state)}`
       : redirectUrl;
       
+    console.log("Redirigiendo a:", fullRedirectUrl);
     return <Navigate to={fullRedirectUrl} replace />;
   }
   

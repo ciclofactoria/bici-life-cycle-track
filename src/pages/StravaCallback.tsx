@@ -14,6 +14,7 @@ const StravaCallback = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState('Iniciando conexión...');
 
   useEffect(() => {
     const processStravaCallback = async () => {
@@ -50,13 +51,70 @@ const StravaCallback = () => {
       }
 
       try {
-        const tokenData = await exchangeToken(code);
+        setStatus('Intercambiando código por token...');
+        console.log('Intercambiando código por token...', code.substring(0, 5) + '...');
+        
+        // Intercambiar código directamente con la API de Strava en lugar de usar la función Edge
+        const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            client_id: '157332',
+            client_secret: 'a09a8b6e85b7a0c5c622fcbf97b1922c8e1bd864',
+            code: code,
+            grant_type: 'authorization_code'
+          })
+        });
+        
+        if (!tokenResponse.ok) {
+          const errorData = await tokenResponse.json();
+          console.error('Error en respuesta de token:', errorData);
+          throw new Error(errorData.message || `Error ${tokenResponse.status} al intercambiar token`);
+        }
+        
+        const tokenData = await tokenResponse.json();
+        console.log('Token recibido:', { 
+          access_token: tokenData.access_token ? tokenData.access_token.substring(0, 5) + '...' : 'no disponible',
+          expires_at: tokenData.expires_at,
+          has_refresh: Boolean(tokenData.refresh_token), 
+          athlete: tokenData.athlete ? tokenData.athlete.id : 'no disponible' 
+        });
+        
+        // Guardar datos del token en el perfil del usuario
+        setStatus('Guardando token en perfil de usuario...');
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            strava_connected: true,
+            strava_access_token: tokenData.access_token,
+            strava_refresh_token: tokenData.refresh_token,
+            strava_token_expires_at: tokenData.expires_at,
+            strava_athlete_id: tokenData.athlete?.id || null
+          })
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Error actualizando perfil:', updateError);
+          throw new Error(`Error al actualizar perfil: ${updateError.message}`);
+        }
+
+        // Obtener datos del atleta
+        setStatus('Obteniendo datos del atleta...');
         const athlete = await getAthleteData(tokenData.access_token);
+        console.log('Datos del atleta recibidos:', { 
+          id: athlete.id,
+          username: athlete.username,
+          bikes: athlete.bikes?.length || 0
+        });
 
         // Importar bicis desde el objeto de atleta
+        setStatus('Importando bicicletas...');
         let countFromAthlete = 0;
         if (athlete?.bikes?.length) {
           for (const gear of athlete.bikes) {
+            console.log('Importando bicicleta:', gear.name);
             const { error } = await supabase.from('bikes').upsert({
               user_id: user.id,
               strava_id: gear.id,
@@ -70,6 +128,7 @@ const StravaCallback = () => {
         }
 
         // Importar bicis desde actividades recientes
+        setStatus('Importando desde actividades recientes...');
         const countFromActivities = await importBikesFromActivities(user.id, tokenData.access_token);
 
         console.log(`📦 Bicis importadas desde atleta: ${countFromAthlete}`);
@@ -105,6 +164,7 @@ const StravaCallback = () => {
         <div className="text-center">
           <Loader2 className="animate-spin mx-auto mb-4 h-8 w-8 text-muted" />
           <p className="text-lg">Conectando con Strava...</p>
+          <p className="text-sm text-muted-foreground mt-2">{status}</p>
         </div>
       ) : (
         <p className="text-muted">Redirigiendo...</p>
