@@ -66,6 +66,7 @@ serve(async (req) => {
     }
 
     // Extract only the bikes array from the athlete data
+    // Make sure we return a consistent structure even if no bikes are found
     const result = { gear: data.bikes || [] };
     console.log(`Returning ${result.gear.length} bikes with consistent format`);
     

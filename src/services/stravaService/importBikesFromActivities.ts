@@ -56,25 +56,66 @@ export const importBikesFromActivities = async (userId: string, accessToken: str
     
     console.log(`🔍 Se encontraron ${bikesMap.size} bicicletas en las actividades`);
     
+    // Si no hay bicis, terminamos aquí
+    if (bikesMap.size === 0) {
+      console.log('No se encontraron bicicletas en las actividades');
+      return 0;
+    }
+    
     // Importamos las bicis a la base de datos
     let importCount = 0;
     
     for (const bike of bikesMap.values()) {
       console.log(`Importando bici ${bike.name} (${bike.id})`);
-      const { error } = await supabase.from('bikes').upsert({
-        user_id: userId,
-        strava_id: bike.id,
-        name: bike.name,
-        type: bike.type,
-        total_distance: bike.distance,
-        image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
-      });
       
-      if (!error) {
+      // Primero verificamos si ya existe esta bicicleta para este usuario
+      const { data: existingBike, error: checkError } = await supabase
+        .from('bikes')
+        .select('id')
+        .eq('strava_id', bike.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error(`❌ Error al comprobar si la bici ${bike.name} ya existe:`, checkError);
+        continue;
+      }
+      
+      let upsertError;
+      
+      if (existingBike) {
+        // Si ya existe, actualizamos la distancia y otros datos
+        console.log(`La bici ${bike.name} ya existe, actualizando datos...`);
+        
+        const { error } = await supabase
+          .from('bikes')
+          .update({
+            name: bike.name,
+            total_distance: bike.distance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingBike.id);
+          
+        upsertError = error;
+      } else {
+        // Si no existe, la insertamos
+        const { error } = await supabase.from('bikes').insert({
+          user_id: userId,
+          strava_id: bike.id,
+          name: bike.name,
+          type: bike.type,
+          total_distance: bike.distance,
+          image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+        });
+        
+        upsertError = error;
+      }
+      
+      if (!upsertError) {
         importCount++;
         console.log(`✅ Bici importada: ${bike.name}, usada en ${bike.activities} actividades`);
       } else {
-        console.error(`❌ Error al importar bici ${bike.name}:`, error);
+        console.error(`❌ Error al importar bici ${bike.name}:`, upsertError);
       }
     }
     

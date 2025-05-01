@@ -100,7 +100,7 @@ const StravaCallback = () => {
         let countFromAthlete = 0;
         if (athlete?.bikes?.length) {
           for (const gear of athlete.bikes) {
-            console.log('Importando bicicleta:', gear.name);
+            console.log('Importando bicicleta desde datos de atleta:', gear.name);
             const { error } = await supabase.from('bikes').upsert({
               user_id: user.id,
               strava_id: gear.id,
@@ -110,7 +110,10 @@ const StravaCallback = () => {
               image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
             });
             if (!error) countFromAthlete++;
+            else console.error('Error importando bici desde datos de atleta:', error);
           }
+        } else {
+          console.log('No se encontraron bicis en los datos del atleta, intentando con actividades');
         }
 
         // Importar bicis desde actividades recientes
@@ -120,10 +123,18 @@ const StravaCallback = () => {
         console.log(`📦 Bicis importadas desde atleta: ${countFromAthlete}`);
         console.log(`📦 Bicis importadas desde actividades: ${countFromActivities}`);
 
-        toast({
-          title: '¡Conexión exitosa!',
-          description: `Se importaron ${countFromAthlete + countFromActivities} bicicletas de Strava.`,
-        });
+        const totalImported = countFromAthlete + countFromActivities;
+        if (totalImported > 0) {
+          toast({
+            title: '¡Conexión exitosa!',
+            description: `Se importaron ${totalImported} bicicletas de Strava.`,
+          });
+        } else {
+          toast({
+            title: 'Conexión con Strava completada',
+            description: 'No se encontraron bicicletas para importar. Prueba a usar tus bicicletas en actividades en Strava.',
+          });
+        }
 
         setTimeout(() => {
           navigate('/');
