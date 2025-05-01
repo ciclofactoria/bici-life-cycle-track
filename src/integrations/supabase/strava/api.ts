@@ -17,9 +17,10 @@ export const exchangeToken = async (code: string) => {
       },
       body: JSON.stringify({
         client_id: '157332',
-        client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5', // Secreto actualizado
+        client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5',
         code: code,
-        grant_type: 'authorization_code'
+        grant_type: 'authorization_code',
+        redirect_uri: 'https://lovable.dev/strava-callback' // Añadimos el redirect_uri aquí también
       })
     });
     

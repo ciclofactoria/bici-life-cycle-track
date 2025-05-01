@@ -40,7 +40,11 @@ const More = () => {
       
       // Actualizado con los valores correctos según lo proporcionado por el usuario
       const clientId = '157332';
-      const redirectUri = encodeURIComponent(`${window.location.origin}/strava-callback`);
+      
+      // IMPORTANTE: Usamos la URL exacta registrada en la aplicación de Strava
+      // En este caso, debe coincidir exactamente con lo que has registrado en Strava
+      const redirectUri = encodeURIComponent('https://lovable.dev/strava-callback');
+      
       // Ajustamos los scopes para que coincidan exactamente con lo que Strava espera
       const scope = encodeURIComponent('read,profile:read_all,activity:read_all');
       const responseType = 'code';
@@ -52,7 +56,6 @@ const More = () => {
       console.log('Redirigiendo a página de autorización de Strava:', stravaAuthUrl);
       
       // Abrimos en una nueva ventana del navegador para asegurar que se usa el navegador externo
-      // en lugar de intentar abrir dentro de la aplicación
       window.open(stravaAuthUrl, '_blank', 'noopener,noreferrer');
       
       toast({
