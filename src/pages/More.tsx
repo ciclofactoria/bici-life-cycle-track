@@ -50,7 +50,17 @@ const More = () => {
       const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&approval_prompt=${approvalPrompt}`;
       
       console.log('Redirigiendo a página de autorización de Strava:', stravaAuthUrl);
-      window.location.href = stravaAuthUrl;
+      
+      // Abrimos en una nueva ventana del navegador para asegurar que se usa el navegador externo
+      // en lugar de intentar abrir dentro de la aplicación
+      window.open(stravaAuthUrl, '_blank', 'noopener,noreferrer');
+      
+      toast({
+        title: "Conectando con Strava",
+        description: "Se ha abierto una nueva ventana para autorizar a Strava. Por favor completa el proceso allí.",
+      });
+      
+      setIsConnecting(false);
     } catch (err) {
       console.error('Error al iniciar autenticación con Strava:', err);
       toast({

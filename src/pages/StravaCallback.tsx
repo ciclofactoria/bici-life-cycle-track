@@ -54,35 +54,11 @@ const StravaCallback = () => {
         setStatus('Intercambiando código por token...');
         console.log('Intercambiando código por token...', code.substring(0, 5) + '...');
         
-        // Actualizando el client_secret con el valor correcto proporcionado por el usuario
-        const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            client_id: '157332',
-            client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5', // Secreto actualizado
-            code: code,
-            grant_type: 'authorization_code'
-          })
-        });
+        // Usando la función de intercambio de token de la API
+        const tokenData = await exchangeToken(code);
         
-        console.log('Respuesta de token status:', tokenResponse.status);
-        const responseText = await tokenResponse.text();
-        console.log('Respuesta bruta:', responseText);
-        
-        let tokenData;
-        try {
-          tokenData = JSON.parse(responseText);
-        } catch (e) {
-          console.error('Error al parsear respuesta:', e);
-          throw new Error(`Error al procesar la respuesta: ${responseText}`);
-        }
-        
-        if (!tokenResponse.ok) {
-          console.error('Error en respuesta de token:', tokenData);
-          throw new Error(tokenData.message || `Error ${tokenResponse.status} al intercambiar token`);
+        if (!tokenData || !tokenData.access_token) {
+          throw new Error('No se recibió un token válido de Strava');
         }
         
         console.log('Token recibido:', { 

@@ -37,7 +37,7 @@ export const exchangeToken = async (code: string) => {
     
     if (!response.ok) {
       console.error('Error en respuesta directa de token:', data);
-      throw new Error(data.message || `Error ${response.status} al intercambiar token`);
+      throw new Error(data.message || data.error || `Error ${response.status} al intercambiar token`);
     }
     
     if (!data || !data.access_token) {
