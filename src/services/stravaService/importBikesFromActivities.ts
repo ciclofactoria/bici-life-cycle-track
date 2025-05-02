@@ -71,7 +71,7 @@ export const importBikesFromActivities = async (userId: string, accessToken: str
       // Primero verificamos si ya existe esta bicicleta para este usuario
       const { data: existingBike, error: checkError } = await supabase
         .from('bikes')
-        .select('id')
+        .select('id, total_distance')
         .eq('strava_id', bike.id)
         .eq('user_id', userId)
         .maybeSingle();
@@ -83,43 +83,71 @@ export const importBikesFromActivities = async (userId: string, accessToken: str
       
       let upsertError;
       
+      // Array de placeholders de imágenes para bicicletas sin imagen
+      const placeholderImages = [
+        'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+        'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=900&q=60',
+        'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=900&q=60'
+      ];
+      
+      // Seleccionar una imagen aleatoria del array
+      const randomImage = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
+      
       if (existingBike) {
-        // Si ya existe, actualizamos la distancia y otros datos
-        console.log(`La bici ${bike.name} ya existe, actualizando datos...`);
+        // Si ya existe, verificamos si la distancia actual es mayor para actualizarla
+        console.log(`La bici ${bike.name} ya existe, ID: ${existingBike.id}`);
         
-        const { error } = await supabase
-          .from('bikes')
-          .update({
-            name: bike.name,
-            total_distance: bike.distance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingBike.id);
+        // Solo actualizamos si la nueva distancia es mayor que la existente
+        if (bike.distance > (existingBike.total_distance || 0)) {
+          console.log(`Actualizando distancia de ${existingBike.total_distance || 0}m a ${bike.distance}m`);
           
-        upsertError = error;
+          const { error } = await supabase
+            .from('bikes')
+            .update({
+              name: bike.name,
+              total_distance: bike.distance,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingBike.id);
+            
+          upsertError = error;
+          
+          if (!error) {
+            importCount++;
+          }
+        } else {
+          console.log(`No se actualizó la bici porque la distancia actual (${existingBike.total_distance}m) es mayor o igual que la nueva (${bike.distance}m)`);
+          // Contamos como importada aunque no hayamos actualizado nada
+          importCount++;
+        }
       } else {
         // Si no existe, la insertamos
+        console.log(`Insertando nueva bici: ${bike.name} con ${bike.distance}m`);
+        
         const { error } = await supabase.from('bikes').insert({
           user_id: userId,
           strava_id: bike.id,
           name: bike.name,
           type: bike.type,
           total_distance: bike.distance,
-          image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+          image: randomImage,
         });
         
         upsertError = error;
+        
+        if (!error) {
+          importCount++;
+        }
       }
       
       if (!upsertError) {
-        importCount++;
-        console.log(`✅ Bici importada: ${bike.name}, usada en ${bike.activities} actividades`);
+        console.log(`✅ Bici ${existingBike ? 'actualizada' : 'importada'}: ${bike.name}, usada en ${bike.activities} actividades`);
       } else {
-        console.error(`❌ Error al importar bici ${bike.name}:`, upsertError);
+        console.error(`❌ Error al ${existingBike ? 'actualizar' : 'importar'} bici ${bike.name}:`, upsertError);
       }
     }
     
-    console.log(`Importación completada. Total de bicis importadas: ${importCount}`);
+    console.log(`Importación completada. Total de bicis importadas/actualizadas: ${importCount}`);
     return importCount;
   } catch (err) {
     console.error('Error en importBikesFromActivities:', err);

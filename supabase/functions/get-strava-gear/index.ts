@@ -65,17 +65,35 @@ serve(async (req) => {
       throw new Error(`Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`)
     }
 
+    // Add default placeholder images to bikes that don't have images
+    let bikesList = data.bikes || [];
+    bikesList = bikesList.map((bike: any) => {
+      return {
+        ...bike,
+        image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
+      }
+    });
+
     // Extract only the bikes array from the athlete data
     // Make sure we return a consistent structure even if no bikes are found
-    const result = { gear: data.bikes || [] };
-    console.log(`Returning ${result.gear.length} bikes with consistent format`);
+    const result = { 
+      gear: bikesList,
+      message: bikesList.length > 0 
+        ? `Se encontraron ${bikesList.length} bicicletas en tu cuenta de Strava` 
+        : 'No se encontraron bicicletas en tu cuenta de Strava'
+    };
+    
+    console.log(`Returning ${result.gear.length} bikes with consistent format and message: ${result.message}`);
     
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
     console.error("Error in get-strava-gear:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      message: "Error al obtener bicicletas de Strava"
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })

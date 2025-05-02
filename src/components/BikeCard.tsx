@@ -16,7 +16,27 @@ export interface BikeProps {
   total_distance?: number;
 }
 
+// Array of placeholder bike images to use when no image is available
+const BIKE_PLACEHOLDER_IMAGES = [
+  'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+  'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=900&q=60',
+  'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=900&q=60'
+];
+
 const BikeCard = ({ bike }: { bike: BikeProps }) => {
+  // Get a consistent but random-looking placeholder based on bike id
+  const getPlaceholderImage = () => {
+    if (bike.image) return bike.image;
+    
+    // Use a hash of the bike ID to pick a consistent image from the array
+    const hash = bike.id.split('').reduce((a, b) => {
+      return a + b.charCodeAt(0);
+    }, 0);
+    
+    const index = hash % BIKE_PLACEHOLDER_IMAGES.length;
+    return BIKE_PLACEHOLDER_IMAGES[index];
+  };
+
   // Formato para mostrar la distancia en km con 2 decimales
   const formattedDistance = bike.total_distance ? 
     `${(bike.total_distance / 1000).toFixed(0)} km` : 
@@ -26,9 +46,13 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     <Card className="overflow-hidden mb-4 bg-card hover:bg-secondary transition-colors cursor-pointer animate-fade-in">
       <div className="aspect-video relative overflow-hidden">
         <img 
-          src={bike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'} 
+          src={getPlaceholderImage()} 
           alt={bike.name} 
           className="object-cover w-full h-full"
+          onError={(e) => {
+            // If image fails to load, use the first placeholder
+            (e.target as HTMLImageElement).src = BIKE_PLACEHOLDER_IMAGES[0];
+          }}
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
           <div className="flex items-center">
