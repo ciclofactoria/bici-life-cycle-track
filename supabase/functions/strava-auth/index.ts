@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 
@@ -9,9 +10,20 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || "https://tyqmfhtfvrffkaqttbcf.supabase.co"
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cW1maHRmdnJmZmthcXR0YmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3ODQ3NjgsImV4cCI6MjA2MTM2MDc2OH0.yQvXxJe4SYcBDyIqKOg0Vl-4nyV3VF8EK3bplFr0SzU"
 
+// Función de registro con timestamp para mejor seguimiento
+function logEvent(message, data = {}) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] STRAVA-AUTH: ${message}`, JSON.stringify(data));
+}
+
 serve(async (req) => {
+  // Para registrar cada llamada a la función
+  const requestId = crypto.randomUUID();
+  logEvent(`Función invocada (ID: ${requestId})`);
+  
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
+    logEvent(`Solicitud CORS OPTIONS recibida (ID: ${requestId})`);
     return new Response('ok', { headers: corsHeaders })
   }
 
@@ -20,12 +32,13 @@ serve(async (req) => {
     const requestData = await req.json()
     const { code, user_id, redirect_uri } = requestData
     
-    console.log("Strava auth function llamada con:", { 
-      code: code ? "PRESENTE" : "MISSING", 
-      user_id: user_id || "MISSING",
-      redirect_uri: redirect_uri || "MISSING (usando default)",
-      scope: requestData.scope || "MISSING" // Log the scope if present
-    })
+    logEvent(`Procesando solicitud de autenticación`, { 
+      request_id: requestId,
+      code_present: Boolean(code), 
+      user_id: user_id || "FALTANTE",
+      redirect_uri: redirect_uri || "FALTANTE (usando default)",
+      scope: requestData.scope || "FALTANTE" 
+    });
 
     // HARDCODED ID Y SECRET - para evitar problemas con la encriptación
     // En un entorno real usaríamos los secrets correctamente 
@@ -33,26 +46,22 @@ serve(async (req) => {
     const STRAVA_CLIENT_SECRET = "a09a8b6e85b7a0c5c622fcbf97b1922c8e1bd864";
     
     // Verificar que tenemos las credenciales
-    console.log("Información de credenciales de Strava:", { 
-      clientIdPresenteHardcoded: Boolean(STRAVA_CLIENT_ID),
-      clientId: STRAVA_CLIENT_ID,
-      secretPresenteHardcoded: Boolean(STRAVA_CLIENT_SECRET),
-      secretLength: STRAVA_CLIENT_SECRET ? STRAVA_CLIENT_SECRET.length : 0 
-    })
+    logEvent(`Verificando credenciales de Strava`, { 
+      clientIdPresente: Boolean(STRAVA_CLIENT_ID),
+      secretPresente: Boolean(STRAVA_CLIENT_SECRET)
+    });
     
     // Verificar los secrets del entorno (sin mostrar el contenido completo)
     const envClientId = Deno.env.get('STRAVA_CLIENT_ID');
     const envClientSecret = Deno.env.get('STRAVA_CLIENT_SECRET');
     
-    console.log("Variables de entorno de Strava:", {
+    logEvent(`Variables de entorno de Strava`, {
       STRAVA_CLIENT_ID_env_presente: Boolean(envClientId),
-      STRAVA_CLIENT_ID_env: envClientId || "NO DISPONIBLE",
-      STRAVA_CLIENT_SECRET_env_presente: Boolean(envClientSecret),
-      STRAVA_CLIENT_SECRET_env_length: envClientSecret ? envClientSecret.length : 0
+      STRAVA_CLIENT_SECRET_env_presente: Boolean(envClientSecret)
     });
     
     if (!code || !user_id) {
-      console.error("Faltan parámetros requeridos:", { code: Boolean(code), user_id: Boolean(user_id) })
+      logEvent(`Error: Faltan parámetros requeridos`, { code: Boolean(code), user_id: Boolean(user_id) });
       return new Response(
         JSON.stringify({ error: 'Code y user_id son requeridos' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -60,23 +69,19 @@ serve(async (req) => {
     }
     
     if (!STRAVA_CLIENT_ID || !STRAVA_CLIENT_SECRET) {
-      console.error("Faltan credenciales de API de Strava en variables de entorno", { 
+      logEvent(`Error: Faltan credenciales de API de Strava`, { 
         hasClientId: Boolean(STRAVA_CLIENT_ID), 
         hasClientSecret: Boolean(STRAVA_CLIENT_SECRET) 
-      })
+      });
       return new Response(
         JSON.stringify({ 
-          error: 'Credenciales de API de Strava no configuradas',
-          details: {
-            STRAVA_CLIENT_ID_presente: Boolean(STRAVA_CLIENT_ID),
-            STRAVA_CLIENT_SECRET_presente: Boolean(STRAVA_CLIENT_SECRET)
-          }
+          error: 'Credenciales de API de Strava no configuradas'
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log("Intercambiando código por token con API de Strava")
+    logEvent(`Intercambiando código por token con API de Strava (ID: ${requestId})`);
     
     // Preparar el cuerpo de la solicitud para el token
     const tokenRequestBody = {
@@ -88,14 +93,9 @@ serve(async (req) => {
     
     // Si se proporcionó un redirect_uri, incluirlo en la solicitud
     if (redirect_uri) {
-      console.log("Usando redirect_uri proporcionado:", redirect_uri)
+      logEvent(`Usando redirect_uri proporcionado: ${redirect_uri}`);
       tokenRequestBody.redirect_uri = redirect_uri
     }
-    
-    console.log("Cuerpo de solicitud de token:", {
-      ...tokenRequestBody,
-      client_secret: "[OCULTO]"
-    })
     
     // Exchange code for tokens
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
@@ -107,26 +107,29 @@ serve(async (req) => {
     })
 
     const tokenResponseText = await tokenResponse.text()
-    console.log("Respuesta texto completa:", tokenResponseText)
     
     let tokenData
     
     try {
       tokenData = JSON.parse(tokenResponseText)
-      console.log("Respuesta del token (status):", tokenResponse.status)
+      logEvent(`Respuesta del token recibida`, {
+        status: tokenResponse.status,
+        token_presente: Boolean(tokenData?.access_token),
+        athlete_presente: Boolean(tokenData?.athlete),
+        error: tokenData?.error
+      });
       
       // Log additional information about token scopes
-      if (tokenData.athlete) {
-        console.log("Información del atleta recibida")
-        console.log("Scopes autorizados:", tokenData.scope || "No se informó de scopes")
+      if (tokenData.scope) {
+        logEvent(`Scopes autorizados`, { scopes: tokenData.scope });
+        const hasProfileReadAll = tokenData.scope.includes('profile:read_all');
+        logEvent(`Permiso profile:read_all autorizado: ${hasProfileReadAll ? 'SÍ' : 'NO'}`);
       }
     } catch (e) {
-      console.error("Error al analizar la respuesta del token:", e)
-      console.log("Texto de respuesta del token:", tokenResponseText)
+      logEvent(`Error al analizar la respuesta del token: ${e.message}`, { raw_response: tokenResponseText });
       return new Response(
         JSON.stringify({ 
           error: 'Falló al analizar la respuesta del token',
-          rawResponse: tokenResponseText,
           status: tokenResponse.status
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -134,39 +137,26 @@ serve(async (req) => {
     }
     
     if (!tokenResponse.ok) {
-      console.error('Error intercambiando código por token:', tokenData)
+      logEvent(`Error intercambiando código por token`, {
+        error: tokenData.error || tokenData.message || 'Error desconocido',
+        status: tokenResponse.status
+      });
       return new Response(
         JSON.stringify({ 
           error: 'Falló al intercambiar código por token',
-          details: tokenData.error || tokenData.message || 'Error desconocido de API de Strava',
-          status: tokenResponse.status,
-          requestBody: {
-            client_id: STRAVA_CLIENT_ID,
-            code: code,
-            grant_type: 'authorization_code',
-            redirect_uri: redirect_uri || undefined
-          }
+          details: tokenData.error || tokenData.message || 'Error desconocido de API de Strava'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log("Token recibido correctamente de Strava")
-    
-    // Log de la respuesta de token (sin mostrar tokens completos)
-    console.log("Resumen de respuesta de token:", {
-      access_token_presente: Boolean(tokenData.access_token),
-      access_token_primeros_chars: tokenData.access_token ? tokenData.access_token.substring(0, 5) + "..." : "MISSING",
-      refresh_token_presente: Boolean(tokenData.refresh_token),
-      expires_at_presente: Boolean(tokenData.expires_at),
-      athlete_presente: Boolean(tokenData.athlete),
-      athlete_id: tokenData.athlete?.id || "MISSING",
-      scopes: tokenData.scope || "No se informó de scopes"
-    })
+    logEvent(`Token recibido correctamente de Strava (ID: ${requestId})`);
     
     // Initialize Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+    logEvent(`Comprobando/creando perfil para usuario: ${user_id}`);
+    
     // Check if profiles table exists and if not, create it
     const { error: checkError, data: checkData } = await supabase
       .from('profiles')
@@ -175,7 +165,7 @@ serve(async (req) => {
       .limit(1)
 
     if (checkError) {
-      console.error('Error comprobando tabla de perfiles:', checkError)
+      logEvent(`Error comprobando tabla de perfiles: ${checkError.message}`);
       
       // Attempt to create profiles table if needed
       try {
@@ -185,14 +175,16 @@ serve(async (req) => {
         })
         
         if (createProfileError) {
-          console.error('Error creando perfil:', createProfileError)
+          logEvent(`Error creando perfil: ${createProfileError.message}`);
           throw createProfileError
         }
       } catch (createError) {
-        console.error('Excepción creando perfil:', createError)
+        logEvent(`Excepción creando perfil: ${createError.message}`);
       }
     }
 
+    logEvent(`Actualizando perfil con tokens de Strava`);
+    
     // Update user profile with Strava tokens
     const { error: updateError } = await supabase
       .from('profiles')
@@ -206,7 +198,7 @@ serve(async (req) => {
       .eq('id', user_id)
 
     if (updateError) {
-      console.error('Error actualizando perfil:', updateError)
+      logEvent(`Error actualizando perfil: ${updateError.message}`);
       return new Response(
         JSON.stringify({ error: 'Falló al actualizar perfil', details: updateError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -214,8 +206,8 @@ serve(async (req) => {
     }
     
     // Fetch user bikes from Strava
-    console.log("Obteniendo bicis de API de Strava")
-    let importedBikes = 0
+    logEvent(`Obteniendo bicis de API de Strava (ID: ${requestId})`);
+    let importedBikes = 0;
     
     try {
       const bikesResponse = await fetch('https://www.strava.com/api/v3/athlete', {
@@ -227,9 +219,14 @@ serve(async (req) => {
       const athleteData = await bikesResponse.json();
       
       if (!bikesResponse.ok) {
-        console.error('Error obteniendo datos de atleta:', athleteData);
+        logEvent(`Error obteniendo datos de atleta: ${JSON.stringify(athleteData)}`);
       } else if (athleteData.bikes && athleteData.bikes.length > 0) {
-        console.log(`Encontradas ${athleteData.bikes.length} bicis en Strava`);
+        logEvent(`Encontradas ${athleteData.bikes.length} bicis en Strava`, {
+          bikes: athleteData.bikes.map(bike => ({
+            id: bike.id,
+            name: bike.name
+          }))
+        });
         importedBikes = athleteData.bikes.length;
         
         // Insert each bike into our database
@@ -242,7 +239,7 @@ serve(async (req) => {
             .limit(1);
             
           if (checkBikeError) {
-            console.error('Error comprobando bici existente:', checkBikeError);
+            logEvent(`Error comprobando bici existente: ${checkBikeError.message}`);
             continue;
           }
           
@@ -259,9 +256,9 @@ serve(async (req) => {
               .eq('user_id', user_id);
               
             if (updateBikeError) {
-              console.error('Error actualizando bici desde Strava:', updateBikeError);
+              logEvent(`Error actualizando bici desde Strava: ${updateBikeError.message}`);
             } else {
-              console.log(`Bici actualizada desde Strava: ${bike.name}`);
+              logEvent(`Bici actualizada desde Strava: ${bike.name}`);
             }
           } else {
             // Insert new bike
@@ -277,34 +274,33 @@ serve(async (req) => {
               });
               
             if (insertBikeError) {
-              console.error('Error insertando bici desde Strava:', insertBikeError);
+              logEvent(`Error insertando bici desde Strava: ${insertBikeError.message}`);
             } else {
-              console.log(`Bici importada desde Strava: ${bike.name}`);
+              logEvent(`Bici importada desde Strava: ${bike.name}`);
             }
           }
         }
       } else {
-        console.log('No se encontraron bicis en cuenta de Strava. Verifica si el scope profile:read_all está autorizado.');
-        console.log('Scopes autorizados:', tokenData.scope || "No se informó de scopes");
+        logEvent(`No se encontraron bicis en cuenta de Strava. Scopes autorizados: ${tokenData.scope || "No informado"}`);
       }
     } catch (bikesError) {
-      console.error('Excepción obteniendo bicis de Strava:', bikesError);
-      // We don't want to fail the entire process if bike import fails
+      logEvent(`Excepción obteniendo bicis de Strava: ${bikesError.message}`);
     }
 
-    console.log("Perfil actualizado correctamente con credenciales de Strava")
+    logEvent(`Proceso de autenticación con Strava completado (ID: ${requestId})`);
     
     // Return successful response
     return new Response(
       JSON.stringify({ 
         success: true,
         message: 'Cuenta de Strava conectada correctamente y bicis importadas',
-        importedBikes: importedBikes
+        importedBikes: importedBikes,
+        requestId: requestId
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error procesando solicitud:', error)
+    logEvent(`Error general procesando solicitud: ${error.message || "Error desconocido"}`);
     return new Response(
       JSON.stringify({ error: 'Error interno del servidor', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

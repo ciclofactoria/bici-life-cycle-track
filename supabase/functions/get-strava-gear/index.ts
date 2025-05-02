@@ -6,23 +6,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Función de registro con timestamp para mejor seguimiento
+function logEvent(message, data = {}) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] GET-STRAVA-GEAR: ${message}`, JSON.stringify(data));
+}
+
 serve(async (req) => {
+  // Para registrar cada llamada a la función
+  const requestId = crypto.randomUUID();
+  logEvent(`Función invocada (ID: ${requestId})`);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    logEvent(`Solicitud CORS OPTIONS recibida (ID: ${requestId})`);
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const { access_token } = await req.json()
     
-    console.log("Edge Function get-strava-gear called with token:", 
-      access_token ? `${access_token.substring(0, 5)}...` : "token missing");
+    logEvent(`Solicitud recibida con token`, { 
+      request_id: requestId,
+      token_presente: Boolean(access_token),
+      token_preview: access_token ? `${access_token.substring(0, 5)}...` : "token faltante" 
+    });
     
     if (!access_token) {
+      logEvent(`Error: Access token requerido pero no proporcionado (ID: ${requestId})`);
       throw new Error('Access token is required')
     }
 
-    console.log("Calling Strava API to get athlete data with profile:read_all scope");
+    logEvent(`Llamando a API de Strava para obtener datos de atleta (ID: ${requestId})`);
     const response = await fetch('https://www.strava.com/api/v3/athlete', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
@@ -30,41 +45,58 @@ serve(async (req) => {
     })
 
     const responseText = await response.text();
-    console.log("Raw response from Strava API:", responseText);
+    logEvent(`Respuesta bruta recibida de Strava (ID: ${requestId})`, {
+      status: response.status,
+      response_length: responseText.length
+    });
     
     let data;
     try {
       data = JSON.parse(responseText);
       
-      console.log("Parsed Strava API response:", {
+      logEvent(`Análisis de respuesta de Strava exitoso (ID: ${requestId})`, {
         status: response.status,
         ok: response.ok,
-        id: data.id || "missing",
-        username: data.username || "missing",
-        firstname: data.firstname || "missing",
-        lastname: data.lastname || "missing",
+        id: data.id || "faltante",
+        username: data.username || "faltante",
+        firstname: data.firstname || "faltante",
+        lastname: data.lastname || "faltante",
         has_bikes: Boolean(data.bikes) && Array.isArray(data.bikes),
         bike_count: data.bikes ? data.bikes.length : 0
       });
       
       if (data.bikes && data.bikes.length > 0) {
-        console.log("Bikes found:", data.bikes);
+        logEvent(`Bicis encontradas (ID: ${requestId})`, {
+          count: data.bikes.length,
+          bikes: data.bikes.map(bike => ({
+            id: bike.id,
+            name: bike.name,
+            type: bike.type || "Unknown",
+            distance: bike.distance || 0
+          }))
+        });
       } else {
-        console.log("No bikes found in athlete data. Check if profile:read_all scope is authorized.");
-        console.log("Authorized scopes:", data.resource_state || "unknown resource state");
+        logEvent(`No se encontraron bicis en datos de atleta (ID: ${requestId}). Verificar si profile:read_all scope está autorizado.`);
         
-        // Print the full response to see what permissions we have
-        console.log("Full response to debug permissions:", JSON.stringify(data));
+        // Print the resource state to understand what permissions we have
+        logEvent(`Estado de recurso: ${data.resource_state || "desconocido"}`, {
+          scopes: response.headers.get('x-oauth-scopes') || "no disponible en headers",
+          full_response: {
+            id: data.id,
+            username: data.username,
+            resource_state: data.resource_state
+          }
+        });
       }
     } catch (error) {
-      console.error("Error parsing Strava response:", error);
+      logEvent(`Error parseando respuesta de Strava: ${error.message} (ID: ${requestId})`);
       throw new Error(`Error parsing Strava response: ${responseText}`);
     }
 
     if (!response.ok) {
-      console.error("Strava API error:", {
+      logEvent(`Error de API de Strava (ID: ${requestId})`, {
         status: response.status,
-        message: data.message || "Unknown error"
+        message: data.message || "Error desconocido"
       });
       throw new Error(`Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`)
     }
@@ -84,19 +116,24 @@ serve(async (req) => {
       gear: bikesList,
       message: bikesList.length > 0 
         ? `Se encontraron ${bikesList.length} bicicletas en tu cuenta de Strava` 
-        : 'No se encontraron bicicletas en tu cuenta de Strava. Asegúrate de tener el permiso profile:read_all activado.'
+        : 'No se encontraron bicicletas en tu cuenta de Strava. Asegúrate de tener el permiso profile:read_all activado.',
+      request_id: requestId
     };
     
-    console.log(`Returning ${result.gear.length} bikes with consistent format and message: ${result.message}`);
+    logEvent(`Finalizando solicitud con éxito (ID: ${requestId})`, {
+      bikes_count: result.gear.length,
+      message: result.message
+    });
     
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error("Error in get-strava-gear:", error.message);
+    logEvent(`Error en get-strava-gear: ${error.message || "Error desconocido"} (ID: ${requestId})`);
     return new Response(JSON.stringify({ 
       error: error.message,
-      message: "Error al obtener bicicletas de Strava. Verifica que has autorizado el permiso profile:read_all."
+      message: "Error al obtener bicicletas de Strava. Verifica que has autorizado el permiso profile:read_all.",
+      request_id: requestId
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
