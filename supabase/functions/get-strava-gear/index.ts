@@ -54,6 +54,9 @@ serve(async (req) => {
     try {
       data = JSON.parse(responseText);
       
+      // Let's extract scope information from the headers to help with debugging
+      const scopesHeader = response.headers.get('x-oauth-scopes');
+      
       logEvent(`Análisis de respuesta de Strava exitoso (ID: ${requestId})`, {
         status: response.status,
         ok: response.ok,
@@ -62,7 +65,8 @@ serve(async (req) => {
         firstname: data.firstname || "faltante",
         lastname: data.lastname || "faltante",
         has_bikes: Boolean(data.bikes) && Array.isArray(data.bikes),
-        bike_count: data.bikes ? data.bikes.length : 0
+        bike_count: data.bikes ? data.bikes.length : 0,
+        scopes_from_header: scopesHeader || "no encontrado en headers"
       });
       
       if (data.bikes && data.bikes.length > 0) {
@@ -80,7 +84,7 @@ serve(async (req) => {
         
         // Print the resource state to understand what permissions we have
         logEvent(`Estado de recurso: ${data.resource_state || "desconocido"}`, {
-          scopes: response.headers.get('x-oauth-scopes') || "no disponible en headers",
+          scopes: scopesHeader || "no disponible en headers",
           full_response: {
             id: data.id,
             username: data.username,
