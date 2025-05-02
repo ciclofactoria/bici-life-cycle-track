@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { exchangeToken, getAthleteData } from '@/integrations/supabase/strava/api';
@@ -105,7 +104,7 @@ const StravaCallback = () => {
             toast({
               title: 'Permisos limitados',
               description: 'No se ha autorizado el permiso para leer el perfil completo. Es posible que no se puedan importar todas las bicis.',
-              variant: 'warning'
+              variant: "default"
             });
           }
           
