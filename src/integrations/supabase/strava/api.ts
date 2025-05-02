@@ -31,6 +31,19 @@ export const exchangeToken = async (code: string) => {
     let data;
     try {
       data = JSON.parse(responseText);
+      
+      // Log scopes that were authorized
+      if (data.scope) {
+        console.log('Scopes autorizados:', data.scope);
+        
+        // Verificar si tenemos el scope necesario para ver las bicis
+        const hasProfileReadAll = data.scope.includes('profile:read_all');
+        console.log('¿Tiene permiso profile:read_all?', hasProfileReadAll ? 'SÍ' : 'NO');
+        
+        if (!hasProfileReadAll) {
+          console.warn('⚠️ ¡No se ha autorizado el scope profile:read_all! No se podrán obtener las bicis');
+        }
+      }
     } catch (e) {
       console.error('Error al parsear respuesta:', e);
       throw new Error(`Error al procesar la respuesta: ${responseText}`);

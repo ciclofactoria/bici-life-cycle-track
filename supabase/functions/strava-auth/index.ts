@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 
@@ -24,7 +23,8 @@ serve(async (req) => {
     console.log("Strava auth function llamada con:", { 
       code: code ? "PRESENTE" : "MISSING", 
       user_id: user_id || "MISSING",
-      redirect_uri: redirect_uri || "MISSING (usando default)"
+      redirect_uri: redirect_uri || "MISSING (usando default)",
+      scope: requestData.scope || "MISSING" // Log the scope if present
     })
 
     // HARDCODED ID Y SECRET - para evitar problemas con la encriptación
@@ -114,6 +114,12 @@ serve(async (req) => {
     try {
       tokenData = JSON.parse(tokenResponseText)
       console.log("Respuesta del token (status):", tokenResponse.status)
+      
+      // Log additional information about token scopes
+      if (tokenData.athlete) {
+        console.log("Información del atleta recibida")
+        console.log("Scopes autorizados:", tokenData.scope || "No se informó de scopes")
+      }
     } catch (e) {
       console.error("Error al analizar la respuesta del token:", e)
       console.log("Texto de respuesta del token:", tokenResponseText)
@@ -154,7 +160,8 @@ serve(async (req) => {
       refresh_token_presente: Boolean(tokenData.refresh_token),
       expires_at_presente: Boolean(tokenData.expires_at),
       athlete_presente: Boolean(tokenData.athlete),
-      athlete_id: tokenData.athlete?.id || "MISSING"
+      athlete_id: tokenData.athlete?.id || "MISSING",
+      scopes: tokenData.scope || "No se informó de scopes"
     })
     
     // Initialize Supabase client
@@ -277,7 +284,8 @@ serve(async (req) => {
           }
         }
       } else {
-        console.log('No se encontraron bicis en cuenta de Strava');
+        console.log('No se encontraron bicis en cuenta de Strava. Verifica si el scope profile:read_all está autorizado.');
+        console.log('Scopes autorizados:', tokenData.scope || "No se informó de scopes");
       }
     } catch (bikesError) {
       console.error('Excepción obteniendo bicis de Strava:', bikesError);

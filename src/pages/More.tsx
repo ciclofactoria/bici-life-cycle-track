@@ -45,7 +45,8 @@ const More = () => {
       // En este caso, debe coincidir exactamente con lo que has registrado en Strava
       const redirectUri = encodeURIComponent('https://lovable.dev/strava-callback');
       
-      // Ajustamos los scopes para que coincidan exactamente con lo que Strava espera
+      // Ajustamos los scopes para incluir profile:read_all que es necesario para acceder a la lista de bicicletas
+      // Añadimos explícitamente todos los scopes que necesitamos
       const scope = encodeURIComponent('read,profile:read_all,activity:read_all');
       const responseType = 'code';
       const approvalPrompt = 'auto';
@@ -53,7 +54,7 @@ const More = () => {
       // URL formateada según la documentación oficial de Strava
       const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&approval_prompt=${approvalPrompt}`;
       
-      console.log('Redirigiendo a página de autorización de Strava:', stravaAuthUrl);
+      console.log('Redirigiendo a página de autorización de Strava con scopes:', scope);
       
       // Abrimos en una nueva ventana del navegador para asegurar que se usa el navegador externo
       window.open(stravaAuthUrl, '_blank', 'noopener,noreferrer');
