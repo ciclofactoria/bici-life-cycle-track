@@ -12,16 +12,16 @@ const corsHeaders = {
 async function verifyWordPressSubscription(email: string): Promise<any> {
   try {
     // Esta es la URL de tu endpoint de WordPress que verificará la suscripción
-    // Debes implementar este endpoint en tu sitio WordPress
     const wordpressUrl = Deno.env.get("WORDPRESS_API_URL") || "";
-    const apiKey = Deno.env.get("WORDPRESS_API_KEY") || "";
+    const apiKey = "@gkeG@Lgjh(5z!gqbZ83pEy4"; // API Key fija
 
-    if (!wordpressUrl || !apiKey) {
-      console.error("No se configuró la URL de WordPress o la API key");
+    if (!wordpressUrl) {
+      console.error("No se configuró la URL de WordPress");
       return { error: "Configuración de WordPress incompleta" };
     }
 
     // Realizar la solicitud a WordPress
+    console.log("Enviando solicitud a WordPress para verificar suscripción:", email);
     const response = await fetch(`${wordpressUrl}/wp-json/bicicare/v1/verify-subscription`, {
       method: "POST",
       headers: {
