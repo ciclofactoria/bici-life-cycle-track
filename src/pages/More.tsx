@@ -17,6 +17,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { FileText, Archive, LogOut, ChevronRight, Clock, ArrowRightCircle, Bike } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { generateFullMaintenanceExcel } from '@/utils/excelGenerator';
+import { usePremiumFeatures } from '@/services/premiumService';
+import PremiumStatus from '@/components/PremiumStatus';
 
 const More = () => {
   const { user, signOut } = useAuth();
@@ -24,6 +26,7 @@ const More = () => {
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
 
   const handleLogout = async () => {
     try {
@@ -36,6 +39,16 @@ const More = () => {
 
   const handleConnectStrava = async () => {
     try {
+      // Verificar si el usuario es premium para conectar con Strava
+      if (!isPremium) {
+        toast({
+          title: 'Función premium',
+          description: 'La conexión con Strava está disponible solo para usuarios premium',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       setIsConnecting(true);
       
       // Actualizado con los valores correctos según lo proporcionado por el usuario
@@ -86,6 +99,16 @@ const More = () => {
       return;
     }
     
+    // Verificar si el usuario es premium para exportar
+    if (!isPremium) {
+      toast({
+        title: 'Función premium',
+        description: 'Las exportaciones a Excel están disponibles solo para usuarios premium',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsExporting(true);
     
     try {
@@ -111,6 +134,8 @@ const More = () => {
       <div className="bici-container pt-6">
         <h1 className="text-2xl font-bold mb-6">Más</h1>
         
+        <PremiumStatus />
+        
         <div className="space-y-4">
           <Card>
             <CardHeader>
@@ -133,12 +158,15 @@ const More = () => {
                 variant="outline" 
                 className="w-full justify-between"
                 onClick={handleExportFullHistory}
-                disabled={isExporting}
+                disabled={isExporting || isPremiumLoading}
               >
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   <span>{isExporting ? 'Exportando...' : 'Exportar historial completo'}</span>
                 </div>
+                {!isPremium && !isPremiumLoading && (
+                  <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Premium</span>
+                )}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </CardContent>
@@ -153,7 +181,7 @@ const More = () => {
               <Button 
                 onClick={handleConnectStrava}
                 className="w-full bg-[#FC4C02] hover:bg-[#e8440c] text-white"
-                disabled={isConnecting}
+                disabled={isConnecting || isPremiumLoading}
               >
                 <div className="flex items-center gap-2">
                   <svg viewBox="0 0 24 24" height="16" width="16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -161,6 +189,9 @@ const More = () => {
                   </svg>
                   <span>{isConnecting ? 'Conectando...' : 'Conectar con Strava'}</span>
                 </div>
+                {!isPremium && !isPremiumLoading && (
+                  <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Premium</span>
+                )}
               </Button>
             </CardContent>
           </Card>

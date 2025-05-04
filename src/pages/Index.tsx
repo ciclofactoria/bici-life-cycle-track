@@ -9,6 +9,9 @@ import AddBikeDialog from '@/components/AddBikeDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { usePremiumFeatures } from '@/services/premiumService';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ const Index = () => {
   const [bikeData, setBikeData] = useState<BikeProps[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { isPremium } = usePremiumFeatures();
 
   const fetchBikes = async () => {
     setIsLoading(true);
@@ -84,6 +88,16 @@ const Index = () => {
   }, []);
 
   const handleAddBike = () => {
+    // Si el usuario no es premium y ya tiene una bicicleta, mostrar mensaje
+    if (!isPremium && bikeData.length >= 1) {
+      toast({
+        title: "Función premium",
+        description: "Solo los usuarios premium pueden registrar más de una bicicleta",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsAddDialogOpen(true);
   };
 
@@ -97,6 +111,15 @@ const Index = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Mis Bicicletas</h1>
         </div>
+        
+        {!isPremium && bikeData.length >= 1 && (
+          <Alert className="mb-4 bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              Los usuarios premium pueden registrar múltiples bicicletas e importarlas desde Strava
+            </AlertDescription>
+          </Alert>
+        )}
         
         {isLoading ? (
           <p className="text-center py-8">Cargando bicicletas...</p>

@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,6 +19,7 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import StravaCallback from "./pages/StravaCallback";
 import ArchivedBikes from "./pages/ArchivedBikes";
+import PremiumInfo from "./pages/PremiumInfo";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,11 @@ const App = () => {
               <Route path="/more" element={
                 <ProtectedRoute>
                   <More />
+                </ProtectedRoute>
+              } />
+              <Route path="/premium" element={
+                <ProtectedRoute>
+                  <PremiumInfo />
                 </ProtectedRoute>
               } />
               <Route path="/archived-bikes" element={<ProtectedRoute><ArchivedBikes /></ProtectedRoute>} />
