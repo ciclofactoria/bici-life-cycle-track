@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { usePremiumFeatures } from "@/services/premiumService";
-import { Shield, ShieldAlert, Loader2 } from "lucide-react";
+import { Diamond, ShieldAlert, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,7 +63,7 @@ export const PremiumStatus = () => {
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             ) : isPremium ? (
-              <Shield className="h-5 w-5 text-green-500" />
+              <Diamond className="h-5 w-5 text-primary" />
             ) : (
               <ShieldAlert className="h-5 w-5 text-amber-500" />
             )}

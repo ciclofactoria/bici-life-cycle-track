@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { FileText, Archive, LogOut, ChevronRight, Clock, ArrowRightCircle, Bike } from 'lucide-react';
+import { FileText, Archive, LogOut, ChevronRight, Diamond } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { generateFullMaintenanceExcel } from '@/utils/excelGenerator';
 import { usePremiumFeatures } from '@/services/premiumService';
@@ -165,7 +165,9 @@ const More = () => {
                   <span>{isExporting ? 'Exportando...' : 'Exportar historial completo'}</span>
                 </div>
                 {!isPremium && !isPremiumLoading && (
-                  <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Premium</span>
+                  <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex items-center gap-1">
+                    <Diamond className="h-3 w-3 text-primary" /> Premium
+                  </span>
                 )}
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -190,7 +192,9 @@ const More = () => {
                   <span>{isConnecting ? 'Conectando...' : 'Conectar con Strava'}</span>
                 </div>
                 {!isPremium && !isPremiumLoading && (
-                  <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Premium</span>
+                  <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex items-center gap-1">
+                    <Diamond className="h-3 w-3 text-primary" /> Premium
+                  </span>
                 )}
               </Button>
             </CardContent>

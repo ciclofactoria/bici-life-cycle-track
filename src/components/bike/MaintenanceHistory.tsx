@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Filter, FileText } from 'lucide-react';
+import { Filter, FileText, Diamond } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import MaintenanceItem, { MaintenanceProps } from '@/components/MaintenanceItem';
 import EmptyState from '@/components/EmptyState';
@@ -59,7 +59,11 @@ const MaintenanceHistory = ({
             <FileText className="h-4 w-4" />
             <span className="text-sm">
               Exportar
-              {!isPremium && <span className="ml-1 text-xs bg-amber-100 text-amber-800 px-1 py-0.5 rounded-sm">Premium</span>}
+              {!isPremium && (
+                <span className="ml-1 text-xs bg-amber-100 text-amber-800 px-1 py-0.5 rounded-sm flex items-center gap-1 inline-flex">
+                  <Diamond className="h-3 w-3 text-primary" />
+                </span>
+              )}
             </span>
           </Button>
         </div>
