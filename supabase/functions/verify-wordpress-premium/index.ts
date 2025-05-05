@@ -12,7 +12,7 @@ const corsHeaders = {
 async function verifyWordPressSubscription(email: string): Promise<any> {
   try {
     // Esta es la URL de tu endpoint de WordPress que verificará la suscripción
-    const wordpressUrl = Deno.env.get("WORDPRESS_API_URL") || "";
+    const wordpressUrl = Deno.env.get("WORDPRESS_API_URL") || "https://ciclofactoria.com";
     const apiKey = "@gkeG@Lgjh(5z!gqbZ83pEy4"; // API Key fija
 
     if (!wordpressUrl) {
@@ -20,9 +20,14 @@ async function verifyWordPressSubscription(email: string): Promise<any> {
       return { error: "Configuración de WordPress incompleta" };
     }
 
+    // Asegúrate de que la URL no termine con una barra
+    const baseUrl = wordpressUrl.endsWith('/') 
+      ? wordpressUrl.slice(0, -1) 
+      : wordpressUrl;
+
     // Realizar la solicitud a WordPress
-    console.log("Enviando solicitud a WordPress para verificar suscripción:", email);
-    const response = await fetch(`${wordpressUrl}/wp-json/bicicare/v1/verify-subscription`, {
+    console.log(`Enviando solicitud a WordPress: ${baseUrl}/wp-json/bicicare/v1/verify-subscription para verificar email: ${email}`);
+    const response = await fetch(`${baseUrl}/wp-json/bicicare/v1/verify-subscription`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,10 +36,12 @@ async function verifyWordPressSubscription(email: string): Promise<any> {
       body: JSON.stringify({ email })
     });
 
+    console.log("Respuesta HTTP:", response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Error de WordPress: ${response.status} - ${errorText}`);
-      return { error: `Error al verificar suscripción: ${response.status}` };
+      return { error: `Error al verificar suscripción: ${response.status} - ${errorText}` };
     }
 
     const data = await response.json();
@@ -46,8 +53,8 @@ async function verifyWordPressSubscription(email: string): Promise<any> {
       message: data.message || "Verificación completa"
     };
   } catch (error) {
-    console.error("Error al conectar con WordPress:", error);
-    return { error: "Error al conectar con WordPress" };
+    console.error("Error al conectar con WordPress:", error.message);
+    return { error: `Error al conectar con WordPress: ${error.message}` };
   }
 }
 
@@ -104,6 +111,7 @@ serve(async (req) => {
     const wordpressResult = await verifyWordPressSubscription(email);
 
     if (wordpressResult.error) {
+      console.error("Error en verificación WordPress:", wordpressResult.error);
       return new Response(
         JSON.stringify({ error: wordpressResult.error }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
@@ -112,6 +120,8 @@ serve(async (req) => {
 
     // Si es premium, actualizar la tabla user_subscriptions
     if (wordpressResult.isPremium) {
+      console.log("Usuario es premium, actualizando en base de datos");
+      
       const { error: upsertError } = await supabaseClient
         .from('user_subscriptions')
         .upsert({
@@ -125,6 +135,8 @@ serve(async (req) => {
       
       if (upsertError) {
         console.error("Error actualizando estado premium en la base de datos:", upsertError);
+      } else {
+        console.log("Actualizado correctamente estado premium en la base de datos");
       }
     }
 
@@ -140,7 +152,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error en la edge function:", error);
     return new Response(
-      JSON.stringify({ error: "Error interno del servidor" }),
+      JSON.stringify({ error: `Error interno del servidor: ${error.message}` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }

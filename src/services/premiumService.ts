@@ -25,9 +25,9 @@ export const checkUserPremiumStatus = async (): Promise<SubscriptionStatus | nul
       .from('user_subscriptions')
       .select('*')
       .eq('user_id', userData.user.id)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') { // Not found error
+    if (error) {
       console.error("Error al verificar estado premium:", error);
       return null;
     }
@@ -40,6 +40,8 @@ export const checkUserPremiumStatus = async (): Promise<SubscriptionStatus | nul
         lastVerified: null
       };
     }
+
+    console.log("Subscription data found:", subscription);
 
     const isPremium = subscription.is_premium && 
       (!subscription.premium_until || new Date(subscription.premium_until) > new Date());
