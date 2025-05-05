@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export interface SubscriptionStatus {
   isPremium: boolean;
@@ -56,12 +57,12 @@ export const checkUserPremiumStatus = async (): Promise<SubscriptionStatus | nul
 
 /**
  * Verifica el estado premium conectándose con WordPress
- * Este método debe ser actualizado para conectar con tu sistema WordPress
  */
 export const verifyPremiumWithWordPress = async (userId: string, email: string): Promise<boolean> => {
   try {
-    // Esta función debe ser reemplazada con la lógica real de conexión a WordPress
-    // Por ahora, usamos una edge function que actuará como puente entre la app y WordPress
+    console.log("Verificando estado premium para:", email);
+    
+    // Usar edge function para verificar estado premium
     const { data, error } = await supabase.functions.invoke('verify-wordpress-premium', {
       body: { userId, email }
     });
@@ -71,16 +72,20 @@ export const verifyPremiumWithWordPress = async (userId: string, email: string):
       return false;
     }
 
+    console.log("Resultado de verificación:", data);
+
     if (data && data.isPremium) {
       // Actualizar el estado premium en la base de datos
       const { error: updateError } = await supabase
         .from('user_subscriptions')
-        .update({
+        .upsert({
+          user_id: userId,
           is_premium: true,
           premium_until: data.premiumUntil || null,
           last_verified_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (updateError) {
         console.error("Error actualizando estado premium:", updateError);
@@ -107,6 +112,7 @@ export const usePremiumFeatures = () => {
     const checkPremium = async () => {
       setLoading(true);
       const premiumStatus = await checkUserPremiumStatus();
+      console.log("Estado premium obtenido:", premiumStatus);
       setStatus(premiumStatus);
       setLoading(false);
     };
@@ -119,6 +125,7 @@ export const usePremiumFeatures = () => {
     const { data: userData } = await supabase.auth.getUser();
     
     if (userData && userData.user) {
+      console.log("Verificando cuenta con WordPress:", userData.user.email);
       const result = await verifyPremiumWithWordPress(
         userData.user.id,
         userData.user.email || ''
@@ -132,6 +139,7 @@ export const usePremiumFeatures = () => {
         
         // Actualizar el estado local
         const premiumStatus = await checkUserPremiumStatus();
+        console.log("Nuevo estado premium tras verificación:", premiumStatus);
         setStatus(premiumStatus);
       } else {
         toast({

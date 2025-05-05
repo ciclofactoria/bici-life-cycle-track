@@ -110,6 +110,24 @@ serve(async (req) => {
       );
     }
 
+    // Si es premium, actualizar la tabla user_subscriptions
+    if (wordpressResult.isPremium) {
+      const { error: upsertError } = await supabaseClient
+        .from('user_subscriptions')
+        .upsert({
+          user_id: userId || user.id,
+          is_premium: true,
+          premium_until: wordpressResult.premiumUntil,
+          last_verified_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (upsertError) {
+        console.error("Error actualizando estado premium en la base de datos:", upsertError);
+      }
+    }
+
     // Devolver resultado
     return new Response(
       JSON.stringify({

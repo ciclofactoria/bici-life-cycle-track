@@ -15,6 +15,7 @@ import NextAppointmentDialog from '@/components/NextAppointmentDialog';
 import AppointmentDialog from '@/components/AppointmentDialog';
 import { useBikeDetail } from '@/hooks/useBikeDetail';
 import { checkNextDayAppointments } from '@/utils/notifications';
+import { usePremiumFeatures } from '@/services/premiumService';
 
 const BikeDetail = () => {
   const { id } = useParams();
@@ -25,6 +26,7 @@ const BikeDetail = () => {
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isNextAppointmentDialogOpen, setIsNextAppointmentDialogOpen] = useState(false);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const { isPremium } = usePremiumFeatures();
 
   const {
     bike,
@@ -64,6 +66,16 @@ const BikeDetail = () => {
 
   const handleExportExcel = () => {
     if (!bike) return;
+    
+    // Verificar si el usuario es premium antes de exportar
+    if (!isPremium) {
+      toast({
+        title: 'Función premium',
+        description: 'Las exportaciones a Excel están disponibles solo para usuarios premium',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     try {
       generateMaintenanceExcel(bike, maintenance);

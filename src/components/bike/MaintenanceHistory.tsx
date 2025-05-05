@@ -4,6 +4,8 @@ import { Filter, FileText } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import MaintenanceItem, { MaintenanceProps } from '@/components/MaintenanceItem';
 import EmptyState from '@/components/EmptyState';
+import { usePremiumFeatures } from '@/services/premiumService';
+import { toast } from '@/hooks/use-toast';
 
 interface MaintenanceHistoryProps {
   maintenance: MaintenanceProps[];
@@ -18,6 +20,20 @@ const MaintenanceHistory = ({
   onExport,
   onAddMaintenance 
 }: MaintenanceHistoryProps) => {
+  const { isPremium } = usePremiumFeatures();
+
+  const handleExportClick = () => {
+    if (isPremium) {
+      onExport();
+    } else {
+      toast({
+        title: 'Función premium',
+        description: 'Las exportaciones a Excel están disponibles solo para usuarios premium',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -36,11 +52,14 @@ const MaintenanceHistory = ({
             variant="ghost" 
             size="sm"
             className="flex items-center gap-1 text-muted-foreground hover:text-bicicare-green"
-            onClick={onExport}
+            onClick={handleExportClick}
             title="Exportar a Excel"
           >
             <FileText className="h-4 w-4" />
-            <span className="text-sm">Exportar</span>
+            <span className="text-sm">
+              Exportar
+              {!isPremium && <span className="ml-1 text-xs bg-amber-100 text-amber-800 px-1 py-0.5 rounded-sm">Premium</span>}
+            </span>
           </Button>
         </div>
       </div>
