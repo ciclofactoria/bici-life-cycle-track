@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { usePremiumFeatures } from '@/services/premiumService';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import PremiumDowngradeDialog from '@/components/PremiumDowngradeDialog';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -20,6 +21,19 @@ const Index = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { isPremium } = usePremiumFeatures();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data && data.user) {
+        setUserId(data.user.id);
+      }
+    };
+    
+    getUser();
+  }, []);
 
   const fetchBikes = async () => {
     setIsLoading(true);
@@ -70,6 +84,11 @@ const Index = () => {
         
         console.log("Processed bikes:", mappedBikes);
         setBikeData(mappedBikes);
+        
+        // Si el usuario no es premium y tiene más de una bicicleta, mostrar el diálogo de degradación
+        if (!isPremium && mappedBikes.length > 1) {
+          setShowDowngradeDialog(true);
+        }
       }
     } catch (error) {
       console.error('Error fetching bikes:', error);
@@ -86,6 +105,11 @@ const Index = () => {
   useEffect(() => {
     fetchBikes();
   }, []);
+
+  // Cuando cambia el estado premium, volver a verificar las bicicletas
+  useEffect(() => {
+    fetchBikes();
+  }, [isPremium]);
 
   const handleAddBike = () => {
     // Si el usuario no es premium y ya tiene una bicicleta, mostrar mensaje
@@ -148,6 +172,14 @@ const Index = () => {
         onSuccess={fetchBikes}
       />
       <BottomNav activePage="/" />
+      
+      {userId && (
+        <PremiumDowngradeDialog 
+          open={showDowngradeDialog} 
+          onOpenChange={setShowDowngradeDialog}
+          userId={userId}
+        />
+      )}
     </div>
   );
 };

@@ -118,26 +118,23 @@ serve(async (req) => {
       );
     }
 
-    // Si es premium, actualizar la tabla user_subscriptions
-    if (wordpressResult.isPremium) {
-      console.log("Usuario es premium, actualizando en base de datos");
+    // Actualizar la tabla user_subscriptions con el estado verificado
+    // Independientemente de si es premium o no
+    const { error: upsertError } = await supabaseClient
+      .from('user_subscriptions')
+      .upsert({
+        user_id: userId || user.id,
+        is_premium: wordpressResult.isPremium,
+        premium_until: wordpressResult.premiumUntil,
+        last_verified_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
       
-      const { error: upsertError } = await supabaseClient
-        .from('user_subscriptions')
-        .upsert({
-          user_id: userId || user.id,
-          is_premium: true,
-          premium_until: wordpressResult.premiumUntil,
-          last_verified_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-      
-      if (upsertError) {
-        console.error("Error actualizando estado premium en la base de datos:", upsertError);
-      } else {
-        console.log("Actualizado correctamente estado premium en la base de datos");
-      }
+    if (upsertError) {
+      console.error("Error actualizando estado en la base de datos:", upsertError);
+    } else {
+      console.log(`Actualizado correctamente el estado en la base de datos: isPremium = ${wordpressResult.isPremium}`);
     }
 
     // Devolver resultado

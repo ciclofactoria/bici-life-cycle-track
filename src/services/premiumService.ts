@@ -76,6 +76,12 @@ export const verifyPremiumWithWordPress = async (userId: string, email: string):
 
     console.log("Resultado de verificación:", data);
 
+    // Si el usuario era premium y ahora no lo es, manejar la degradación
+    const currentStatus = await checkUserPremiumStatus();
+    if (currentStatus?.isPremium && data && !data.isPremium) {
+      await handlePremiumDowngrade(userId);
+    }
+
     if (data && data.isPremium) {
       // Actualizar el estado premium en la base de datos
       const { error: updateError } = await supabase
@@ -94,12 +100,77 @@ export const verifyPremiumWithWordPress = async (userId: string, email: string):
       }
 
       return true;
-    }
+    } else {
+      // El usuario no es premium, actualizar en la base de datos
+      const { error: updateError } = await supabase
+        .from('user_subscriptions')
+        .upsert({
+          user_id: userId,
+          is_premium: false,
+          premium_until: null,
+          last_verified_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
 
-    return false;
+      if (updateError) {
+        console.error("Error actualizando estado no premium:", updateError);
+      }
+
+      return false;
+    }
   } catch (error) {
     console.error("Error en verifyPremiumWithWordPress:", error);
     return false;
+  }
+};
+
+/**
+ * Maneja el proceso de degradación cuando un usuario deja de ser premium
+ */
+export const handlePremiumDowngrade = async (userId: string): Promise<void> => {
+  try {
+    // 1. Obtener todas las bicicletas no archivadas del usuario
+    const { data: activeBikes, error: bikesError } = await supabase
+      .from('bikes')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('archived', false);
+
+    if (bikesError) {
+      console.error("Error obteniendo bicicletas activas:", bikesError);
+      return;
+    }
+
+    // Si el usuario tiene más de una bicicleta, solo dejamos una activa
+    if (activeBikes && activeBikes.length > 1) {
+      // Mostrar al usuario la alerta para elegir bicicleta (se manejará en el componente PremiumDowngradeDialog)
+      // Por ahora, simplemente archivar todas las bicicletas excepto la primera
+      
+      // Obtener la primera bicicleta (la que quedará activa)
+      const keepBikeId = activeBikes[0].id;
+      
+      // Archivar todas las demás
+      for (let i = 1; i < activeBikes.length; i++) {
+        const { error: archiveError } = await supabase
+          .from('bikes')
+          .update({ archived: true })
+          .eq('id', activeBikes[i].id);
+
+        if (archiveError) {
+          console.error(`Error archivando bicicleta ${activeBikes[i].id}:`, archiveError);
+        }
+      }
+      
+      // Notificar al usuario sobre lo que ha ocurrido
+      toast({
+        title: "Tu plan premium ha caducado",
+        description: "Tus bicicletas adicionales han sido archivadas. Puedes recuperarlas si renuevas tu suscripción premium.",
+        variant: "destructive",
+      });
+    }
+  } catch (error) {
+    console.error("Error en handlePremiumDowngrade:", error);
   }
 };
 
@@ -149,6 +220,10 @@ export const usePremiumFeatures = () => {
           description: "No se encontró una suscripción premium activa en tu cuenta de WordPress.",
           variant: "destructive",
         });
+
+        // Actualizar el estado local
+        const premiumStatus = await checkUserPremiumStatus();
+        setStatus(premiumStatus);
       }
     }
     

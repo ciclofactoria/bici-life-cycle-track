@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import MaintenanceItem, { MaintenanceProps } from '@/components/MaintenanceItem';
 import EmptyState from '@/components/EmptyState';
 import { usePremiumFeatures } from '@/services/premiumService';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface MaintenanceHistoryProps {
   maintenance: MaintenanceProps[];
@@ -21,6 +21,7 @@ const MaintenanceHistory = ({
   onAddMaintenance 
 }: MaintenanceHistoryProps) => {
   const { isPremium } = usePremiumFeatures();
+  const { toast } = useToast();
 
   const handleExportClick = () => {
     if (isPremium) {
