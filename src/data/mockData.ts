@@ -1,4 +1,3 @@
-
 export interface Bike {
   id: string;
   name: string;
@@ -117,18 +116,69 @@ export const maintenanceLogs: Maintenance[] = [
   }
 ];
 
-export const repairTypes = [
-  'Brake Service',
-  'Chain Replacement',
-  'Chain Lubrication',
-  'Derailleur Adjustment',
-  'Full Tune-up',
-  'Basic Tune-up',
-  'Tire Replacement',
-  'Wheel Truing',
-  'Suspension Service',
-  'Gear Service',
-  'Bottom Bracket Service',
-  'Headset Service',
-  'Custom...'
+export const maintenanceCategories = [
+  {
+    name: 'Ruedas',
+    types: [
+      'Centrado de rueda delantera',
+      'Centrado de rueda trasera',
+      'Sustitución de cámara',
+      'Sustitución de cubierta',
+      'Instalación de sistema tubeless',
+      'Reparación de pinchazo tubeless',
+      'Sustitución de válvula tubeless',
+      'Rodamientos rueda delantera',
+      'Rodamientos rueda trasera',
+      'Sustitución eje delantero',
+      'Sustitución eje trasero',
+    ]
+  },
+  {
+    name: 'Frenos',
+    types: [
+      'Purgado freno delantero',
+      'Purgado freno trasero',
+      'Sustitución de pastillas',
+      'Cambio de disco',
+      'Ajuste de freno delantero',
+      'Ajuste de freno trasero',
+      'Sustitución de zapatas',
+      'Cambio de cable y funda',
+    ]
+  },
+  {
+    name: 'Transmisión',
+    types: [
+      'Ajuste de cambios (delantero y trasero)',
+      'Cambio de cadena',
+      'Cambio de cassette',
+      'Cambio de platos',
+      'Cambio de bielas',
+      'Cambio de pedalier',
+      'Cambio de cambio trasero',
+      'Cambio de desviador delantero',
+      'Cambio de cables y fundas',
+    ]
+  },
+  {
+    name: 'Dirección y suspensión',
+    types: [
+      'Ajuste de dirección (juego de dirección)',
+      'Sustitución de dirección',
+      'Mantenimiento de horquilla (retenes y aceite)',
+      'Mantenimiento de suspensión trasera',
+    ]
+  },
+  {
+    name: 'Montaje y ajustes generales',
+    types: [
+      'Puesta a punto',
+      'Limpieza y engrase completa',
+      'Montaje completo de bicicleta',
+      'Sustitución de componentes (manillar, potencia, tija, sillín, etc.)',
+    ]
+  }
 ];
+
+// Flatten all types for backwards compatibility
+export const repairTypes = maintenanceCategories.flatMap(category => category.types);

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search } from "lucide-react";
 import type { MaintenanceProps } from '@/components/MaintenanceItem';
+import { maintenanceCategories } from '@/data/mockData';
 
 interface FilterMaintenanceDialogProps {
   open: boolean;
@@ -17,10 +18,21 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
   const [filteredMaintenance, setFilteredMaintenance] = useState<MaintenanceProps[]>(maintenance);
   const [repairTypeSummary, setRepairTypeSummary] = useState<{
     type: string;
+    category?: string;
     count: number;
     lastDate: string;
     totalCost: number;
   }[]>([]);
+  
+  // Get category for a type
+  const getCategoryForType = (type: string): string => {
+    for (const category of maintenanceCategories) {
+      if (category.types.includes(type)) {
+        return category.name;
+      }
+    }
+    return "Personalizado";
+  };
   
   // Filter and summarize maintenance by type
   useEffect(() => {
@@ -35,6 +47,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
       count: number;
       dates: string[];
       totalCost: number;
+      category?: string;
     }> = {};
     
     filtered.forEach(item => {
@@ -42,7 +55,8 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
         typeSummary[item.type] = {
           count: 0,
           dates: [],
-          totalCost: 0
+          totalCost: 0,
+          category: getCategoryForType(item.type)
         };
       }
       typeSummary[item.type].count += 1;
@@ -61,6 +75,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
 
       return {
         type,
+        category: typeSummary[type].category,
         count: typeSummary[type].count,
         lastDate: sortedDates[0], // Most recent date
         totalCost: typeSummary[type].totalCost
@@ -95,6 +110,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
             <TableHeader>
               <TableRow>
                 <TableHead>Tipo de Reparación</TableHead>
+                <TableHead>Categoría</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="text-right">Último Servicio</TableHead>
                 <TableHead className="text-right">Costo Total</TableHead>
@@ -105,6 +121,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
                 repairTypeSummary.map((item) => (
                   <TableRow key={item.type}>
                     <TableCell className="font-medium">{item.type}</TableCell>
+                    <TableCell>{item.category || "Personalizado"}</TableCell>
                     <TableCell className="text-right">{item.count}</TableCell>
                     <TableCell className="text-right">{item.lastDate}</TableCell>
                     <TableCell className="text-right">${item.totalCost}</TableCell>
@@ -112,7 +129,7 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                     No se encontraron resultados
                   </TableCell>
                 </TableRow>

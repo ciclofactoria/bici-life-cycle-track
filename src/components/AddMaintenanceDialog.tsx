@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PlusCircle } from "lucide-react";
+import MaintenanceCategorySelect from './MaintenanceCategorySelect';
 
 interface MaintenanceFormData {
   type: string;
@@ -222,20 +222,12 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
                   <FormItem>
                     <FormLabel>Tipo de mantenimiento</FormLabel>
                     <div className="flex gap-2">
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Selecciona el tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {maintenanceTypes?.map((type) => (
-                            <SelectItem key={type.id} value={type.name}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex-1">
+                        <MaintenanceCategorySelect 
+                          value={field.value} 
+                          onValueChange={field.onChange}
+                        />
+                      </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="icon">
