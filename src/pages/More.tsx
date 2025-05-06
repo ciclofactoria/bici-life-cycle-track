@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -172,7 +171,7 @@ const More = () => {
                 {!isPremium && !isPremiumLoading && (
                   <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex items-center gap-1">
                     <img 
-                      src="/lovable-uploads/1f6c4a05-013f-414f-9a73-687c104a809b.png" 
+                      src="/lovable-uploads/c55d72b0-c3b4-4c57-bdbf-fb609210b8dc.png" 
                       className="h-3 w-3" 
                       alt="Premium" 
                     />
@@ -203,7 +202,7 @@ const More = () => {
                 {!isPremium && !isPremiumLoading && (
                   <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex items-center gap-1">
                     <img 
-                      src="/lovable-uploads/1f6c4a05-013f-414f-9a73-687c104a809b.png" 
+                      src="/lovable-uploads/c55d72b0-c3b4-4c57-bdbf-fb609210b8dc.png" 
                       className="h-3 w-3" 
                       alt="Premium" 
                     />

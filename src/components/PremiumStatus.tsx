@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { usePremiumFeatures } from "@/services/premiumService";
@@ -64,7 +63,7 @@ export const PremiumStatus = () => {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             ) : isPremium ? (
               <img 
-                src="/lovable-uploads/1f6c4a05-013f-414f-9a73-687c104a809b.png" 
+                src="/lovable-uploads/c55d72b0-c3b4-4c57-bdbf-fb609210b8dc.png" 
                 className="h-5 w-5" 
                 alt="Premium" 
               />

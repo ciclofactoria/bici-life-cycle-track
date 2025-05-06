@@ -62,7 +62,7 @@ const MaintenanceHistory = ({
               {!isPremium && (
                 <span className="ml-1 text-xs bg-amber-100 text-amber-800 px-1 py-0.5 rounded-sm flex items-center gap-1 inline-flex">
                   <img 
-                    src="/lovable-uploads/1f6c4a05-013f-414f-9a73-687c104a809b.png" 
+                    src="/lovable-uploads/c55d72b0-c3b4-4c57-bdbf-fb609210b8dc.png" 
                     className="h-3 w-3" 
                     alt="Premium" 
                   />
