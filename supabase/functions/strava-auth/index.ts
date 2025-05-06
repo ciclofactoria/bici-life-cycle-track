@@ -91,11 +91,11 @@ serve(async (req) => {
       grant_type: 'authorization_code'
     }
     
-    // Si se proporcionó un redirect_uri, incluirlo en la solicitud
-    if (redirect_uri) {
-      logEvent(`Usando redirect_uri proporcionado: ${redirect_uri}`);
-      tokenRequestBody.redirect_uri = redirect_uri
-    }
+    // Usar la URL actualizada de callback
+    const finalRedirectUri = redirect_uri || 'http://localhost:8080/strava-callback';
+    tokenRequestBody.redirect_uri = finalRedirectUri;
+    
+    logEvent(`Usando redirect_uri: ${finalRedirectUri}`);
     
     // Exchange code for tokens
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {

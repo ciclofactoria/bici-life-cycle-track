@@ -32,6 +32,13 @@ const StravaCallback = () => {
         const errorParam = searchParams.get('error');
         const scope = searchParams.get('scope');
 
+        console.log('StravaCallback: Procesando callback con params:', {
+          code: code ? `${code.substring(0, 5)}...` : 'ninguno',
+          error: errorParam,
+          scope,
+          location: window.location.href
+        });
+
         if (errorParam) {
           const errorMsg = handleAuthError(errorParam);
           setError(errorMsg);

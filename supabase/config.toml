@@ -82,3 +82,6 @@ url = ""
 [functions]
 [functions.verify-wordpress-premium]
 verify_jwt = true
+
+[functions.generate-strava-auth-url]
+verify_jwt = true

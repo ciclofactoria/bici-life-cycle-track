@@ -51,31 +51,36 @@ const More = () => {
       
       setIsConnecting(true);
       
-      // Actualizado con los valores correctos según lo proporcionado por el usuario
-      const clientId = '157332';
-      
-      // IMPORTANTE: Usamos la URL exacta registrada en la aplicación de Strava
-      // En este caso, debe coincidir exactamente con lo que has registrado en Strava
-      const redirectUri = encodeURIComponent('https://lovable.dev/strava-callback');
-      
-      // Ajustamos los scopes para incluir profile:read_all que es necesario para acceder a la lista de bicicletas
-      // Añadimos explícitamente todos los scopes que necesitamos
-      const scope = encodeURIComponent('read,profile:read_all,activity:read_all');
-      const responseType = 'code';
-      const approvalPrompt = 'auto';
-      
-      // URL formateada según la documentación oficial de Strava
-      const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&approval_prompt=${approvalPrompt}`;
-      
-      console.log('Redirigiendo a página de autorización de Strava con scopes:', scope);
-      
-      // Abrimos en una nueva ventana del navegador para asegurar que se usa el navegador externo
-      window.open(stravaAuthUrl, '_blank', 'noopener,noreferrer');
-      
-      toast({
-        title: "Conectando con Strava",
-        description: "Se ha abierto una nueva ventana para autorizar a Strava. Por favor completa el proceso allí.",
-      });
+      // Usamos la función generate-strava-auth-url para obtener la URL de autenticación
+      // en lugar de construirla manualmente
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-strava-auth-url');
+        
+        if (error) {
+          throw new Error(error.message || 'Error al generar la URL de autenticación de Strava');
+        }
+        
+        if (!data || !data.authUrl) {
+          throw new Error('No se recibió una URL de autenticación válida');
+        }
+        
+        console.log('Redirigiendo a página de autorización de Strava:', data.authUrl);
+        
+        // Abrimos en una nueva ventana del navegador para asegurar que se usa el navegador externo
+        window.open(data.authUrl, '_blank', 'noopener,noreferrer');
+        
+        toast({
+          title: "Conectando con Strava",
+          description: "Se ha abierto una nueva ventana para autorizar a Strava. Por favor completa el proceso allí.",
+        });
+      } catch (err) {
+        console.error('Error generando URL de Strava:', err);
+        toast({
+          title: 'Error',
+          description: 'No se pudo generar la URL de autenticación con Strava',
+          variant: 'destructive',
+        });
+      }
       
       setIsConnecting(false);
     } catch (err) {

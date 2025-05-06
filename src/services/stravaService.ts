@@ -19,7 +19,8 @@ export const exchangeCodeForToken = async (authCode: string, userEmail: string) 
       client_id: clientId,
       client_secret: clientSecret,
       code: authCode,
-      grant_type: 'authorization_code'
+      grant_type: 'authorization_code',
+      redirect_uri: 'http://localhost:8080/strava-callback' // Actualizado a la nueva URL
     })
   });
   
