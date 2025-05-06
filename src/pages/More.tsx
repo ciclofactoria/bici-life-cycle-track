@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { FileText, Archive, LogOut, ChevronRight, Diamond } from 'lucide-react';
+import { FileText, Archive, LogOut, ChevronRight } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { generateFullMaintenanceExcel } from '@/utils/excelGenerator';
 import { usePremiumFeatures } from '@/services/premiumService';
@@ -171,7 +171,11 @@ const More = () => {
                 </div>
                 {!isPremium && !isPremiumLoading && (
                   <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex items-center gap-1">
-                    <Diamond className="h-3 w-3 text-primary" /> Premium
+                    <img 
+                      src="/lovable-uploads/1f6c4a05-013f-414f-9a73-687c104a809b.png" 
+                      className="h-3 w-3" 
+                      alt="Premium" 
+                    />
                   </span>
                 )}
                 <ChevronRight className="h-4 w-4" />
@@ -198,7 +202,11 @@ const More = () => {
                 </div>
                 {!isPremium && !isPremiumLoading && (
                   <span className="ml-2 text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex items-center gap-1">
-                    <Diamond className="h-3 w-3 text-primary" /> Premium
+                    <img 
+                      src="/lovable-uploads/1f6c4a05-013f-414f-9a73-687c104a809b.png" 
+                      className="h-3 w-3" 
+                      alt="Premium" 
+                    />
                   </span>
                 )}
               </Button>
