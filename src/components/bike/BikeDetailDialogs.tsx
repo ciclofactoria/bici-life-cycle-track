@@ -91,6 +91,7 @@ const BikeDetailDialogs: React.FC<BikeDetailDialogsProps> = ({
           onAppointmentSuccess();
           onAlertSuccess();
         }}
+        initialTab={isAlertDialogOpen ? 'alerts' : 'appointments'}
       />
     </>
   );

@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar as CalendarIcon, Bike, Bell, CalendarClock } from 'lucide-react';
+import { Bike, Bell, CalendarClock } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar";
 import BottomNav from '@/components/BottomNav';
 import {
@@ -34,39 +34,47 @@ interface AppointmentDay {
 const MaintenancePlanPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('calendar');
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Get the current user ID
+  React.useEffect(() => {
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUserId(data.session.user.id);
+      }
+    };
+    
+    getUserId();
+  }, []);
   
   // Fetch all maintenance dates, appointments, and alerts
   const { data: calendarData, isLoading, refetch } = useQuery({
     queryKey: ['calendar-dates'],
     queryFn: async () => {
-      const [maintenanceResult, appointmentsResult, bikesResult, alertsResult] = await Promise.all([
+      const [maintenanceResult, appointmentsResult, bikesResult] = await Promise.all([
         supabase
           .from('maintenance')
           .select('id, date, type, bike_id, bikes(name), distance_at_maintenance')
           .order('date'),
         supabase
           .from('appointments')
-          .select('id, date, notes, bike_id')
+          .select('id, date, notes, bike_id, bikes(name)')
           .gte('date', new Date().toISOString().split('T')[0])
           .order('date'),
         supabase
           .from('bikes')
-          .select('id, name, total_distance'),
-        supabase
-          .from('maintenance_alerts')
-          .select('id, bike_id, alert_type, maintenance_type, custom_type, distance_threshold, time_threshold_months, created_at')
-          .eq('is_active', true)
+          .select('id, name, total_distance')
       ]);
 
       if (maintenanceResult.error) throw maintenanceResult.error;
       if (appointmentsResult.error) throw appointmentsResult.error;
       if (bikesResult.error) throw bikesResult.error;
-      if (alertsResult.error) throw alertsResult.error;
 
       const appointments: AppointmentDay[] = [];
       const bikesMap = new Map();
       
-      // Crear mapa de bicicletas para búsqueda rápida
+      // Create bikes map for quick lookup
       if (bikesResult.data) {
         bikesResult.data.forEach(bike => {
           bikesMap.set(bike.id, {
@@ -77,56 +85,63 @@ const MaintenancePlanPage = () => {
       }
 
       // Add maintenance dates
-      maintenanceResult.data.forEach(maintenance => {
-        appointments.push({
-          id: maintenance.id,
-          date: new Date(maintenance.date),
-          type: 'maintenance',
-          bikeName: maintenance.bikes?.name || bikesMap.get(maintenance.bike_id)?.name || 'Bicicleta',
-          notes: maintenance.type,
+      if (maintenanceResult.data) {
+        maintenanceResult.data.forEach(maintenance => {
+          appointments.push({
+            id: maintenance.id,
+            date: new Date(maintenance.date),
+            type: 'maintenance',
+            bikeName: maintenance.bikes?.name || bikesMap.get(maintenance.bike_id)?.name || 'Bicicleta',
+            notes: maintenance.type,
+          });
         });
-      });
+      }
 
       // Add scheduled appointments
-      appointmentsResult.data.forEach(appointment => {
-        appointments.push({
-          id: appointment.id,
-          date: new Date(appointment.date),
-          type: 'appointment',
-          bikeName: bikesMap.get(appointment.bike_id)?.name || 'Bicicleta',
-          notes: appointment.notes
-        });
-      });
-
-      // Add alerts to the list
-      alertsResult.data.forEach(alert => {
-        let alertDate: Date | null = null;
-        const bikeInfo = bikesMap.get(alert.bike_id);
-        const bikeName = bikeInfo?.name || 'Bicicleta';
-        const maintenanceTypeLabel = alert.custom_type || alert.maintenance_type;
-        
-        // Calculate expected date for time-based alerts
-        if (alert.alert_type === 'time' && alert.time_threshold_months) {
-          const createdDate = new Date(alert.created_at);
-          alertDate = new Date(createdDate);
-          alertDate.setMonth(alertDate.getMonth() + alert.time_threshold_months);
-        }
-        
-        // For distance-based alerts, we need to calculate based on current distance
-        // We don't add them to calendar view since they are based on distance not time
-        
-        if (alertDate) {
+      if (appointmentsResult.data) {
+        appointmentsResult.data.forEach(appointment => {
           appointments.push({
-            id: alert.id,
-            date: alertDate,
-            type: 'alert',
-            bikeName: bikeName,
-            notes: `${maintenanceTypeLabel} (automático)`,
-            alertType: alert.alert_type,
-            maintenanceType: maintenanceTypeLabel,
+            id: appointment.id,
+            date: new Date(appointment.date),
+            type: 'appointment',
+            bikeName: appointment.bikes?.name || bikesMap.get(appointment.bike_id)?.name || 'Bicicleta',
+            notes: appointment.notes
           });
-        }
-      });
+        });
+      }
+      
+      // Now fetch and process alerts that include time-based ones
+      const { data: alertsData, error: alertsError } = await supabase
+        .from('maintenance_alerts')
+        .select('*')
+        .eq('is_active', true);
+        
+      if (alertsError) throw alertsError;
+      
+      // Add alerts with time thresholds to calendar
+      if (alertsData) {
+        alertsData.forEach(alert => {
+          if (alert.alert_type === 'time' && alert.time_threshold_months) {
+            const bikeName = bikesMap.get(alert.bike_id)?.name || 'Bicicleta';
+            const maintenanceTypeLabel = alert.custom_type || alert.maintenance_type;
+            
+            // Calculate target date for time-based alerts
+            const createdDate = new Date(alert.created_at);
+            const targetDate = new Date(createdDate);
+            targetDate.setMonth(targetDate.getMonth() + alert.time_threshold_months);
+            
+            appointments.push({
+              id: alert.id,
+              date: targetDate,
+              type: 'alert',
+              bikeName: bikeName,
+              notes: `${maintenanceTypeLabel} (automático)`,
+              alertType: 'time',
+              maintenanceType: maintenanceTypeLabel
+            });
+          }
+        });
+      }
 
       return appointments;
     }
@@ -169,6 +184,15 @@ const MaintenancePlanPage = () => {
 
   const handleCompleteAlert = async (alertId: string, bikeId: string, maintenanceType: string) => {
     try {
+      if (!userId) {
+        toast({
+          title: "Error",
+          description: "Usuario no autenticado",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       // Primero, desactiva la alerta
       const { error: alertError } = await supabase
         .from('maintenance_alerts')
@@ -182,6 +206,7 @@ const MaintenancePlanPage = () => {
         .from('maintenance')
         .insert({
           bike_id: bikeId,
+          user_id: userId,
           type: maintenanceType,
           date: new Date().toISOString(),
           cost: 0,
@@ -274,14 +299,14 @@ const MaintenancePlanPage = () => {
         }
         
         // Formatear el tipo de mantenimiento
-        const maintenanceType = alert.custom_type || alert.maintenance_type;
+        const maintenanceTypeLabel = alert.custom_type || alert.maintenance_type;
         
         return {
           ...alert,
           bikeName,
           status,
           progress,
-          maintenanceType
+          maintenanceType: maintenanceTypeLabel,
         };
       }) || [];
     }
@@ -364,8 +389,8 @@ const MaintenancePlanPage = () => {
                     {selectedDateAppointments(selectedDate).map((app, idx) => (
                       <div key={idx} className="p-3 rounded-lg border">
                         <div className="flex items-center gap-2 mb-1">
-                          {app.type === 'maintenance' && <CalendarIcon className="h-4 w-4 text-green-500" />}
-                          {app.type === 'appointment' && <CalendarIcon className="h-4 w-4 text-red-500" />}
+                          {app.type === 'maintenance' && <CalendarClock className="h-4 w-4 text-green-500" />}
+                          {app.type === 'appointment' && <CalendarClock className="h-4 w-4 text-red-500" />}
                           {app.type === 'alert' && <Bell className="h-4 w-4 text-amber-500" />}
                           <span className="font-medium">{app.bikeName}</span>
                         </div>

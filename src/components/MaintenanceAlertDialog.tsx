@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "@/components/ui/calendar";
 
 interface MaintenanceAlertDialogProps {
   open: boolean;
@@ -50,6 +48,18 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
   const [distanceValue, setDistanceValue] = useState<number>(1000);
   const [timeMonths, setTimeMonths] = useState<number>(3);
   const [isSaving, setIsSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUserId(data.session.user.id);
+      }
+    };
+    
+    getUserId();
+  }, []);
 
   const handleSave = async () => {
     if (maintenanceType === 'custom' && !customType.trim()) {
@@ -61,29 +71,47 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
       return;
     }
 
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Usuario no autenticado",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSaving(true);
     
     try {
-      const maintenanceTypeLabel = maintenanceType === 'custom' 
-        ? customType.trim() 
-        : maintenanceTypes.find(t => t.value === maintenanceType)?.label || '';
-
+      // Obtener la distancia actual de la bicicleta si es alerta por distancia
+      let baseDistance = null;
+      if (alertType === 'distance') {
+        const { data, error } = await supabase
+          .from('bikes')
+          .select('total_distance')
+          .eq('id', bikeId)
+          .single();
+          
+        if (error) throw error;
+        baseDistance = data?.total_distance || 0;
+      }
+      
       const { error } = await supabase
         .from('maintenance_alerts')
         .insert({
           bike_id: bikeId,
+          user_id: userId,
           alert_type: alertType,
           maintenance_type: maintenanceType,
           custom_type: maintenanceType === 'custom' ? customType.trim() : null,
           distance_threshold: alertType === 'distance' ? distanceValue * 1000 : null, // Convert to meters
           time_threshold_months: alertType === 'time' ? timeMonths : null,
+          base_distance: baseDistance,
           is_active: true,
           created_at: new Date().toISOString(),
         });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Alerta configurada",

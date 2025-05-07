@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
@@ -55,6 +54,7 @@ interface AppointmentDialogProps {
   bikeId: string;
   bikeName: string;
   onSaved: () => void;
+  initialTab?: string;
 }
 
 const AppointmentDialog = ({ 
@@ -62,12 +62,13 @@ const AppointmentDialog = ({
   onOpenChange, 
   bikeId,
   bikeName,
-  onSaved 
+  onSaved,
+  initialTab = 'appointments'
 }: AppointmentDialogProps) => {
   const { toast } = useToast();
   
   // Estado general
-  const [activeTab, setActiveTab] = useState<string>('appointments');
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   
@@ -151,7 +152,7 @@ const AppointmentDialog = ({
       if (error) throw error;
       
       if (data) {
-        const processedAlerts = data.map(alert => {
+        const processedAlerts: MaintenanceAlert[] = data.map(alert => {
           let status = 'Pendiente';
           let progress = 0;
           
@@ -192,9 +193,9 @@ const AppointmentDialog = ({
           return {
             id: alert.id,
             maintenanceType: maintenanceTypeLabel,
-            alertType: alert.alert_type,
-            distanceThreshold: alert.distance_threshold,
-            timeThresholdMonths: alert.time_threshold_months,
+            alertType: alert.alert_type as 'distance' | 'time',
+            distanceThreshold: alert.distance_threshold || undefined,
+            timeThresholdMonths: alert.time_threshold_months || undefined,
             progress,
             status,
             isActive: alert.is_active
@@ -217,12 +218,12 @@ const AppointmentDialog = ({
     if (open) {
       setSelectedDate(new Date());
       setNotes('');
-      setActiveTab('appointments');
+      setActiveTab(initialTab);
       fetchAppointments();
       fetchAlerts();
       resetAlertForm();
     }
-  }, [open, bikeId]);
+  }, [open, bikeId, initialTab]);
 
   const resetAlertForm = () => {
     setAlertType('distance');
@@ -432,7 +433,7 @@ const AppointmentDialog = ({
   const handleCompleteAlert = async (alertId: string) => {
     try {
       const alert = alerts.find(a => a.id === alertId);
-      if (!alert) return;
+      if (!alert || !userId) return;
       
       // Primero, desactiva la alerta
       const { error: alertError } = await supabase
