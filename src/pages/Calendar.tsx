@@ -1,12 +1,13 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Bike, Bell, CalendarClock } from 'lucide-react';
+import { Bike, Bell, CalendarClock, Plus } from 'lucide-react';
 import { Calendar } from "@/components/ui/calendar";
 import BottomNav from '@/components/BottomNav';
+import FloatingActionButton from '@/components/FloatingActionButton';
+import AppointmentDialog from '@/components/AppointmentDialog';
 import {
   Table,
   TableBody,
@@ -20,6 +21,14 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { DialogFooter } from '@/components/ui/dialog';
 
 interface AppointmentDay {
   id: string;
@@ -29,24 +38,51 @@ interface AppointmentDay {
   notes?: string | null;
   alertType?: 'distance' | 'time';
   maintenanceType?: string;
+  bike_id?: string;
+}
+
+interface Bike {
+  id: string;
+  name: string;
 }
 
 const MaintenancePlanPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('calendar');
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedBikeId, setSelectedBikeId] = useState<string | null>(null);
+  const [selectedBikeName, setSelectedBikeName] = useState<string>('');
+  const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const [availableBikes, setAvailableBikes] = useState<Bike[]>([]);
   
   // Get the current user ID
-  React.useEffect(() => {
+  useEffect(() => {
     const getUserId = async () => {
       const { data } = await supabase.auth.getSession();
       if (data?.session?.user) {
         setUserId(data.session.user.id);
+        fetchBikes(data.session.user.id);
       }
     };
     
     getUserId();
   }, []);
+  
+  // Fetch available bikes for the user
+  const fetchBikes = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('bikes')
+      .select('id, name')
+      .eq('user_id', userId)
+      .eq('archived', false);
+      
+    if (error) {
+      console.error('Error fetching bikes:', error);
+    } else if (data) {
+      setAvailableBikes(data);
+    }
+  };
   
   // Fetch all maintenance dates, appointments, and alerts
   const { data: calendarData, isLoading, refetch } = useQuery({
@@ -93,6 +129,7 @@ const MaintenancePlanPage = () => {
             type: 'maintenance',
             bikeName: maintenance.bikes?.name || bikesMap.get(maintenance.bike_id)?.name || 'Bicicleta',
             notes: maintenance.type,
+            bike_id: maintenance.bike_id
           });
         });
       }
@@ -105,7 +142,8 @@ const MaintenancePlanPage = () => {
             date: new Date(appointment.date),
             type: 'appointment',
             bikeName: appointment.bikes?.name || bikesMap.get(appointment.bike_id)?.name || 'Bicicleta',
-            notes: appointment.notes
+            notes: appointment.notes,
+            bike_id: appointment.bike_id
           });
         });
       }
@@ -136,8 +174,9 @@ const MaintenancePlanPage = () => {
               type: 'alert',
               bikeName: bikeName,
               notes: `${maintenanceTypeLabel} (automático)`,
-              alertType: 'time',
-              maintenanceType: maintenanceTypeLabel
+              alertType: alert.alert_type as 'time' | 'distance',
+              maintenanceType: maintenanceTypeLabel,
+              bike_id: alert.bike_id
             });
           }
         });
@@ -156,7 +195,7 @@ const MaintenancePlanPage = () => {
     );
   };
 
-  // Función para eliminar una alerta
+  // Function to handle deleting an alert
   const handleDeleteAlert = async (alertId: string) => {
     try {
       const { error } = await supabase
@@ -193,7 +232,7 @@ const MaintenancePlanPage = () => {
         return;
       }
       
-      // Primero, desactiva la alerta
+      // First, deactivate the alert
       const { error: alertError } = await supabase
         .from('maintenance_alerts')
         .update({ is_active: false })
@@ -201,7 +240,7 @@ const MaintenancePlanPage = () => {
 
       if (alertError) throw alertError;
       
-      // Luego, crea un registro de mantenimiento
+      // Then, create a maintenance record
       const { error: maintenanceError } = await supabase
         .from('maintenance')
         .insert({
@@ -231,7 +270,7 @@ const MaintenancePlanPage = () => {
     }
   };
 
-  // Consulta para obtener alertas activas
+  // Query to get active alerts
   const { data: activeAlerts, isLoading: alertsLoading } = useQuery({
     queryKey: ['active-alerts'],
     queryFn: async () => {
@@ -257,7 +296,7 @@ const MaintenancePlanPage = () => {
         
       if (error) throw error;
       
-      // Procesar alertas para añadir información adicional
+      // Process alerts to add additional information
       return alerts?.map(alert => {
         const bikeInfo = bikesMap.get(alert.bike_id);
         const bikeName = bikeInfo?.name || 'Bicicleta';
@@ -266,7 +305,7 @@ const MaintenancePlanPage = () => {
         let status = 'Pendiente';
         let progress = 0;
         
-        // Calcular progreso para alertas basadas en distancia
+        // Calculate progress for distance-based alerts
         if (alert.alert_type === 'distance' && alert.distance_threshold) {
           const distanceAtCreation = alert.base_distance || 0;
           const targetDistance = distanceAtCreation + alert.distance_threshold;
@@ -277,10 +316,10 @@ const MaintenancePlanPage = () => {
             progress = 100;
           } else {
             progress = Math.round(((currentDistance - distanceAtCreation) / alert.distance_threshold) * 100);
-            progress = Math.max(0, Math.min(99, progress)); // Entre 0 y 99%
+            progress = Math.max(0, Math.min(99, progress)); // Between 0 and 99%
           }
         } 
-        // Calcular progreso para alertas basadas en tiempo
+        // Calculate progress for time-based alerts
         else if (alert.alert_type === 'time' && alert.time_threshold_months) {
           const createdDate = new Date(alert.created_at);
           const targetDate = new Date(createdDate);
@@ -294,11 +333,11 @@ const MaintenancePlanPage = () => {
             progress = 100;
           } else {
             progress = Math.round((elapsedDays / totalDays) * 100);
-            progress = Math.max(0, Math.min(99, progress)); // Entre 0 y 99%
+            progress = Math.max(0, Math.min(99, progress)); // Between 0 and 99%
           }
         }
         
-        // Formatear el tipo de mantenimiento
+        // Format maintenance type
         const maintenanceTypeLabel = alert.custom_type || alert.maintenance_type;
         
         return {
@@ -324,11 +363,55 @@ const MaintenancePlanPage = () => {
     );
   }
 
-  // Agrupar todas las citas por fecha para mostrarlas en formato de tabla
+  // Group all appointments by date to show in table format
   const allAppointments = calendarData || [];
   const upcomingAppointments = allAppointments
     .filter(app => app.date >= new Date(new Date().setHours(0,0,0,0)))
     .sort((a, b) => a.date.getTime() - b.date.getTime());
+    
+  // Determine date colors for calendar
+  const isDateInPast = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+  
+  const isDateToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
+  
+  // Handle opening the appointment dialog with a selected bike
+  const handleBikeSelect = (bikeId: string) => {
+    const bike = availableBikes.find(b => b.id === bikeId);
+    if (bike) {
+      setSelectedBikeId(bikeId);
+      setSelectedBikeName(bike.name);
+      setIsAddDialogOpen(false);
+      setIsAppointmentDialogOpen(true);
+    }
+  };
+
+  const handleNewEntityClick = () => {
+    if (availableBikes.length === 0) {
+      toast({
+        title: "No hay bicicletas",
+        description: "Necesitas crear al menos una bicicleta primero",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsAddDialogOpen(true);
+  };
+
+  // Handle closing the appointment dialog
+  const handleAppointmentDialogClose = () => {
+    setIsAppointmentDialogOpen(false);
+    setSelectedBikeId(null);
+    refetch();
+  };
 
   return (
     <div className="pb-16">
@@ -354,10 +437,23 @@ const MaintenancePlanPage = () => {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   modifiers={{
-                    maintenance: (date) => 
+                    pastMaintenance: (date) => 
                       calendarData?.some(app => 
                         app.date.toDateString() === date.toDateString() && 
-                        app.type === 'maintenance'
+                        app.type === 'maintenance' &&
+                        isDateInPast(app.date)
+                      ) || false,
+                    currentMaintenance: (date) => 
+                      calendarData?.some(app => 
+                        app.date.toDateString() === date.toDateString() && 
+                        app.type === 'maintenance' &&
+                        isDateToday(app.date)
+                      ) || false,
+                    futureMaintenance: (date) => 
+                      calendarData?.some(app => 
+                        app.date.toDateString() === date.toDateString() && 
+                        app.type === 'maintenance' &&
+                        !isDateInPast(app.date) && !isDateToday(app.date)
                       ) || false,
                     appointment: (date) => 
                       calendarData?.some(app => 
@@ -371,7 +467,9 @@ const MaintenancePlanPage = () => {
                       ) || false
                   }}
                   modifiersStyles={{
-                    maintenance: { backgroundColor: 'rgb(34 197 94)', color: 'white' },
+                    pastMaintenance: { backgroundColor: '#f59e0b', color: 'white' },
+                    currentMaintenance: { backgroundColor: 'rgb(34 197 94)', color: 'white' },
+                    futureMaintenance: { backgroundColor: 'rgb(239 68 68)', color: 'white' },
                     appointment: { backgroundColor: 'rgb(239 68 68)', color: 'white' },
                     alert: { backgroundColor: 'rgb(245 158 11)', color: 'white' }
                   }}
@@ -537,6 +635,54 @@ const MaintenancePlanPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Floating action button */}
+      <FloatingActionButton 
+        icon={<Plus />} 
+        onClick={handleNewEntityClick}
+        label="Añadir"
+      />
+      
+      {/* Dialog to select bike */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Selecciona una bicicleta</DialogTitle>
+            <DialogDescription>
+              Elige la bicicleta para la que quieres crear una cita o alerta de mantenimiento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {availableBikes.map(bike => (
+              <Button 
+                key={bike.id} 
+                variant="outline" 
+                className="w-full h-auto py-3 flex justify-between items-center"
+                onClick={() => handleBikeSelect(bike.id)}
+              >
+                <span className="flex items-center gap-2">
+                  <Bike className="h-4 w-4" />
+                  {bike.name}
+                </span>
+              </Button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancelar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Appointment Dialog */}
+      <AppointmentDialog
+        open={isAppointmentDialogOpen}
+        onOpenChange={setIsAppointmentDialogOpen}
+        bikeId={selectedBikeId || ''}
+        bikeName={selectedBikeName}
+        onSaved={handleAppointmentDialogClose}
+        initialTab='tabs'
+      />
+      
       <BottomNav activePage="/calendar" />
     </div>
   );

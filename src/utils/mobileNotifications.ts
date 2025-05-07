@@ -2,29 +2,77 @@
 import { PushNotifications } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 
-// Función para registrar el token de FCM en Supabase - se implementará completamente en el futuro
+// Function to register FCM token in Supabase - will be fully implemented in the future
 const saveTokenToSupabase = async (token: string) => {
-  console.log('Token FCM recibido, se guardará cuando la app esté lista:', token);
-  // La implementación real se hará cuando la app salga del entorno de pruebas
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      // Update the user's profile with FCM token
+      await supabase
+        .from('profiles')
+        .update({ fcm_token: token })
+        .eq('id', user.id);
+      
+      console.log('FCM token saved to user profile:', token);
+    }
+  } catch (error) {
+    console.error('Error saving FCM token:', error);
+  }
 };
 
-// Inicializar las notificaciones push - versión simplificada para desarrollo
+// Initialize push notifications - simplified version for development
 export async function initPushNotifications() {
   try {
-    console.log('Las notificaciones push se implementarán cuando la app esté lista para producción');
-    return false;
+    // Check if app is running on a device with Capacitor
+    if (!(window as any).Capacitor) {
+      console.log('Push notifications require Capacitor - running in browser mode');
+      return false;
+    }
+    
+    // Request permission and register for push notifications
+    const result = await PushNotifications.requestPermissions();
+    
+    if (result.receive === 'granted') {
+      await PushNotifications.register();
+      
+      // Register notification listeners
+      registerNotificationListeners();
+      return true;
+    } else {
+      console.log('Push notification permission denied');
+      return false;
+    }
   } catch (error) {
-    console.error('Error al inicializar notificaciones:', error);
+    console.error('Error initializing notifications:', error);
     return false;
   }
 }
 
-// Registrar los listeners de eventos para notificaciones - se implementará en el futuro
+// Register event listeners for notifications
 async function registerNotificationListeners() {
-  console.log('Los listeners de notificaciones se implementarán cuando la app esté lista para producción');
+  // Registration success listener
+  PushNotifications.addListener('registration', async (token) => {
+    console.log('Push registration success, token:', token.value);
+    await saveTokenToSupabase(token.value);
+  });
+  
+  // Registration error listener
+  PushNotifications.addListener('registrationError', (err) => {
+    console.error('Push registration failed:', err.error);
+  });
+  
+  // Push notification received listener
+  PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    console.log('Push notification received:', notification);
+  });
+  
+  // Push notification action listener (when user taps notification)
+  PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+    console.log('Push notification action performed:', action);
+  });
 }
 
-// Comprobar citas del día siguiente para dispositivos móviles - versión simplificada
+// Check next day appointments for mobile devices
 export async function checkNextDayAppointmentsMobile(bike: any) {
   if (!bike?.next_check_date) return;
 
@@ -40,11 +88,23 @@ export async function checkNextDayAppointmentsMobile(bike: any) {
         appointmentDate.getMonth() === tomorrow.getMonth() &&
         appointmentDate.getFullYear() === tomorrow.getFullYear()
       ) {
-        // Solo agregamos un log para desarrollo
-        console.log('Cita programada para mañana detectada en móvil');
+        // Just add a log for development - in production this would trigger a local notification
+        console.log('Appointment scheduled for tomorrow detected on mobile');
+        
+        // In a full implementation, this would use local notifications:
+        // LocalNotifications.schedule({
+        //   notifications: [
+        //     {
+        //       title: 'Recordatorio de cita',
+        //       body: `Tienes una cita programada mañana para tu bicicleta ${bike.name}`,
+        //       id: 1,
+        //       schedule: { at: new Date(Date.now() + 1000) }
+        //     }
+        //   ]
+        // });
       }
     }
   } catch (error) {
-    console.error('Error al procesar la fecha de la cita móvil:', error);
+    console.error('Error processing appointment date for mobile:', error);
   }
 }
