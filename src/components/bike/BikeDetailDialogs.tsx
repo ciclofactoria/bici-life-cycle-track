@@ -22,6 +22,7 @@ interface BikeDetailDialogsProps {
     type: string;
     year: number;
     image: string;
+    strava_id?: string;
   };
   maintenance: MaintenanceProps[];
   onMaintenanceSuccess: () => void;
@@ -52,6 +53,7 @@ const BikeDetailDialogs: React.FC<BikeDetailDialogsProps> = ({
         open={isAddDialogOpen} 
         onOpenChange={setIsAddDialogOpen}
         bikeId={realBikeId || ''}
+        stravaId={bikeData?.strava_id}
         onSuccess={onMaintenanceSuccess}
       />
       

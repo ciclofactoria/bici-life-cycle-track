@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Bike } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -11,6 +11,8 @@ interface BikeStatsProps {
   lastMaintenance: string;
   nextCheckDate?: string | null;
   onScheduleAppointment: () => void;
+  totalDistance?: number;
+  stravaId?: string;
 }
 
 const BikeStats = ({ 
@@ -18,7 +20,9 @@ const BikeStats = ({
   totalSpent, 
   lastMaintenance, 
   nextCheckDate, 
-  onScheduleAppointment 
+  onScheduleAppointment,
+  totalDistance,
+  stravaId
 }: BikeStatsProps) => {
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [nextAppointment, setNextAppointment] = useState<string | null>(null);
@@ -65,9 +69,14 @@ const BikeStats = ({
     }
   };
 
+  // Format distance in kilometers with no decimals
+  const formattedDistance = totalDistance ? 
+    `${Math.round(totalDistance / 1000)} km` : 
+    'No disponible';
+
   return (
     <div className="bg-card rounded-lg p-4 my-6">
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         <div className="flex flex-col items-center">
           <p className="text-xs text-muted-foreground">Gasto Total</p>
           <p className="font-medium text-bicicare-green">{totalSpent} €</p>
@@ -75,6 +84,16 @@ const BikeStats = ({
         <div className="flex flex-col items-center">
           <p className="text-xs text-muted-foreground">Último Servicio</p>
           <p className="font-medium">{lastMaintenance}</p>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="flex items-center text-xs text-muted-foreground">
+            {stravaId ? 
+              <Bike className="h-3 w-3 text-orange-500 mr-1" /> : 
+              null
+            }
+            <p>Distancia Total</p>
+          </div>
+          <p className="font-medium">{formattedDistance}</p>
         </div>
       </div>
       

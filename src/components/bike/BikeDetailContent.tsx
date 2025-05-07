@@ -19,6 +19,8 @@ interface BikeDetailContentProps {
     totalSpent: number;
     lastMaintenance: string;
     next_check_date: string | null;
+    total_distance?: number;
+    strava_id?: string;
   };
   maintenance: MaintenanceProps[];
   onBack: () => void;
@@ -78,6 +80,8 @@ const BikeDetailContent = ({
           lastMaintenance={bike.lastMaintenance}
           nextCheckDate={formattedNextCheckDate}
           onScheduleAppointment={onScheduleAppointment}
+          totalDistance={bike.total_distance}
+          stravaId={bike.strava_id}
         />
         
         <MaintenanceHistory

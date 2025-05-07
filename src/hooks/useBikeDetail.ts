@@ -15,6 +15,8 @@ export interface BikeData {
   lastMaintenance: string;
   next_check_date: string | null;
   next_check_notes: string | null;
+  total_distance?: number;
+  strava_id?: string;
 }
 
 export const useBikeDetail = (bikeId: string | undefined) => {
@@ -93,7 +95,8 @@ export const useBikeDetail = (bikeId: string | undefined) => {
             type: record.type,
             cost: record.cost,
             notes: record.notes || '',
-            hasReceipt: record.has_receipt || false
+            hasReceipt: record.has_receipt || false,
+            distance_at_maintenance: record.distance_at_maintenance
           }));
           
           setMaintenance(formattedMaintenance);
@@ -108,7 +111,9 @@ export const useBikeDetail = (bikeId: string | undefined) => {
           totalSpent: totalSpent,
           lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
           next_check_date: selectedBike.next_check_date,
-          next_check_notes: selectedBike.next_check_notes
+          next_check_notes: selectedBike.next_check_notes,
+          total_distance: selectedBike.total_distance,
+          strava_id: selectedBike.strava_id
         };
         
         setBike(mappedBike);

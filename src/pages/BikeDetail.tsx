@@ -104,7 +104,8 @@ const BikeDetail = () => {
     name: bike.name,
     type: bike.type,
     year: bike.year,
-    image: bike.image
+    image: bike.image,
+    strava_id: bike.strava_id
   };
 
   return (

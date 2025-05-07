@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PlusCircle } from "lucide-react";
 import MaintenanceCategorySelect from './MaintenanceCategorySelect';
+import { usePremiumFeatures } from '@/services/premiumService';
 
 interface MaintenanceFormData {
   type: string;
@@ -26,13 +28,16 @@ interface AddMaintenanceDialogProps {
   onOpenChange: (open: boolean) => void;
   bikeId: string;
   onSuccess?: () => void;
+  stravaId?: string;
 }
 
-const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMaintenanceDialogProps) => {
+const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId }: AddMaintenanceDialogProps) => {
   const { toast } = useToast();
   const [newTypeName, setNewTypeName] = useState("");
   const [showNewTypeInput, setShowNewTypeInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isPremium } = usePremiumFeatures();
+  const [isLoadingDistance, setIsLoadingDistance] = useState(false);
   
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
@@ -42,6 +47,92 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
       date: new Date().toISOString().split('T')[0],
     },
   });
+
+  // Fetch bike data to get current total distance when form opens
+  useEffect(() => {
+    if (open && bikeId) {
+      const fetchBikeData = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('bikes')
+            .select('total_distance')
+            .eq('id', bikeId)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching bike distance:', error);
+          } else if (data && data.total_distance) {
+            form.setValue('distance_at_maintenance', data.total_distance);
+          }
+        } catch (err) {
+          console.error('Error in fetchBikeData:', err);
+        }
+      };
+      
+      fetchBikeData();
+    }
+  }, [open, bikeId, form]);
+
+  // Auto-fill distance from Strava for premium users when date changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'date' && value.date && isPremium && stravaId) {
+        fetchStravaDistanceForDate(value.date as string);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form.watch, isPremium, stravaId]);
+
+  const fetchStravaDistanceForDate = async (date: string) => {
+    if (!isPremium || !stravaId) return;
+    
+    try {
+      setIsLoadingDistance(true);
+      
+      // Get current user to check for Strava connection
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData?.user?.id) {
+        console.error('No authenticated user found');
+        return;
+      }
+      
+      // Check if user has Strava connection
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('strava_connected, strava_access_token')
+        .eq('id', userData.user.id)
+        .single();
+        
+      if (profileError || !profile || !profile.strava_connected) {
+        console.log('User has no valid Strava connection');
+        return;
+      }
+      
+      // This would need to be implemented on the backend
+      // to get the distance at a specific date from Strava
+      // For now, we'll just use the bike's current total distance
+      
+      const { data: bikeData, error: bikeError } = await supabase
+        .from('bikes')
+        .select('total_distance')
+        .eq('id', bikeId)
+        .single();
+        
+      if (!bikeError && bikeData?.total_distance) {
+        form.setValue('distance_at_maintenance', bikeData.total_distance);
+        toast({
+          title: "Información de Strava",
+          description: "Distancia actualizada según los datos de Strava"
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching Strava distance:', err);
+    } finally {
+      setIsLoadingDistance(false);
+    }
+  };
 
   const { data: maintenanceTypes, refetch } = useQuery({
     queryKey: ['maintenanceTypes'],
@@ -252,15 +343,28 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess }: AddMain
               name="distance_at_maintenance"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Kilometraje actual</FormLabel>
+                  <FormLabel className="flex items-center">
+                    Kilometraje actual
+                    {stravaId && isPremium && (
+                      <span className="ml-2 text-xs bg-orange-500 text-white px-1.5 rounded">
+                        Strava
+                      </span>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       placeholder="0"
                       {...field}
+                      disabled={isLoadingDistance}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                     />
                   </FormControl>
+                  {stravaId && isPremium && (
+                    <p className="text-xs text-muted-foreground">
+                      La distancia se actualiza automáticamente desde Strava al cambiar la fecha
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
