@@ -10,7 +10,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { maintenanceCategories } from '@/data/mockData';
-import { Bicycle, Disc, Cog, Wrench } from 'lucide-react';
+import { Disc, Cog, Wrench } from 'lucide-react';
 
 interface MaintenanceCategorySelectProps {
   value: string;
@@ -21,7 +21,7 @@ interface MaintenanceCategorySelectProps {
 const getCategoryIcon = (categoryName: string) => {
   switch (categoryName) {
     case 'Ruedas':
-      return <Bicycle className="h-4 w-4 mr-2" />;
+      return <Cog className="h-4 w-4 mr-2" />; // Changed from Bicycle to Cog
     case 'Frenos':
       return <Disc className="h-4 w-4 mr-2" />;
     case 'Transmisión':
