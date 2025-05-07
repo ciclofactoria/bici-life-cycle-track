@@ -10,7 +10,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { maintenanceCategories } from '@/data/mockData';
-import { Bike, Disc, Gear, SteeringWheel } from 'lucide-react';
+import { Bicycle, Disc, Cog, Wrench } from 'lucide-react';
 
 interface MaintenanceCategorySelectProps {
   value: string;
@@ -21,15 +21,15 @@ interface MaintenanceCategorySelectProps {
 const getCategoryIcon = (categoryName: string) => {
   switch (categoryName) {
     case 'Ruedas':
-      return <Bike className="h-4 w-4 mr-2" />;
+      return <Bicycle className="h-4 w-4 mr-2" />;
     case 'Frenos':
       return <Disc className="h-4 w-4 mr-2" />;
     case 'Transmisión':
-      return <Gear className="h-4 w-4 mr-2" />;
+      return <Cog className="h-4 w-4 mr-2" />;
     case 'Dirección y suspensión':
-      return <SteeringWheel className="h-4 w-4 mr-2" />;
+      return <Wrench className="h-4 w-4 mr-2" />;
     default:
-      return <Gear className="h-4 w-4 mr-2" />;
+      return <Cog className="h-4 w-4 mr-2" />;
   }
 };
 
