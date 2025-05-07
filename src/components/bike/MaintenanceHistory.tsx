@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Filter, FileText } from 'lucide-react';
+import { Filter, FileText, Bell } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import MaintenanceItem, { MaintenanceProps } from '@/components/MaintenanceItem';
 import EmptyState from '@/components/EmptyState';
@@ -12,13 +12,15 @@ interface MaintenanceHistoryProps {
   onFilter: () => void;
   onExport: () => void;
   onAddMaintenance: () => void;
+  onConfigureAlert: () => void;
 }
 
 const MaintenanceHistory = ({ 
   maintenance, 
   onFilter, 
   onExport,
-  onAddMaintenance 
+  onAddMaintenance,
+  onConfigureAlert 
 }: MaintenanceHistoryProps) => {
   const { isPremium } = usePremiumFeatures();
   const { toast } = useToast();
@@ -40,6 +42,15 @@ const MaintenanceHistory = ({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-medium">Historial de Mantenimiento</h2>
         <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="flex items-center gap-1 text-muted-foreground hover:text-bicicare-green"
+            onClick={onConfigureAlert}
+          >
+            <Bell className="h-4 w-4" />
+            <span className="text-sm">Alertas</span>
+          </Button>
           <Button 
             variant="ghost" 
             size="sm"

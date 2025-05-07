@@ -26,10 +26,12 @@ const BikeStats = ({
 }: BikeStatsProps) => {
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [nextAppointment, setNextAppointment] = useState<string | null>(null);
+  const [alertCount, setAlertCount] = useState(0);
   
   useEffect(() => {
     if (bikeId) {
       fetchAppointments();
+      fetchAlerts();
     }
   }, [bikeId]);
 
@@ -69,6 +71,26 @@ const BikeStats = ({
     }
   };
 
+  const fetchAlerts = async () => {
+    try {
+      const { data: alerts, error } = await supabase
+        .from('maintenance_alerts')
+        .select('*')
+        .eq('bike_id', bikeId)
+        .eq('is_active', true);
+        
+      if (error) {
+        console.error('Error fetching maintenance alerts:', error);
+        return;
+      }
+      
+      // Actualizar contador de alertas
+      setAlertCount(alerts?.length || 0);
+    } catch (err) {
+      console.error('Error in fetchAlerts:', err);
+    }
+  };
+
   // Format distance in kilometers with no decimals
   const formattedDistance = totalDistance ? 
     `${Math.round(totalDistance / 1000)} km` : 
@@ -102,19 +124,19 @@ const BikeStats = ({
           <div className="flex items-center gap-2 mb-1">
             <CalendarClock className="h-4 w-4 text-bicicare-green" />
             <p className="text-xs text-muted-foreground">
-              {appointmentCount > 0 
-                ? `Próxima Cita (${appointmentCount} total)` 
-                : 'Próxima Cita'}
+              {appointmentCount > 0 || alertCount > 0
+                ? `Plan de mantenimiento (${appointmentCount + alertCount} total)` 
+                : 'Plan de Mantenimiento'}
             </p>
           </div>
-          <p className="font-medium mb-2">{nextAppointment || 'No programada'}</p>
+          <p className="font-medium mb-2">{nextAppointment || 'No programado'}</p>
           <Button 
             variant="outline" 
             size="sm" 
             className="w-full"
             onClick={onScheduleAppointment}
           >
-            {appointmentCount > 0 ? 'Gestionar citas' : 'Programar cita'}
+            Gestionar Plan de Mantenimiento
           </Button>
         </div>
       </div>

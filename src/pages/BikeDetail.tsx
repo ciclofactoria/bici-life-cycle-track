@@ -21,6 +21,7 @@ const BikeDetail = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   
   // Custom hooks
   const {
@@ -76,6 +77,23 @@ const BikeDetail = () => {
     }
   };
 
+  const handleAlertSuccess = () => {
+    // Actualizar la vista después de cambios en las alertas
+    if (bike) {
+      // Forzar actualización del componente
+      setBike({...bike});
+    }
+    toast({
+      title: "Alerta configurada",
+      description: "Se ha configurado una nueva alerta de mantenimiento",
+    });
+  };
+
+  const handleMaintenanceClick = () => {
+    // Mostrar ambos diálogos en un modal de pestañas
+    setIsAppointmentDialogOpen(true);
+  };
+
   if (isLoading) {
     return <div className="p-4 flex justify-center items-center h-screen">Cargando...</div>;
   }
@@ -118,7 +136,8 @@ const BikeDetail = () => {
         onFilter={() => setIsFilterDialogOpen(true)}
         onExport={() => handleExportExcel(bike, maintenance)}
         onAddMaintenance={handleAddMaintenance}
-        onScheduleAppointment={() => setIsAppointmentDialogOpen(true)}
+        onScheduleAppointment={handleMaintenanceClick}
+        onConfigureAlert={() => setIsAlertDialogOpen(true)}
       />
       
       <FloatingActionButton onClick={handleAddMaintenance} label="Agregar Mantenimiento" />
@@ -132,6 +151,8 @@ const BikeDetail = () => {
         setIsFilterDialogOpen={setIsFilterDialogOpen}
         isAppointmentDialogOpen={isAppointmentDialogOpen}
         setIsAppointmentDialogOpen={setIsAppointmentDialogOpen}
+        isAlertDialogOpen={isAlertDialogOpen}
+        setIsAlertDialogOpen={setIsAlertDialogOpen}
         realBikeId={realBikeId}
         bikeName={bike.name}
         bikeData={bikeData}
@@ -139,6 +160,7 @@ const BikeDetail = () => {
         onMaintenanceSuccess={handleMaintenanceSuccess}
         onBikeUpdate={handleBikeUpdate}
         onAppointmentSuccess={handleAppointmentSuccess}
+        onAlertSuccess={handleAlertSuccess}
       />
       
       <BottomNav activePage="/" />

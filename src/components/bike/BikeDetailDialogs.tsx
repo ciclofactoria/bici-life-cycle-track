@@ -4,6 +4,7 @@ import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 import EditBikeDialog from '@/components/EditBikeDialog';
 import FilterMaintenanceDialog from '@/components/FilterMaintenanceDialog';
 import AppointmentDialog from '@/components/AppointmentDialog';
+import MaintenanceAlertDialog from '@/components/MaintenanceAlertDialog';
 import { MaintenanceProps } from '@/components/MaintenanceItem';
 
 interface BikeDetailDialogsProps {
@@ -15,6 +16,8 @@ interface BikeDetailDialogsProps {
   setIsFilterDialogOpen: (open: boolean) => void;
   isAppointmentDialogOpen: boolean;
   setIsAppointmentDialogOpen: (open: boolean) => void;
+  isAlertDialogOpen: boolean;
+  setIsAlertDialogOpen: (open: boolean) => void;
   realBikeId: string | null;
   bikeName?: string;
   bikeData?: {
@@ -28,6 +31,7 @@ interface BikeDetailDialogsProps {
   onMaintenanceSuccess: () => void;
   onBikeUpdate: () => void;
   onAppointmentSuccess: () => void;
+  onAlertSuccess: () => void;
 }
 
 const BikeDetailDialogs: React.FC<BikeDetailDialogsProps> = ({
@@ -39,13 +43,16 @@ const BikeDetailDialogs: React.FC<BikeDetailDialogsProps> = ({
   setIsFilterDialogOpen,
   isAppointmentDialogOpen,
   setIsAppointmentDialogOpen,
+  isAlertDialogOpen,
+  setIsAlertDialogOpen,
   realBikeId,
   bikeName,
   bikeData,
   maintenance,
   onMaintenanceSuccess,
   onBikeUpdate,
-  onAppointmentSuccess
+  onAppointmentSuccess,
+  onAlertSuccess
 }) => {
   return (
     <>
@@ -79,6 +86,14 @@ const BikeDetailDialogs: React.FC<BikeDetailDialogsProps> = ({
         bikeId={realBikeId || ''}
         bikeName={bikeName || ''}
         onSaved={onAppointmentSuccess}
+      />
+      
+      <MaintenanceAlertDialog
+        open={isAlertDialogOpen}
+        onOpenChange={setIsAlertDialogOpen}
+        bikeId={realBikeId || ''}
+        bikeName={bikeName || ''}
+        onSaved={onAlertSuccess}
       />
     </>
   );

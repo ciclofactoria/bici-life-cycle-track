@@ -37,9 +37,9 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     return BIKE_PLACEHOLDER_IMAGES[index];
   };
 
-  // Formato para mostrar la distancia en km con 2 decimales
+  // Formato para mostrar la distancia en km con 0 decimales
   const formattedDistance = bike.total_distance ? 
-    `${(bike.total_distance / 1000).toFixed(0)} km` : 
+    `${Math.round(bike.total_distance / 1000)} km` : 
     'N/A';
 
   return (
@@ -84,19 +84,9 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
             <p className="font-medium">{bike.lastMaintenance || 'N/A'}</p>
           </div>
           <div className="flex flex-col items-center">
-            {bike.strava_id ? (
-              <>
-                <Bike className="h-5 w-5 text-orange-500 mb-1" />
-                <p className="text-xs text-muted-foreground">Distancia</p>
-                <p className="font-medium">{formattedDistance}</p>
-              </>
-            ) : (
-              <>
-                <CalendarClock className="h-5 w-5 text-bicicare-green mb-1" />
-                <p className="text-xs text-muted-foreground">Próxima Cita</p>
-                <p className="font-medium">{bike.next_check_date || 'No programada'}</p>
-              </>
-            )}
+            <Bike className="h-5 w-5 text-orange-500 mb-1" />
+            <p className="text-xs text-muted-foreground">Distancia</p>
+            <p className="font-medium">{formattedDistance}</p>
           </div>
         </div>
       </CardContent>

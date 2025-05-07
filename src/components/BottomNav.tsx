@@ -18,7 +18,7 @@ const BottomNav = ({ activePage }: { activePage: string }) => {
     },
     {
       icon: Calendar,
-      label: 'Calendario',
+      label: 'Plan de Mantenimiento',
       route: '/calendar'
     },
     {
