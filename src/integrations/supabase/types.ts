@@ -154,6 +154,59 @@ export type Database = {
           },
         ]
       }
+      maintenance_alerts: {
+        Row: {
+          alert_type: string
+          base_distance: number | null
+          bike_id: string
+          created_at: string
+          custom_type: string | null
+          distance_threshold: number | null
+          id: string
+          is_active: boolean
+          maintenance_type: string
+          time_threshold_months: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          base_distance?: number | null
+          bike_id: string
+          created_at?: string
+          custom_type?: string | null
+          distance_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          maintenance_type: string
+          time_threshold_months?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          base_distance?: number | null
+          bike_id?: string
+          created_at?: string
+          custom_type?: string | null
+          distance_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          maintenance_type?: string
+          time_threshold_months?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_alerts_bike_id_fkey"
+            columns: ["bike_id"]
+            isOneToOne: false
+            referencedRelation: "bikes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_types: {
         Row: {
           created_at: string | null

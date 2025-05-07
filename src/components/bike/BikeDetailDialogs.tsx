@@ -4,7 +4,6 @@ import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
 import EditBikeDialog from '@/components/EditBikeDialog';
 import FilterMaintenanceDialog from '@/components/FilterMaintenanceDialog';
 import AppointmentDialog from '@/components/AppointmentDialog';
-import MaintenanceAlertDialog from '@/components/MaintenanceAlertDialog';
 import { MaintenanceProps } from '@/components/MaintenanceItem';
 
 interface BikeDetailDialogsProps {
@@ -81,19 +80,17 @@ const BikeDetailDialogs: React.FC<BikeDetailDialogsProps> = ({
       />
       
       <AppointmentDialog
-        open={isAppointmentDialogOpen}
-        onOpenChange={setIsAppointmentDialogOpen}
+        open={isAppointmentDialogOpen || isAlertDialogOpen}
+        onOpenChange={(open) => {
+          if (isAppointmentDialogOpen) setIsAppointmentDialogOpen(open);
+          if (isAlertDialogOpen) setIsAlertDialogOpen(open);
+        }}
         bikeId={realBikeId || ''}
         bikeName={bikeName || ''}
-        onSaved={onAppointmentSuccess}
-      />
-      
-      <MaintenanceAlertDialog
-        open={isAlertDialogOpen}
-        onOpenChange={setIsAlertDialogOpen}
-        bikeId={realBikeId || ''}
-        bikeName={bikeName || ''}
-        onSaved={onAlertSuccess}
+        onSaved={() => {
+          onAppointmentSuccess();
+          onAlertSuccess();
+        }}
       />
     </>
   );

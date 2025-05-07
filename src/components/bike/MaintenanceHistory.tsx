@@ -49,7 +49,7 @@ const MaintenanceHistory = ({
             onClick={onConfigureAlert}
           >
             <Bell className="h-4 w-4" />
-            <span className="text-sm">Alertas</span>
+            <span className="text-sm">Plan</span>
           </Button>
           <Button 
             variant="ghost" 
