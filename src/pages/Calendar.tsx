@@ -638,7 +638,6 @@ const MaintenancePlanPage = () => {
       
       {/* Floating action button */}
       <FloatingActionButton 
-        icon={<Plus />} 
         onClick={handleNewEntityClick}
         label="Añadir"
       />
