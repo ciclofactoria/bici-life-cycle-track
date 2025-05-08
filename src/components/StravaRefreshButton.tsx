@@ -37,6 +37,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
 
       if (!isPremium) {
         setShowPremiumDialog(true);
+        setIsLoading(false);
         return;
       }
 
@@ -145,7 +146,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
             </ul>
             
             <Button 
-              onClick={() => window.location.href = "/premium-info"} 
+              onClick={() => window.location.href = "/premium"} 
               className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
             >
               Ver Planes Premium

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BikeCard, { BikeProps } from '@/components/BikeCard';
@@ -145,11 +144,10 @@ const Index = () => {
       <div className="bici-container pt-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Mis Bicicletas</h1>
-          {isStravaConnected && (
-            <div className="flex-shrink-0">
-              <StravaRefreshButton onRefreshComplete={fetchBikes} />
-            </div>
-          )}
+          {/* Always show Strava button */}
+          <div className="flex-shrink-0">
+            <StravaRefreshButton onRefreshComplete={fetchBikes} />
+          </div>
         </div>
         
         {!isPremium && bikeData.length >= 1 && (
