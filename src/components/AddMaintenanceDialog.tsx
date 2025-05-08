@@ -13,6 +13,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PlusCircle } from "lucide-react";
 import MaintenanceCategorySelect from './MaintenanceCategorySelect';
 import { usePremiumFeatures } from '@/services/premiumService';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HelpCircle } from "lucide-react";
 
 interface MaintenanceFormData {
   type: string;
@@ -38,6 +40,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isPremium } = usePremiumFeatures();
   const [isLoadingDistance, setIsLoadingDistance] = useState(false);
+  const [showAddTypeHelp, setShowAddTypeHelp] = useState(true);
   
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
@@ -83,6 +86,17 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
     
     return () => subscription.unsubscribe();
   }, [form.watch, isPremium, stravaId]);
+
+  // Hide the help tooltip after a few seconds
+  useEffect(() => {
+    if (open && showAddTypeHelp) {
+      const timer = setTimeout(() => {
+        setShowAddTypeHelp(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [open, showAddTypeHelp]);
 
   const fetchStravaDistanceForDate = async (date: string) => {
     if (!isPremium || !stravaId) return;
@@ -311,26 +325,57 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo de mantenimiento</FormLabel>
-                    <div className="flex gap-2">
+                    <FormLabel className="flex items-center">
+                      Tipo de mantenimiento
+                      <Popover open={showAddTypeHelp} onOpenChange={setShowAddTypeHelp}>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            className="h-5 w-5 p-0 ml-1 rounded-full"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowAddTypeHelp(!showAddTypeHelp);
+                            }}
+                          >
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            <span className="sr-only">Ayuda</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" align="start" className="w-80">
+                          <div className="space-y-2">
+                            <h4 className="font-medium">¿No encuentras el tipo que buscas?</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Puedes crear un tipo personalizado haciendo clic en el botón + 
+                              a la derecha del selector.
+                            </p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </FormLabel>
+                    <div className="flex gap-2 relative">
                       <div className="flex-1">
                         <MaintenanceCategorySelect 
                           value={field.value} 
                           onValueChange={field.onChange}
                         />
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="icon">
-                            <PlusCircle className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-background">
-                          <DropdownMenuItem onClick={() => setShowNewTypeInput(true)}>
-                            Añadir nuevo tipo
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="relative">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="relative">
+                              <PlusCircle className="h-4 w-4" />
+                              {showAddTypeHelp && (
+                                <div className="absolute -top-2 -right-2 animate-ping h-3 w-3 rounded-full bg-bicicare-green"></div>
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="bg-background">
+                            <DropdownMenuItem onClick={() => setShowNewTypeInput(true)}>
+                              Añadir nuevo tipo
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                     <FormMessage />
                   </FormItem>

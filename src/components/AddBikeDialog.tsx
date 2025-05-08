@@ -13,6 +13,7 @@ interface BikeFormData {
   name: string;
   type: string;
   year?: number;
+  total_distance?: number;
 }
 
 interface AddBikeDialogProps {
@@ -29,6 +30,7 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
       name: '',
       type: '',
       year: undefined,
+      total_distance: 0,
     },
   });
 
@@ -59,6 +61,7 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
           year: data.year || null,
           user_id: userId,
           image: imageUrl || null,
+          total_distance: data.total_distance || 0,
         });
 
       if (error) throw error;
@@ -139,6 +142,24 @@ const AddBikeDialog = ({ open, onOpenChange, onSuccess }: AddBikeDialogProps) =>
                         const value = e.target.value ? parseInt(e.target.value) : undefined;
                         field.onChange(value);
                       }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="total_distance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kilometraje actual</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="0"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                     />
                   </FormControl>
                   <FormMessage />

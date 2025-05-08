@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,6 +14,7 @@ interface BikeFormData {
   type: string;
   year?: number;
   image?: string;
+  total_distance?: number;
 }
 
 interface EditBikeDialogProps {
@@ -24,6 +26,8 @@ interface EditBikeDialogProps {
     type: string;
     year?: number;
     image?: string;
+    strava_id?: string;
+    total_distance?: number;
   };
   onSuccess?: () => void;
 }
@@ -35,20 +39,26 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
       name: bikeData?.name || '',
       type: bikeData?.type || '',
       year: bikeData?.year || undefined,
-      image: bikeData?.image || undefined
+      image: bikeData?.image || undefined,
+      total_distance: bikeData?.total_distance || 0,
     },
   });
 
   const onSubmit = async (data: BikeFormData) => {
     try {
+      // Prepare update data
+      const updateData = {
+        name: data.name,
+        type: data.type,
+        year: data.year || null,
+        image: data.image,
+        // Only update total_distance if the bike is not connected to Strava
+        ...(bikeData?.strava_id ? {} : { total_distance: data.total_distance || 0 })
+      };
+
       const { error } = await supabase
         .from('bikes')
-        .update({
-          name: data.name,
-          type: data.type,
-          year: data.year || null,
-          image: data.image
-        })
+        .update(updateData)
         .eq('id', bikeId);
 
       if (error) throw error;
@@ -127,6 +137,37 @@ const EditBikeDialog = ({ open, onOpenChange, bikeId, bikeData, onSuccess }: Edi
                       }}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="total_distance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    Kilometraje actual
+                    {bikeData?.strava_id && (
+                      <span className="ml-2 text-xs bg-orange-500 text-white px-1.5 rounded">
+                        Strava
+                      </span>
+                    )}
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="0"
+                      {...field}
+                      disabled={!!bikeData?.strava_id}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                    />
+                  </FormControl>
+                  {bikeData?.strava_id && (
+                    <p className="text-xs text-muted-foreground">
+                      El kilometraje se actualiza automáticamente desde Strava
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

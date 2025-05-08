@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BikeCard, { BikeProps } from '@/components/BikeCard';
@@ -130,7 +129,7 @@ const Index = () => {
   };
 
   return (
-    <div className="pb-16">
+    <div className="pb-24"> {/* Increased bottom padding for more space */}
       <div className="bici-container pt-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Mis Bicicletas</h1>

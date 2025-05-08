@@ -123,11 +123,12 @@ const BikeDetail = () => {
     type: bike.type,
     year: bike.year,
     image: bike.image,
-    strava_id: bike.strava_id
+    strava_id: bike.strava_id,
+    total_distance: bike.total_distance
   };
 
   return (
-    <>
+    <div className="pb-24"> {/* Increased bottom padding for more space */}
       <BikeDetailContent
         bike={bike}
         maintenance={maintenance}
@@ -164,7 +165,7 @@ const BikeDetail = () => {
       />
       
       <BottomNav activePage="/" />
-    </>
+    </div>
   );
 };
 
