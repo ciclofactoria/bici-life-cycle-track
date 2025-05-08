@@ -126,7 +126,7 @@ const Summary = () => {
   );
 
   return (
-    <div className="pb-16">
+    <div className="pb-24"> {/* Increased bottom padding from pb-16 to pb-24 */}
       <div className="bici-container pt-6">
         <h1 className="text-2xl font-bold mb-6">Resumen de Gastos</h1>
         

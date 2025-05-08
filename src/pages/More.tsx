@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -134,7 +135,7 @@ const More = () => {
   };
 
   return (
-    <div className="pb-16">
+    <div className="pb-24"> {/* Increased bottom padding from pb-16 to pb-24 */}
       <div className="bici-container pt-6">
         <h1 className="text-2xl font-bold mb-6">Más</h1>
         

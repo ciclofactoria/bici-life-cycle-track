@@ -128,7 +128,7 @@ const BikeDetail = () => {
   };
 
   return (
-    <div className="pb-24"> {/* Increased bottom padding for more space */}
+    <div className="pb-28"> {/* Increased bottom padding from pb-24 to pb-28 for extra space */}
       <BikeDetailContent
         bike={bike}
         maintenance={maintenance}
