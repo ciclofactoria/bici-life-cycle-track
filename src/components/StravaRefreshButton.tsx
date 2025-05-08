@@ -40,16 +40,16 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
         return;
       }
 
-      // Check if user has a Strava connection
-      const { data: tokenData, error: tokenError } = await supabase
-        .from('strava_tokens')
-        .select('*')
-        .eq('email', userData.user.email)
+      // Check if user has a Strava connection in profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('strava_access_token, strava_refresh_token, strava_token_expires_at')
+        .eq('id', userData.user.id)
         .maybeSingle();
 
-      if (tokenError) throw tokenError;
+      if (profileError) throw profileError;
 
-      if (!tokenData) {
+      if (!profileData || !profileData.strava_access_token) {
         toast({
           title: "No hay conexión con Strava",
           description: "Primero debes conectar tu cuenta de Strava en la sección 'Más'",
@@ -60,7 +60,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
 
       // Refresh token if needed
       const now = Math.floor(Date.now() / 1000);
-      if (tokenData.expires_at <= now) {
+      if (profileData.strava_token_expires_at <= now) {
         console.log("El token ha expirado, refrescando...");
         const { data: refreshData, error: refreshError } = await supabase.functions.invoke('refresh-strava-token', {
           body: { email: userData.user.email }
@@ -75,9 +75,9 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       }
 
       // Use the current or refreshed token to import bikes
-      const currentToken = tokenData.expires_at <= now ? 
+      const currentToken = profileData.strava_token_expires_at <= now ? 
         (await supabase.functions.invoke('refresh-strava-token', { body: { email: userData.user.email } })).data?.access_token : 
-        tokenData.access_token;
+        profileData.strava_access_token;
 
       if (!currentToken) {
         throw new Error("No se pudo obtener un token de acceso válido");

@@ -24,15 +24,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the current token data
-    const { data: tokenData, error: fetchError } = await supabase
-      .from('strava_tokens')
-      .select('refresh_token')
+    // Get the current profile with token data
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('strava_refresh_token')
       .eq('email', email)
       .single()
 
-    if (fetchError || !tokenData) {
-      throw new Error('No token found for this email')
+    if (userError || !userData || !userData.strava_refresh_token) {
+      throw new Error('No Strava token found for this email')
     }
 
     // Request new access token from Strava
@@ -44,7 +44,7 @@ serve(async (req) => {
       body: JSON.stringify({
         client_id: Deno.env.get('STRAVA_CLIENT_ID'),
         client_secret: Deno.env.get('STRAVA_CLIENT_SECRET'),
-        refresh_token: tokenData.refresh_token,
+        refresh_token: userData.strava_refresh_token,
         grant_type: 'refresh_token',
       }),
     })
@@ -57,11 +57,11 @@ serve(async (req) => {
 
     // Update token in database
     const { error: updateError } = await supabase
-      .from('strava_tokens')
+      .from('profiles')
       .update({
-        access_token: stravaData.access_token,
-        refresh_token: stravaData.refresh_token,
-        expires_at: stravaData.expires_at,
+        strava_access_token: stravaData.access_token,
+        strava_refresh_token: stravaData.refresh_token,
+        strava_token_expires_at: stravaData.expires_at,
       })
       .eq('email', email)
 

@@ -26,16 +26,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Upsert the Strava token record
+    // Update the profile with Strava tokens
     const { error } = await supabase
-      .from('strava_tokens')
-      .upsert({
-        email,
-        strava_user_id,
-        access_token,
-        refresh_token,
-        expires_at,
+      .from('profiles')
+      .update({
+        strava_connected: true,
+        strava_access_token: access_token,
+        strava_refresh_token: refresh_token,
+        strava_token_expires_at: expires_at,
+        strava_athlete_id: strava_user_id
       })
+      .eq('email', email)
 
     if (error) throw error
 

@@ -33,13 +33,13 @@ const Index = () => {
         setUserId(data.user.id);
         
         // Check if user has Strava connection
-        const { data: stravaTokens } = await supabase
-          .from('strava_tokens')
-          .select('*')
-          .eq('email', data.user.email)
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('strava_connected, strava_access_token')
+          .eq('id', data.user.id)
           .maybeSingle();
           
-        setIsStravaConnected(!!stravaTokens);
+        setIsStravaConnected(!!profileData?.strava_connected && !!profileData?.strava_access_token);
       }
     };
     
