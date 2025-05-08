@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BikeCard, { BikeProps } from '@/components/BikeCard';
@@ -5,6 +6,7 @@ import EmptyState from '@/components/EmptyState';
 import BottomNav from '@/components/BottomNav';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import AddBikeDialog from '@/components/AddBikeDialog';
+import StravaRefreshButton from '@/components/StravaRefreshButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -22,12 +24,22 @@ const Index = () => {
   const { isPremium } = usePremiumFeatures();
   const [userId, setUserId] = useState<string | null>(null);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+  const [isStravaConnected, setIsStravaConnected] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (data && data.user) {
         setUserId(data.user.id);
+        
+        // Check if user has Strava connection
+        const { data: stravaTokens } = await supabase
+          .from('strava_tokens')
+          .select('*')
+          .eq('email', data.user.email)
+          .maybeSingle();
+          
+        setIsStravaConnected(!!stravaTokens);
       }
     };
     
@@ -129,10 +141,15 @@ const Index = () => {
   };
 
   return (
-    <div className="pb-24"> {/* Increased bottom padding for more space */}
+    <div className="pb-28"> {/* Increased bottom padding for more space */}
       <div className="bici-container pt-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Mis Bicicletas</h1>
+          {isStravaConnected && (
+            <div className="flex-shrink-0">
+              <StravaRefreshButton onRefreshComplete={fetchBikes} />
+            </div>
+          )}
         </div>
         
         {!isPremium && bikeData.length >= 1 && (

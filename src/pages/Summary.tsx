@@ -138,7 +138,7 @@ const Summary = () => {
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-lg font-medium">Total Gastado</h2>
-                  <p className="text-2xl font-semibold text-bicicare-green">${totalSpent}</p>
+                  <p className="text-2xl font-semibold text-bicicare-green">{totalSpent}€</p>
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
@@ -164,7 +164,7 @@ const Summary = () => {
                         <TableRow key={bike.id}>
                           <TableCell className="font-medium">{bike.name}</TableCell>
                           <TableCell>{bike.type}</TableCell>
-                          <TableCell className="text-right">${bike.totalSpent}</TableCell>
+                          <TableCell className="text-right">{bike.totalSpent}€</TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -208,7 +208,7 @@ const Summary = () => {
                         <TableRow key={item.type}>
                           <TableCell className="font-medium">{item.type}</TableCell>
                           <TableCell className="text-right">{item.count}</TableCell>
-                          <TableCell className="text-right">${item.totalCost}</TableCell>
+                          <TableCell className="text-right">{item.totalCost}€</TableCell>
                         </TableRow>
                       ))
                     ) : (
