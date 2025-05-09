@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
   session: Session | null;
@@ -12,7 +12,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any | null }>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,21 +58,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    // Obtener la URL completa para el sitio
-    const siteUrl = window.location.origin;
-    console.log("URL del sitio para registro:", siteUrl);
-
-    const { error } = await supabase.auth.signUp({
+    // Register the user without email verification
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
         },
-        emailRedirectTo: `${siteUrl}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       }
     });
-
+    
     if (error) {
       console.error("Error en registro:", error);
       toast({
@@ -80,36 +77,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Revisa tu email",
-        description: "Se ha enviado un enlace de confirmación a tu correo electrónico",
-      });
+      return { error };
+    } 
+    
+    // If registration was successful, immediately sign in the user
+    if (data.user) {
+      const { error: signInError } = await signIn(email, password);
+      if (signInError) {
+        return { error: signInError };
+      }
     }
-
-    return { error };
+    
+    return { error: null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
-
-  const signInWithGoogle = async () => {
-    console.log("Iniciando autenticación con Google");
-    
-    // Obtener la URL completa actual para la redirección
-    const redirectTo = `${window.location.origin}/auth/callback`;
-    console.log("URL de redirección:", redirectTo);
-    
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectTo,
-        // Añadir scopes necesarios para Google
-        scopes: 'email profile',
-      }
+  
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?reset=true`,
     });
+    return { error };
   };
 
   const value = {
@@ -119,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
-    signInWithGoogle,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

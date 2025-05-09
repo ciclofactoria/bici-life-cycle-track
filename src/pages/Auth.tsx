@@ -3,17 +3,23 @@ import React, { useState } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
 import SignUpForm from '@/components/auth/SignUpForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
 
   if (user) {
@@ -62,8 +68,50 @@ const Auth = () => {
     } else {
       toast({
         title: "Registro exitoso",
-        description: "Se ha enviado un correo de confirmación. Por favor, verifica tu email.",
+        description: "Tu cuenta ha sido creada. Ya puedes iniciar sesión.",
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    setShowResetDialog(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetEmail) {
+      toast({
+        title: "Error",
+        description: "Por favor, introduce tu email",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error } = await useAuth().resetPassword(resetEmail);
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      setResetEmailSent(true);
+      toast({
+        title: "Email enviado",
+        description: "Se ha enviado un email con las instrucciones para restablecer tu contraseña",
+      });
+      setTimeout(() => {
+        setShowResetDialog(false);
+        setResetEmailSent(false);
+      }, 3000);
     }
     
     setIsLoading(false);
@@ -92,7 +140,7 @@ const Auth = () => {
               setPassword={setPassword}
               isLoading={isLoading}
               onSubmit={handleLogin}
-              onGoogleLogin={signInWithGoogle}
+              onForgotPassword={handleForgotPassword}
             />
           </TabsContent>
           
@@ -106,11 +154,48 @@ const Auth = () => {
               setFullName={setFullName}
               isLoading={isLoading}
               onSubmit={handleSignUp}
-              onGoogleLogin={signInWithGoogle}
             />
           </TabsContent>
         </Tabs>
       </Card>
+
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recuperar contraseña</DialogTitle>
+            <DialogDescription>
+              Introduce tu correo electrónico y te enviaremos instrucciones para recuperar tu contraseña.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {resetEmailSent ? (
+              <p className="text-center text-green-600">
+                Se ha enviado un correo con las instrucciones para restablecer tu contraseña.
+              </p>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label htmlFor="reset-email" className="text-sm font-medium">Email</label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="Tu correo electrónico"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handleResetPassword}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Enviando..." : "Enviar instrucciones"}
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

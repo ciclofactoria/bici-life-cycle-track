@@ -91,9 +91,9 @@ const BikeStats = ({
     }
   };
 
-  // Format distance in kilometers with no decimals
+  // Format distance in kilometers with appropriate number formatting
   const formattedDistance = totalDistance ? 
-    `${Math.round(totalDistance / 1000)} km` : 
+    `${Math.floor(totalDistance / 1000).toLocaleString()} km` : 
     'No disponible';
 
   return (

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Wrench, ChartBar, CalendarClock, Bike } from "lucide-react";
+import { Wrench, ChartBar, Bike } from "lucide-react";
 
 export interface BikeProps {
   id: string;
@@ -37,9 +37,9 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     return BIKE_PLACEHOLDER_IMAGES[index];
   };
 
-  // Formato para mostrar la distancia en km con 0 decimales
+  // Format distance in km with appropriate number formatting
   const formattedDistance = bike.total_distance ? 
-    `${Math.round(bike.total_distance / 1000)} km` : 
+    `${Math.floor(bike.total_distance / 1000).toLocaleString()} km` : 
     'N/A';
 
   return (
