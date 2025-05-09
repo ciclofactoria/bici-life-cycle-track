@@ -37,9 +37,9 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     return BIKE_PLACEHOLDER_IMAGES[index];
   };
 
-  // Format distance in km with appropriate number formatting - displaying full number
+  // Format distance in km showing ALL digits (no limit)
   const formattedDistance = bike.total_distance ? 
-    `${Math.floor(bike.total_distance / 1000).toLocaleString('es-ES')} km` : 
+    `${(Math.floor(bike.total_distance / 1000)).toString()} km` : 
     'N/A';
 
   return (
