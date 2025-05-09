@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { MaintenanceProps } from '@/components/MaintenanceItem';
@@ -8,7 +9,6 @@ interface MaintenanceHistoryProps {
   onFilter: () => void;
   onExport: () => void;
   onAddMaintenance: () => void;
-  onConfigureAlert?: () => void;
 }
 
 const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({ 

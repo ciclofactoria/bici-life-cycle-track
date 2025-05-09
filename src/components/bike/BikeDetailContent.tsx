@@ -29,7 +29,6 @@ interface BikeDetailContentProps {
   onExport: () => void;
   onAddMaintenance: () => void;
   onScheduleAppointment: () => void;
-  onConfigureAlert: () => void;
 }
 
 const BikeDetailContent = ({
@@ -40,8 +39,7 @@ const BikeDetailContent = ({
   onFilter,
   onExport,
   onAddMaintenance,
-  onScheduleAppointment,
-  onConfigureAlert
+  onScheduleAppointment
 }: BikeDetailContentProps) => {
   const formattedNextCheckDate = bike.next_check_date ? 
     (() => {
@@ -91,7 +89,6 @@ const BikeDetailContent = ({
           onFilter={onFilter}
           onExport={onExport}
           onAddMaintenance={onAddMaintenance}
-          onConfigureAlert={onConfigureAlert}
         />
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -128,7 +127,7 @@ const BikeDetail = () => {
   };
 
   return (
-    <div className="pb-28"> {/* Increased bottom padding from pb-24 to pb-28 for extra space */}
+    <div className="pb-28">
       <BikeDetailContent
         bike={bike}
         maintenance={maintenance}
@@ -138,7 +137,6 @@ const BikeDetail = () => {
         onExport={() => handleExportExcel(bike, maintenance)}
         onAddMaintenance={handleAddMaintenance}
         onScheduleAppointment={handleMaintenanceClick}
-        onConfigureAlert={() => setIsAlertDialogOpen(true)}
       />
       
       <FloatingActionButton onClick={handleAddMaintenance} label="Agregar Mantenimiento" />

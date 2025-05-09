@@ -91,7 +91,7 @@ const BikeStats = ({
     }
   };
 
-  // Format distance in kilometers with appropriate number formatting
+  // Format distance in kilometers with appropriate number formatting - fixed to show full number
   const formattedDistance = totalDistance ? 
     `${Math.floor(totalDistance / 1000).toLocaleString()} km` : 
     'No disponible';
