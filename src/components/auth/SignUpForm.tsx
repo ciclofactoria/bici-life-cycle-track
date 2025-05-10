@@ -35,6 +35,34 @@ const SignUpForm = ({
   const handleSubmitWithValidation = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form fields
+    if (!fullName.trim()) {
+      toast({
+        title: "Nombre requerido",
+        description: "Por favor, introduce tu nombre completo",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!email.trim()) {
+      toast({
+        title: "Email requerido",
+        description: "Por favor, introduce tu dirección de email",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast({
+        title: "Contraseña muy corta",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (password !== confirmPassword) {
       toast({
         title: "Las contraseñas no coinciden",
@@ -87,6 +115,7 @@ const SignUpForm = ({
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              minLength={6}
             />
             <button
               type="button"
@@ -112,6 +141,7 @@ const SignUpForm = ({
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              minLength={6}
             />
             <button
               type="button"
@@ -133,7 +163,7 @@ const SignUpForm = ({
           className="w-full" 
           disabled={isLoading}
         >
-          {isLoading ? "Registrando..." : "Registrarse"}
+          {isLoading ? "Verificando..." : "Registrarse"}
         </Button>
       </CardFooter>
     </form>

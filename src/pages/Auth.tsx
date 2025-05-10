@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { AlertCircle } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -59,14 +60,27 @@ const Auth = () => {
         return false;
       }
 
-      // Si la API explícitamente dice que el usuario existe
-      if (response.data && response.data.exists === true) {
-        console.log("El usuario existe en WordPress:", response.data);
+      // For testing purposes, we'll simulate the user existing
+      // This should be updated once the WordPress API is properly implemented
+      // To test, use any email ending with @wordpress.test
+      const isTestEmail = email.toLowerCase().endsWith('@wordpress.test');
+      
+      if (isTestEmail || (response.data && response.data.exists === true)) {
+        console.log("El usuario existe en WordPress:", response.data || "test user");
+        
+        // Automatically show reset password dialog
+        setResetEmail(email);
+        setUserExistsInWordPress(true);
+        setActiveTab('login');
+        setRegisterTabDisabled(true);
+        setShowResetDialog(true);
+        
         toast({
           title: "Usuario ya registrado",
-          description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción 'Olvidé mi contraseña' para establecer una contraseña para la app.",
+          description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción para restablecer tu contraseña.",
           variant: "warning"
         });
+        
         return true;
       }
 
@@ -87,6 +101,18 @@ const Auth = () => {
     const { error } = await signIn(email, password);
     
     if (error) {
+      // Check if this might be a WordPress user trying to log in
+      if (error.message.includes("Invalid login credentials")) {
+        // Check if the user exists in WordPress
+        const exists = await checkWordPressUser(email);
+        
+        if (exists) {
+          // We've already shown the reset dialog in checkWordPressUser
+          setIsLoading(false);
+          return;
+        }
+      }
+      
       toast({
         title: "Error de inicio de sesión",
         description: error.message,
@@ -115,11 +141,7 @@ const Auth = () => {
     const exists = await checkWordPressUser(email);
     
     if (exists) {
-      setUserExistsInWordPress(true);
-      setActiveTab('login');
-      setRegisterTabDisabled(true);
-      setResetEmail(email); // Prellenamos el email en el formulario de reseteo
-      setShowResetDialog(true); // Abrimos directamente el diálogo de reseteo
+      // We've already shown the reset dialog and toast in checkWordPressUser
       setIsLoading(false);
       return;
     }
@@ -127,11 +149,32 @@ const Auth = () => {
     const { error } = await signUp(email, password, fullName);
     
     if (error) {
-      toast({
-        title: "Error en el registro",
-        description: error.message,
-        variant: "destructive"
-      });
+      // Check if this might be a WordPress user based on the error message
+      if (error.message.includes("User already registered")) {
+        // Check if they exist in WordPress DB
+        const wpExists = await checkWordPressUser(email);
+        
+        if (wpExists) {
+          // We've already handled this in checkWordPressUser
+          setIsLoading(false);
+          return;
+        }
+        
+        // It's a Supabase user but not a WordPress user
+        toast({
+          title: "Usuario ya registrado",
+          description: "Este email ya está registrado. Por favor, inicia sesión o utiliza la opción para restablecer tu contraseña.",
+          variant: "warning"
+        });
+        
+        setActiveTab('login');
+      } else {
+        toast({
+          title: "Error en el registro",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
     } else {
       toast({
         title: "Registro exitoso",
@@ -210,14 +253,6 @@ const Auth = () => {
               onSubmit={handleLogin}
               onForgotPassword={handleForgotPassword}
             />
-            {userExistsInWordPress && (
-              <div className="px-6 pb-4">
-                <p className="text-sm text-amber-600 text-center">
-                  Tu cuenta ya existe en ciclofactoria.com. 
-                  Usa "¿Has olvidado tu contraseña?" para configurar una contraseña para la app.
-                </p>
-              </div>
-            )}
           </TabsContent>
           
           <TabsContent value="register">
@@ -233,6 +268,21 @@ const Auth = () => {
             />
           </TabsContent>
         </Tabs>
+        
+        {/* Warning message for WordPress users */}
+        {userExistsInWordPress && (
+          <div className="px-6 pb-4">
+            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-md flex items-start gap-2">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium">Tu cuenta ya existe en ciclofactoria.com</p>
+                <p className="mt-1">
+                  Usa la opción "¿Has olvidado tu contraseña?" para configurar una contraseña para la app.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
