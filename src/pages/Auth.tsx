@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,12 +23,62 @@ const Auth = () => {
   const [userExistsInWordPress, setUserExistsInWordPress] = useState(false);
   const [registerTabDisabled, setRegisterTabDisabled] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [checkingUser, setCheckingUser] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
+
+  // Reset WordPress user status when email changes
+  useEffect(() => {
+    if (email && userExistsInWordPress) {
+      setUserExistsInWordPress(false);
+      setRegisterTabDisabled(false);
+    }
+  }, [email]);
 
   if (user) {
     return <Navigate to="/" />;
   }
+
+  const checkWordPressUser = async (email: string) => {
+    setCheckingUser(true);
+    try {
+      console.log("Verificando si el usuario existe en WordPress:", email);
+      const response = await supabase.functions.invoke('check-wordpress-user', {
+        body: { email }
+      });
+
+      console.log("Respuesta de check-wordpress-user:", response);
+
+      if (response.error) {
+        console.error('Error checking WordPress user:', response.error);
+        toast({
+          title: "Error al verificar usuario",
+          description: "No pudimos verificar si ya tienes una cuenta. Intenta de nuevo.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Si la API explícitamente dice que el usuario existe
+      if (response.data && response.data.exists === true) {
+        console.log("El usuario existe en WordPress:", response.data);
+        toast({
+          title: "Usuario ya registrado",
+          description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción 'Olvidé mi contraseña' para establecer una contraseña para la app.",
+          variant: "warning"
+        });
+        return true;
+      }
+
+      console.log("El usuario no existe en WordPress:", response.data);
+      return false;
+    } catch (error) {
+      console.error('Error invoking check-wordpress-user function:', error);
+      return false;
+    } finally {
+      setCheckingUser(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,24 +95,6 @@ const Auth = () => {
     }
     
     setIsLoading(false);
-  };
-
-  const checkWordPressUser = async (email: string) => {
-    try {
-      const response = await supabase.functions.invoke('check-wordpress-user', {
-        body: { email }
-      });
-
-      if (response.error) {
-        console.error('Error checking WordPress user:', response.error);
-        return false;
-      }
-
-      return response.data.exists;
-    } catch (error) {
-      console.error('Error invoking check-wordpress-user function:', error);
-      return false;
-    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -84,13 +116,10 @@ const Auth = () => {
     
     if (exists) {
       setUserExistsInWordPress(true);
-      toast({
-        title: "Usuario ya registrado",
-        description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción 'Olvidé mi contraseña' para establecer una contraseña para la app.",
-        variant: "warning"
-      });
       setActiveTab('login');
       setRegisterTabDisabled(true);
+      setResetEmail(email); // Prellenamos el email en el formulario de reseteo
+      setShowResetDialog(true); // Abrimos directamente el diálogo de reseteo
       setIsLoading(false);
       return;
     }
@@ -117,6 +146,7 @@ const Auth = () => {
   };
 
   const handleForgotPassword = async () => {
+    setResetEmail(email); // Pre-fill with current email if available
     setShowResetDialog(true);
   };
 
@@ -198,7 +228,7 @@ const Auth = () => {
               setPassword={setPassword}
               fullName={fullName}
               setFullName={setFullName}
-              isLoading={isLoading}
+              isLoading={isLoading || checkingUser}
               onSubmit={handleSignUp}
             />
           </TabsContent>
@@ -210,7 +240,10 @@ const Auth = () => {
           <DialogHeader>
             <DialogTitle>Recuperar contraseña</DialogTitle>
             <DialogDescription>
-              Introduce tu correo electrónico y te enviaremos instrucciones para recuperar tu contraseña.
+              {userExistsInWordPress 
+                ? "Tu correo ya está registrado en ciclofactoria.com. Introduce tu correo para recibir instrucciones y configurar una contraseña para la app."
+                : "Introduce tu correo electrónico y te enviaremos instrucciones para recuperar tu contraseña."
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

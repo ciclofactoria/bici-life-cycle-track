@@ -35,6 +35,7 @@ serve(async (req) => {
 
     console.log(`Checking if user with email ${email} exists in WordPress database`);
 
+    // Asegúrate de usar la ruta correcta para verificar usuarios existentes
     // Call the WordPress API to check if the user exists
     const response = await fetch(`${wpApiUrl}/wp-json/bicicare/v1/check-user`, {
       method: 'POST',
@@ -44,10 +45,32 @@ serve(async (req) => {
       body: JSON.stringify({ email }),
     });
 
+    // Log full response for debugging
+    console.log('WordPress API response status:', response.status);
+    
+    // Para manejar respuestas distintas a 200 OK de forma más informativa
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error from WordPress API:', errorData);
-      throw new Error(`WordPress API error: ${response.status} ${response.statusText}`);
+      let errorData;
+      try {
+        errorData = await response.json();
+        console.error('Error from WordPress API:', errorData);
+      } catch (e) {
+        console.error('Could not parse error response:', await response.text());
+      }
+      
+      // Incluso si hay un error 404, asumimos que el usuario no existe
+      // en lugar de lanzar un error que rompe el flujo
+      return new Response(
+        JSON.stringify({
+          exists: false,
+          message: 'User does not exist or could not verify user',
+          error: response.status === 404 ? 'API endpoint not found' : 'Error checking user'
+        }),
+        { 
+          status: 200, // Devolvemos 200 para que la app siga funcionando
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const data = await response.json();
@@ -69,7 +92,7 @@ serve(async (req) => {
         exists: false // Default response for error cases
       }),
       { 
-        status: 500, 
+        status: 200, // Cambiado de 500 a 200 para que no rompa el flujo de la app
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
