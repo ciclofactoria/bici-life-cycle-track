@@ -10,6 +10,7 @@ import SignUpForm from '@/components/auth/SignUpForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -19,6 +20,9 @@ const Auth = () => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [userExistsInWordPress, setUserExistsInWordPress] = useState(false);
+  const [registerTabDisabled, setRegisterTabDisabled] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
 
@@ -43,6 +47,24 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const checkWordPressUser = async (email: string) => {
+    try {
+      const response = await supabase.functions.invoke('check-wordpress-user', {
+        body: { email }
+      });
+
+      if (response.error) {
+        console.error('Error checking WordPress user:', response.error);
+        return false;
+      }
+
+      return response.data.exists;
+    } catch (error) {
+      console.error('Error invoking check-wordpress-user function:', error);
+      return false;
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -53,6 +75,22 @@ const Auth = () => {
         description: "Por favor, introduce tu nombre completo",
         variant: "destructive"
       });
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if the user exists in WordPress
+    const exists = await checkWordPressUser(email);
+    
+    if (exists) {
+      setUserExistsInWordPress(true);
+      toast({
+        title: "Usuario ya registrado",
+        description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción 'Olvidé mi contraseña' para establecer una contraseña para la app.",
+        variant: "warning"
+      });
+      setActiveTab('login');
+      setRegisterTabDisabled(true);
       setIsLoading(false);
       return;
     }
@@ -126,10 +164,10 @@ const Auth = () => {
             Gestiona el mantenimiento de tus bicicletas
           </CardDescription>
         </CardHeader>
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-            <TabsTrigger value="register">Registrarse</TabsTrigger>
+            <TabsTrigger value="register" disabled={registerTabDisabled}>Registrarse</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
@@ -142,6 +180,14 @@ const Auth = () => {
               onSubmit={handleLogin}
               onForgotPassword={handleForgotPassword}
             />
+            {userExistsInWordPress && (
+              <div className="px-6 pb-4">
+                <p className="text-sm text-amber-600 text-center">
+                  Tu cuenta ya existe en ciclofactoria.com. 
+                  Usa "¿Has olvidado tu contraseña?" para configurar una contraseña para la app.
+                </p>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="register">
