@@ -91,9 +91,9 @@ const BikeStats = ({
     }
   };
 
-  // Format distance showing ALL digits without any number formatting
+  // Display the full distance number without any formatting or limit
   const formattedDistance = totalDistance ? 
-    `${(Math.floor(totalDistance / 1000)).toString()} km` : 
+    `${Math.floor(totalDistance / 1000)} km` : 
     'No disponible';
 
   return (
