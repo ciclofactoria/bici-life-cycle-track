@@ -23,6 +23,8 @@ serve(async (req) => {
       throw new Error('WORDPRESS_API_URL environment variable not set');
     }
 
+    const apiKey = "@gkeG@Lgjh(5z!gqbZ83pEy4"; // API Key fija - same as in verify-wordpress-premium
+
     // Parse the request body to get the email
     const { email }: CheckUserRequest = await req.json();
     
@@ -35,19 +37,36 @@ serve(async (req) => {
 
     console.log(`Checking if user with email ${email} exists in WordPress database`);
 
+    // Test mode for emails ending with @wordpress.test
+    if (email.toLowerCase().endsWith('@wordpress.test')) {
+      console.log('Test email detected, simulating WordPress user existence');
+      return new Response(
+        JSON.stringify({
+          exists: true,
+          message: 'Test user exists in WordPress'
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     try {
       // Call the WordPress API to check if the user exists
+      // The endpoint should be similar to the verify-subscription one but for checking users
       const response = await fetch(`${wpApiUrl}/wp-json/bicicare/v1/check-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({ email }),
       });
 
       console.log('WordPress API response status:', response.status);
       
-      // Handle API errors - likely the endpoint doesn't exist yet
+      // Handle API errors
       if (!response.ok) {
         let errorText;
         try {
@@ -59,16 +78,47 @@ serve(async (req) => {
           console.error('Could not parse error response:', errorText);
         }
         
-        // For now, simulate a "not found" response to not break the flow
-        // This should be updated once the WordPress API endpoint is properly implemented
+        // Fallback to check existing endpoint
+        console.log('Attempting fallback to verify-subscription endpoint to check user existence');
+        const fallbackResponse = await fetch(`${wpApiUrl}/wp-json/bicicare/v1/verify-subscription`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({ email }),
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          console.log('Fallback response:', fallbackData);
+          
+          // If the fallback response contains a message that is not "Usuario no encontrado",
+          // we can consider the user exists in WordPress
+          if (fallbackData.message && fallbackData.message !== 'Usuario no encontrado') {
+            return new Response(
+              JSON.stringify({
+                exists: true,
+                message: 'User exists in WordPress (verified via subscription check)'
+              }),
+              { 
+                status: 200,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+        }
+        
+        // If both endpoints fail or user not found, return not exists
+        console.log('User not found in WordPress or API error');
         return new Response(
           JSON.stringify({
             exists: false,
-            message: 'Could not verify user status',
+            message: 'User not found or API error',
             error: `API returned ${response.status}: ${errorText}`
           }),
           { 
-            status: 200, // We use 200 to not break the app flow
+            status: 200, // Use 200 to not break the app flow
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
