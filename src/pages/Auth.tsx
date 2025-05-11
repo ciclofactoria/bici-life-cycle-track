@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,114 +7,37 @@ import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
 import LoginForm from '@/components/auth/LoginForm';
 import SignUpForm from '@/components/auth/SignUpForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { AlertCircle } from 'lucide-react';
+import ResetPasswordDialog from '@/components/auth/ResetPasswordDialog';
+import WordPressUserWarning from '@/components/auth/WordPressUserWarning';
+import { useWordPressUserCheck } from '@/hooks/useWordPressUserCheck';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const [userExistsInWordPress, setUserExistsInWordPress] = useState(false);
   const [registerTabDisabled, setRegisterTabDisabled] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const [checkingUser, setCheckingUser] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
 
-  // Reset WordPress user status when email changes
-  useEffect(() => {
-    if (email && userExistsInWordPress) {
-      setUserExistsInWordPress(false);
-      setRegisterTabDisabled(false);
-    }
-  }, [email]);
+  const { 
+    userExistsInWordPress, 
+    checkingUser, 
+    checkWordPressUser 
+  } = useWordPressUserCheck({
+    email,
+    setActiveTab,
+    setRegisterTabDisabled,
+    setShowResetDialog,
+    setResetEmail
+  });
 
   if (user) {
     return <Navigate to="/" />;
   }
-
-  const checkWordPressUser = async (email: string) => {
-    setCheckingUser(true);
-    try {
-      console.log("Verificando si el usuario existe en WordPress:", email);
-      const response = await supabase.functions.invoke('check-wordpress-user', {
-        body: { email }
-      });
-
-      console.log("Respuesta de check-wordpress-user:", response);
-
-      // Check if the user exists in WordPress
-      if (response.data && response.data.exists === true) {
-        console.log("El usuario existe en WordPress:", response.data);
-        
-        // Automatically show reset password dialog
-        setResetEmail(email);
-        setUserExistsInWordPress(true);
-        setActiveTab('login');
-        setRegisterTabDisabled(true);
-        setShowResetDialog(true);
-        
-        toast({
-          title: "Usuario ya registrado",
-          description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción para restablecer tu contraseña.",
-          variant: "warning"
-        });
-        
-        return true;
-      } else if (email.toLowerCase().endsWith('@wordpress.test')) {
-        // For testing purposes, treat any email ending with @wordpress.test as existing
-        console.log("Email de prueba detectado, simulando usuario existente en WordPress");
-        
-        setResetEmail(email);
-        setUserExistsInWordPress(true);
-        setActiveTab('login');
-        setRegisterTabDisabled(true);
-        setShowResetDialog(true);
-        
-        toast({
-          title: "Usuario ya registrado",
-          description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción para restablecer tu contraseña.",
-          variant: "warning"
-        });
-        
-        return true;
-      }
-
-      // Use the fallback method - checking if the user exists via verify-subscription
-      if (response.data && response.data.message && response.data.message.includes("verified via subscription check")) {
-        console.log("Usuario verificado a través del endpoint de suscripción:", response.data);
-        
-        setResetEmail(email);
-        setUserExistsInWordPress(true);
-        setActiveTab('login');
-        setRegisterTabDisabled(true);
-        setShowResetDialog(true);
-        
-        toast({
-          title: "Usuario ya registrado",
-          description: "Este email ya está registrado en ciclofactoria.com. Por favor, utiliza la opción para restablecer tu contraseña.",
-          variant: "warning"
-        });
-        
-        return true;
-      }
-
-      console.log("El usuario no existe en WordPress:", response.data);
-      return false;
-    } catch (error) {
-      console.error('Error invoking check-wordpress-user function:', error);
-      return false;
-    } finally {
-      setCheckingUser(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,41 +139,6 @@ const Auth = () => {
     setShowResetDialog(true);
   };
 
-  const handleResetPassword = async () => {
-    if (!resetEmail) {
-      toast({
-        title: "Error",
-        description: "Por favor, introduce tu email",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    const { error } = await useAuth().resetPassword(resetEmail);
-    
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    } else {
-      setResetEmailSent(true);
-      toast({
-        title: "Email enviado",
-        description: "Se ha enviado un email con las instrucciones para restablecer tu contraseña",
-      });
-      setTimeout(() => {
-        setShowResetDialog(false);
-        setResetEmailSent(false);
-      }, 3000);
-    }
-    
-    setIsLoading(false);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background">
       <Card className="w-full max-w-md">
@@ -293,61 +181,15 @@ const Auth = () => {
         </Tabs>
         
         {/* Warning message for WordPress users */}
-        {userExistsInWordPress && (
-          <div className="px-6 pb-4">
-            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-md flex items-start gap-2">
-              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium">Tu cuenta ya existe en ciclofactoria.com</p>
-                <p className="mt-1">
-                  Usa la opción "¿Has olvidado tu contraseña?" para configurar una contraseña para la app.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <WordPressUserWarning show={userExistsInWordPress} />
       </Card>
 
-      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Recuperar contraseña</DialogTitle>
-            <DialogDescription>
-              {userExistsInWordPress 
-                ? "Tu correo ya está registrado en ciclofactoria.com. Introduce tu correo para recibir instrucciones y configurar una contraseña para la app."
-                : "Introduce tu correo electrónico y te enviaremos instrucciones para recuperar tu contraseña."
-              }
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {resetEmailSent ? (
-              <p className="text-center text-green-600">
-                Se ha enviado un correo con las instrucciones para restablecer tu contraseña.
-              </p>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <label htmlFor="reset-email" className="text-sm font-medium">Email</label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="Tu correo electrónico"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={handleResetPassword}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Enviando..." : "Enviar instrucciones"}
-                </Button>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ResetPasswordDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        email={resetEmail}
+        setEmail={setResetEmail}
+      />
     </div>
   );
 };
