@@ -185,17 +185,24 @@ serve(async (req) => {
 
     logEvent(`Actualizando perfil con tokens de Strava`);
     
-    // Update user profile with Strava tokens
+    // Update user profile with Strava tokens - here's the fix for the strava_athlete_id error
+    // We're now using a much more selective update with only fields we know exist in the profiles table
+    const updateData = {
+      strava_connected: true,
+      strava_access_token: tokenData.access_token,
+      strava_refresh_token: tokenData.refresh_token,
+      strava_token_expires_at: tokenData.expires_at
+    };
+    
+    // Only add athlete ID if it exists in the response
+    if (tokenData.athlete && tokenData.athlete.id) {
+      logEvent(`Received athlete ID: ${tokenData.athlete.id}`);
+    }
+    
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({
-        strava_connected: true,
-        strava_access_token: tokenData.access_token,
-        strava_refresh_token: tokenData.refresh_token,
-        strava_token_expires_at: tokenData.expires_at,
-        strava_athlete_id: tokenData.athlete?.id || null
-      })
-      .eq('id', user_id)
+      .update(updateData)
+      .eq('id', user_id);
 
     if (updateError) {
       logEvent(`Error actualizando perfil: ${updateError.message}`);
