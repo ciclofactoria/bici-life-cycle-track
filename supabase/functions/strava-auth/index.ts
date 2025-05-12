@@ -43,7 +43,7 @@ serve(async (req) => {
     // HARDCODED ID Y SECRET - para evitar problemas con la encriptación
     // En un entorno real usaríamos los secrets correctamente 
     const STRAVA_CLIENT_ID = "157332";
-    const STRAVA_CLIENT_SECRET = "a09a8b6e85b7a0c5c622fcbf97b1922c8e1bd864";
+    const STRAVA_CLIENT_SECRET = "38c60b9891cea2fb7053e185750c5345fab850f5";
     
     // Verificar que tenemos las credenciales
     logEvent(`Verificando credenciales de Strava`, { 

@@ -20,7 +20,7 @@ export const exchangeCodeForToken = async (authCode: string, userEmail: string) 
       client_secret: clientSecret,
       code: authCode,
       grant_type: 'authorization_code',
-      redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback' // URL actualizada
+      redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback'
     })
   });
   
