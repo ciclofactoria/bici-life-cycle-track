@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { exchangeToken, getAthleteData } from '@/integrations/supabase/strava/api';
 import { importBikesFromActivities } from '@/services/stravaService/importBikesFromActivities';
@@ -32,9 +33,42 @@ export const processStravaCallback = async (code: string, userId: string): Promi
   let status = 'Iniciando conexión...';
   
   try {
-    // Log the scope from the URL if present
+    // Intentar llamar directamente a la función strava-auth
+    status = 'Llamando a la función strava-auth...';
+    console.log('Intentando llamar a strava-auth con código:', code.substring(0, 5) + '...');
+    
+    try {
+      const { data: stravaAuthResult, error: stravaAuthError } = await supabase.functions.invoke('strava-auth', {
+        body: {
+          code: code,
+          user_id: userId,
+          redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback'
+        }
+      });
+      
+      if (stravaAuthError) {
+        console.error('Error al llamar a strava-auth:', stravaAuthError);
+      } else if (stravaAuthResult?.success) {
+        console.log('Resultado exitoso de strava-auth:', stravaAuthResult);
+        return {
+          result: {
+            totalBikes: stravaAuthResult.importedBikes || 0,
+            fromAthlete: stravaAuthResult.importedBikes || 0,
+            fromActivities: 0,
+            scopes: stravaAuthResult.scopes || ''
+          },
+          error: null,
+          status: 'Importación completada mediante strava-auth'
+        };
+      }
+    } catch (directCallError) {
+      console.error('Error en llamada directa a strava-auth:', directCallError);
+      // Continuamos con el flujo tradicional si falla la llamada directa
+    }
+    
+    // Si la llamada directa falló, procedemos con el flujo tradicional
     status = 'Intercambiando código por token...';
-    console.log('Intercambiando código por token...', code.substring(0, 5) + '...');
+    console.log('Intercambiando código por token usando flujo tradicional...');
     
     // Usando la función de intercambio de token de la API
     const tokenData = await exchangeToken(code);

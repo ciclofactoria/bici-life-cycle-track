@@ -1,17 +1,14 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || "https://tyqmfhtfvrffkaqttbcf.supabase.co"
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cW1maHRmdnJmZmthcXR0YmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3ODQ3NjgsImV4cCI6MjA2MTM2MDc2OH0.yQvXxJe4SYcBDyIqKOg0Vl-4nyV3VF8EK3bplFr0SzU"
-
 // Función de registro con timestamp para mejor seguimiento
-function logEvent(message: string, data: any = {}) {
+function logEvent(message, data = {}) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] STRAVA-AUTH-URL: ${message}`, JSON.stringify(data));
 }
@@ -21,78 +18,82 @@ serve(async (req) => {
   const requestId = crypto.randomUUID();
   logEvent(`Función invocada (ID: ${requestId})`);
   
-  // Handle CORS preflight request
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     logEvent(`Solicitud CORS OPTIONS recibida (ID: ${requestId})`);
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Verificar autorización
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const authHeader = req.headers.get('Authorization');
+    // Inicializa el cliente de Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || "https://tyqmfhtfvrffkaqttbcf.supabase.co";
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cW1maHRmdnJmZmthcXR0YmNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3ODQ3NjgsImV4cCI6MjA2MTM2MDc2OH0.yQvXxJe4SYcBDyIqKOg0Vl-4nyV3VF8EK3bplFr0SzU";
     
-    if (!authHeader) {
-      logEvent(`Error: No se proporcionó token de autorización`, { requestId });
-      return new Response(
-        JSON.stringify({ error: 'No autorizado' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Obtener el ID del usuario del JWT token
+    const authHeader = req.headers.get('authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      throw new Error('Token de autorización no proporcionado');
     }
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
-      logEvent(`Error: Usuario no autenticado`, { requestId, error: userError?.message });
-      return new Response(
-        JSON.stringify({ error: 'No autorizado', details: userError?.message }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new Error('No se pudo autenticar al usuario');
     }
     
     logEvent(`Usuario autenticado: ${user.id}`, { requestId });
 
-    // Obtener valores desde las variables de entorno
-    const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID') || "157332";
-    const STRAVA_REDIRECT_URI = Deno.env.get('STRAVA_REDIRECT_URI') || "https://bici-life-cycle-track.lovable.app/strava-callback";
+    // Configuración de Strava
+    const clientId = "157332";
+    const scope = "read,profile:read_all,activity:read_all";
     
-    // Verificar que los valores necesarios están disponibles
-    if (!STRAVA_CLIENT_ID) {
-      logEvent(`Error: STRAVA_CLIENT_ID no está configurado`, { requestId });
-      return new Response(
-        JSON.stringify({ error: 'Configuración de Strava incompleta' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    let body: Record<string, any> = {};
+    try {
+      if (req.method === 'POST') {
+        body = await req.json();
+      }
+    } catch (e) {
+      // Si el cuerpo no es JSON o está vacío, seguimos adelante con valores predeterminados
     }
     
-    // Construir la URL de autenticación de Strava
-    const responseType = 'code';
-    const approvalPrompt = 'auto';
-    const scope = encodeURIComponent('read,profile:read_all,activity:read_all');
+    // Usar el redirect_uri proporcionado o el predeterminado
+    const redirectUri = body.redirect_uri || 'https://bici-life-cycle-track.lovable.app/strava-callback';
     
-    const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(STRAVA_REDIRECT_URI)}&response_type=${responseType}&scope=${scope}&approval_prompt=${approvalPrompt}`;
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`;
     
-    logEvent(`URL de autenticación de Strava generada`, { 
-      requestId, 
-      clientId: STRAVA_CLIENT_ID,
-      redirectUri: STRAVA_REDIRECT_URI,
-      scope: decodeURIComponent(scope)
+    logEvent(`URL de autenticación de Strava generada`, {
+      requestId,
+      clientId,
+      redirectUri,
+      scope
     });
     
-    // Retornar la URL generada
     return new Response(
       JSON.stringify({ 
-        authUrl: stravaAuthUrl,
-        redirectUri: STRAVA_REDIRECT_URI,
-        scopes: decodeURIComponent(scope)
+        authUrl,
+        redirectUri
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
     );
   } catch (error) {
-    logEvent(`Error general: ${error.message || "Error desconocido"}`, { requestId });
+    logEvent(`Error: ${error.message}`, { requestId: requestId });
     return new Response(
-      JSON.stringify({ error: 'Error del servidor', details: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 400,
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
     );
   }
 });

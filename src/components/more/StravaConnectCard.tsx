@@ -31,10 +31,12 @@ export const StravaConnectCard = () => {
       
       setIsConnecting(true);
       
-      // Usamos la función generate-strava-auth-url para obtener la URL de autenticación
-      // en lugar de construirla manualmente
       try {
-        const { data, error } = await supabase.functions.invoke('generate-strava-auth-url');
+        const { data, error } = await supabase.functions.invoke('generate-strava-auth-url', {
+          body: {
+            redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback'
+          }
+        });
         
         if (error) {
           throw new Error(error.message || 'Error al generar la URL de autenticación de Strava');
@@ -46,12 +48,12 @@ export const StravaConnectCard = () => {
         
         console.log('Redirigiendo a página de autorización de Strava:', data.authUrl);
         
-        // Abrimos en una nueva ventana del navegador para asegurar que se usa el navegador externo
-        window.open(data.authUrl, '_blank', 'noopener,noreferrer');
+        // Abrimos en la misma ventana para asegurar el manejo correcto de la redirección
+        window.location.href = data.authUrl;
         
         toast({
           title: "Conectando con Strava",
-          description: "Se ha abierto una nueva ventana para autorizar a Strava. Por favor completa el proceso allí.",
+          description: "Redirigiendo a la página de autorización de Strava...",
         });
       } catch (err) {
         console.error('Error generando URL de Strava:', err);

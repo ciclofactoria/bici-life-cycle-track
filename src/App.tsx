@@ -49,6 +49,7 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/strava-callback" element={<StravaCallback />} />
+              <Route path="/auth/strava/callback" element={<Navigate to="/strava-callback" replace />} />
               {/* Handle Strava redirect at root domain level */}
               <Route path="/" element={
                 <RootRouteHandler />

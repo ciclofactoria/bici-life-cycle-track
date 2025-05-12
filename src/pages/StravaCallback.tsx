@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   processStravaCallback, 
   handleAuthError, 
@@ -84,7 +85,54 @@ const StravaCallback = () => {
           console.log('No se recibió scope en la URL');
         }
 
-        // Process the callback
+        setStatus('Llamando directamente a la función strava-auth...');
+        
+        // DIRECTO: Llamar directamente a la función strava-auth
+        try {
+          console.log('Llamando directamente a strava-auth con código:', code.substring(0, 5) + '...');
+          
+          const { data: stravaAuthData, error: stravaAuthError } = await supabase.functions.invoke('strava-auth', {
+            body: {
+              code: code,
+              user_id: user.id,
+              redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback'
+            }
+          });
+          
+          if (stravaAuthError) {
+            console.error('Error llamando directamente a strava-auth:', stravaAuthError);
+            throw new Error(`Error en strava-auth: ${stravaAuthError.message}`);
+          }
+          
+          console.log('Respuesta de strava-auth:', stravaAuthData);
+          
+          if (stravaAuthData?.success) {
+            setStatus('Conexión completada correctamente');
+            setResult({
+              totalBikes: stravaAuthData.importedBikes || 0,
+              fromAthlete: stravaAuthData.importedBikes || 0,
+              fromActivities: 0,
+              scopes: scope || ''
+            });
+            
+            toast({
+              title: '¡Conexión exitosa!',
+              description: `Se importaron ${stravaAuthData.importedBikes || 0} bicicletas de Strava.`,
+            });
+            
+            setTimeout(() => {
+              navigate('/');
+            }, 3000);
+            return;
+          }
+        } catch (directError: any) {
+          console.error('Error en llamada directa a strava-auth:', directError);
+          // Continuamos con el flujo normal si falla la llamada directa
+          console.log('Continuando con el flujo normal del processStravaCallback');
+        }
+
+        // Process the callback using the normal flow as fallback
+        setStatus('Procesando con flujo normal...');
         const { result: callbackResult, error: callbackError, status: currentStatus } = 
           await processStravaCallback(code, user.id);
         
