@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { exchangeToken, getAthleteData } from '@/integrations/supabase/strava/api';
 import { importBikesFromActivities } from '@/services/stravaService/importBikesFromActivities';

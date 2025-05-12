@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Obtener valores desde las variables de entorno
     const STRAVA_CLIENT_ID = Deno.env.get('STRAVA_CLIENT_ID') || "157332";
-    const STRAVA_REDIRECT_URI = Deno.env.get('STRAVA_REDIRECT_URI') || "http://localhost:8080/strava-callback";
+    const STRAVA_REDIRECT_URI = Deno.env.get('STRAVA_REDIRECT_URI') || "https://bici-life-cycle-track.lovable.app/strava-callback";
     
     // Verificar que los valores necesarios están disponibles
     if (!STRAVA_CLIENT_ID) {

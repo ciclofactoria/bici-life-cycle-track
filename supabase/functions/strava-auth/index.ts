@@ -92,7 +92,7 @@ serve(async (req) => {
     }
     
     // Usar la URL actualizada de callback
-    const finalRedirectUri = redirect_uri || 'http://localhost:8080/strava-callback';
+    const finalRedirectUri = redirect_uri || 'https://bici-life-cycle-track.lovable.app/strava-callback';
     tokenRequestBody.redirect_uri = finalRedirectUri;
     
     logEvent(`Usando redirect_uri: ${finalRedirectUri}`);

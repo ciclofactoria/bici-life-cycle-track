@@ -20,7 +20,7 @@ export const exchangeToken = async (code: string) => {
         client_secret: '38c60b9891cea2fb7053e185750c5345fab850f5',
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: 'http://localhost:8080/strava-callback' // Actualizado a la nueva URL
+        redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback' // URL actualizada
       })
     });
     
