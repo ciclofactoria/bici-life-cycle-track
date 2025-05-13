@@ -47,7 +47,7 @@ export const processStravaCallback = async (code: string, userId: string): Promi
       });
       
       if (stravaAuthError) {
-        console.error('Error llamando directamente a strava-auth:', stravaAuthError);
+        console.error('Error al llamar a strava-auth:', stravaAuthError);
       } else if (stravaAuthResult?.success) {
         console.log('Resultado exitoso de strava-auth:', stravaAuthResult);
         return {
@@ -94,20 +94,17 @@ export const processStravaCallback = async (code: string, userId: string): Promi
       console.warn('⚠️ ADVERTENCIA: No se ha autorizado el scope profile:read_all. Es posible que no se puedan obtener las bicis del perfil de atleta.');
     }
     
-    // Guardar datos del token en el perfil del usuario - FIX: Avoiding strava_athlete_id
+    // Guardar datos del token en el perfil del usuario
     status = 'Guardando token en perfil de usuario...';
-    
-    // Only update the fields we know exist in the profiles table
-    const updateData: Record<string, any> = {
-      strava_connected: true,
-      strava_access_token: tokenData.access_token,
-      strava_refresh_token: tokenData.refresh_token,
-      strava_token_expires_at: tokenData.expires_at
-    };
-    
     const { error: updateError } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update({
+        strava_connected: true,
+        strava_access_token: tokenData.access_token,
+        strava_refresh_token: tokenData.refresh_token,
+        strava_token_expires_at: tokenData.expires_at,
+        strava_athlete_id: tokenData.athlete?.id || null
+      })
       .eq('id', userId);
 
     if (updateError) {
