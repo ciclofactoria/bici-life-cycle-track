@@ -12,7 +12,7 @@ export const useBikes = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [isStravaConnected, setIsStravaConnected] = useState(false);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
-  const { isPremium } = usePremiumFeatures();
+  const { isPremium, loading: premiumLoading } = usePremiumFeatures();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -85,9 +85,13 @@ export const useBikes = () => {
         console.log("Processed bikes:", mappedBikes);
         setBikeData(mappedBikes);
         
-        // Si el usuario no es premium y tiene más de una bicicleta, mostrar el diálogo de degradación
-        if (!isPremium && mappedBikes.length > 1) {
+        // Only show downgrade dialog if not premium AND has more than one bike
+        // We should wait until premium status is loaded before making this decision
+        if (!premiumLoading && !isPremium && mappedBikes.length > 1) {
           setShowDowngradeDialog(true);
+        } else {
+          // Make sure dialog is hidden if user is premium
+          setShowDowngradeDialog(false);
         }
       }
     } catch (error) {
@@ -103,12 +107,17 @@ export const useBikes = () => {
   };
 
   useEffect(() => {
-    fetchBikes();
-  }, []);
+    // Only fetch bikes once we know the premium status to avoid flickering
+    if (!premiumLoading) {
+      fetchBikes();
+    }
+  }, [premiumLoading]);
 
-  // Cuando cambia el estado premium, volver a verificar las bicicletas
+  // Re-check bikes whenever premium status changes
   useEffect(() => {
-    fetchBikes();
+    if (!premiumLoading) {
+      fetchBikes();
+    }
   }, [isPremium]);
 
   return {

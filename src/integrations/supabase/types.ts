@@ -243,6 +243,7 @@ export type Database = {
           full_name: string | null
           id: string
           strava_access_token: string | null
+          strava_athlete_id: string | null
           strava_connected: boolean | null
           strava_refresh_token: string | null
           strava_token_expires_at: number | null
@@ -256,6 +257,7 @@ export type Database = {
           full_name?: string | null
           id: string
           strava_access_token?: string | null
+          strava_athlete_id?: string | null
           strava_connected?: boolean | null
           strava_refresh_token?: string | null
           strava_token_expires_at?: number | null
@@ -269,6 +271,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           strava_access_token?: string | null
+          strava_athlete_id?: string | null
           strava_connected?: boolean | null
           strava_refresh_token?: string | null
           strava_token_expires_at?: number | null
