@@ -155,11 +155,11 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // Primero, consultemos la estructura de la tabla profiles para verificar si existe strava_athlete_id
-    logEvent(`Comprobando estructura de la tabla profiles para usuario: ${user_id}`);
+    // Primero vamos a obtener un registro de ejemplo de la tabla profiles para ver su estructura
+    logEvent(`Obteniendo estructura de la tabla profiles para el usuario: ${user_id}`);
     
     try {
-      // Consulta la tabla profiles
+      // Obtener el perfil actual para ver qué columnas existen
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -176,10 +176,16 @@ serve(async (req) => {
         logEvent(`Perfil no encontrado para usuario ${user_id}, intentando crear uno nuevo`);
         
         // Intentar crear un perfil para el usuario si no existe
-        const { error: createError } = await supabase.rpc('create_profile_if_not_exists', {
-          user_id: user_id,
-          user_email: 'unknown@example.com'
-        });
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user_id,
+            email: 'unknown@example.com',
+            strava_connected: true,
+            strava_access_token: tokenData.access_token,
+            strava_refresh_token: tokenData.refresh_token,
+            strava_token_expires_at: tokenData.expires_at
+          });
         
         if (createError) {
           logEvent(`Error al crear perfil: ${createError.message}`);
@@ -188,51 +194,45 @@ serve(async (req) => {
         
         logEvent(`Perfil creado para usuario ${user_id}`);
       } else {
+        // El perfil existe, analizar sus columnas
         logEvent(`Perfil encontrado para usuario ${user_id}`);
-      }
-      
-      // Construir objeto para actualizar solo los campos que sabemos que existen
-      const updateObject: any = {
-        strava_connected: true,
-        strava_access_token: tokenData.access_token,
-        strava_refresh_token: tokenData.refresh_token,
-        strava_token_expires_at: tokenData.expires_at
-      };
-      
-      // Verificar si el atleta tiene ID en los datos del token
-      const athleteId = tokenData.athlete?.id?.toString();
-      if (athleteId) {
-        // Comprobar si la columna existe antes de intentar actualizarla
-        await supabase.rpc('check_column_exists', {
-          table_name: 'profiles',
-          column_name: 'strava_athlete_id'
-        }).then(({ data: exists, error }) => {
-          if (error) {
-            logEvent(`Error al verificar columna strava_athlete_id: ${error.message}`);
-          } else if (exists) {
-            logEvent(`La columna strava_athlete_id existe, añadiéndola al objeto de actualización`);
-            updateObject.strava_athlete_id = athleteId;
-          } else {
-            logEvent(`La columna strava_athlete_id no existe en la tabla profiles`);
-          }
-        }).catch(err => {
-          logEvent(`Excepción al verificar la columna: ${err.message}`);
-        });
-      }
-
-      // Actualizar el perfil con los campos seguros
-      logEvent(`Actualizando perfil con tokens de Strava`);
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update(updateObject)
-        .eq('id', user_id);
-
-      if (updateError) {
-        logEvent(`Error actualizando perfil: ${updateError.message}`);
-        return new Response(
-          JSON.stringify({ error: 'Falló al actualizar perfil', details: updateError.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+        
+        // Construir objeto para actualizar solo con columnas conocidas
+        const updateObject = {
+          strava_connected: true,
+          strava_access_token: tokenData.access_token,
+          strava_refresh_token: tokenData.refresh_token,
+          strava_token_expires_at: tokenData.expires_at
+        };
+        
+        // Verificar si podemos actualizar strava_athlete_id basado en la estructura actual
+        const profileColumns = profileData.length > 0 ? Object.keys(profileData[0]) : [];
+        const hasAthleteIdColumn = profileColumns.includes('strava_athlete_id');
+        
+        logEvent(`Columnas disponibles en perfil: ${profileColumns.join(', ')}`);
+        logEvent(`¿Tiene columna strava_athlete_id?: ${hasAthleteIdColumn ? 'SÍ' : 'NO'}`);
+        
+        // Solo añadir strava_athlete_id si la columna existe
+        if (hasAthleteIdColumn && tokenData.athlete?.id) {
+          // @ts-ignore - Sabemos que la columna existe aunque TypeScript no lo sepa
+          updateObject.strava_athlete_id = tokenData.athlete.id.toString();
+          logEvent(`Añadiendo strava_athlete_id: ${tokenData.athlete.id} al objeto de actualización`);
+        }
+        
+        // Actualizar el perfil con los campos seguros
+        logEvent(`Actualizando perfil con tokens de Strava`);
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update(updateObject)
+          .eq('id', user_id);
+  
+        if (updateError) {
+          logEvent(`Error actualizando perfil: ${updateError.message}`);
+          return new Response(
+            JSON.stringify({ error: 'Falló al actualizar perfil', details: updateError.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
       }
     } catch (profileCheckError: any) {
       logEvent(`Error al manejar el perfil: ${profileCheckError.message}`);
@@ -329,7 +329,8 @@ serve(async (req) => {
         success: true,
         message: 'Cuenta de Strava conectada correctamente y bicis importadas',
         importedBikes: importedBikes,
-        requestId: requestId
+        requestId: requestId,
+        scopes: tokenData.scope || ''
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
