@@ -104,19 +104,24 @@ export const processStravaCallback = async (code: string, userId: string): Promi
     
     // Solo intentar actualizar el ID del atleta si existe en los datos del token
     if (tokenData.athlete?.id) {
-      // Primero verificamos si la columna existe en la tabla profiles
-      await supabase.rpc('column_exists', {
-        p_table_name: 'profiles',
-        p_column_name: 'strava_athlete_id'
-      }).then(({ data: exists, error }) => {
-        if (!error && exists) {
+      // Verificamos si la columna existe usando la función Edge
+      try {
+        const { data: columnExists, error } = await supabase.functions.invoke('check-column-exists', {
+          body: {
+            table_name: 'profiles',
+            column_name: 'strava_athlete_id'
+          }
+        });
+        
+        if (!error && columnExists && columnExists.exists) {
           updateData.strava_athlete_id = tokenData.athlete.id;
+          console.log('Columna strava_athlete_id existe, actualizando con:', tokenData.athlete.id);
         } else {
           console.log('La columna strava_athlete_id no existe o hubo un error al verificarla.');
         }
-      }).catch(err => {
-        console.error('Error al verificar columna:', err);
-      });
+      } catch (err) {
+        console.error('Error al verificar columna mediante función Edge:', err);
+      }
     }
     
     // Guardar datos del token en el perfil del usuario
