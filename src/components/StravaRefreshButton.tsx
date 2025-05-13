@@ -17,7 +17,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const [isLoading, setIsLoading] = useState(false);
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const { toast } = useToast();
-  const { isPremium } = usePremiumFeatures();
+  const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
 
   const refreshStravaConnection = async () => {
     try {
@@ -35,6 +35,11 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
         return;
       }
 
+      // Si estamos cargando el estado premium, esperar un momento
+      if (isPremiumLoading) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
       if (!isPremium) {
         setShowPremiumDialog(true);
         setIsLoading(false);
@@ -111,7 +116,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       <Button 
         onClick={refreshStravaConnection} 
         className="bg-[#F97316] hover:bg-[#ea6c10] text-white" 
-        disabled={isLoading}
+        disabled={isLoading || isPremiumLoading}
       >
         <RefreshCw className="h-4 w-4 mr-2" />
         {isLoading ? "Sincronizando..." : "Sincronizar con Strava"}

@@ -19,17 +19,29 @@ export const StravaConnectCard = () => {
 
   const handleConnectStrava = async () => {
     try {
+      setIsConnecting(true);
+      
+      // Si el usuario está cargando el estado premium, esperar un momento
+      if (isPremiumLoading) {
+        toast({
+          title: 'Verificando estado premium',
+          description: 'Espera un momento mientras verificamos tu suscripción',
+        });
+        // Esperar un breve periodo para dar tiempo a cargar el estado premium
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
       // Verificar si el usuario es premium para conectar con Strava
+      // Esta comprobación debe hacerse después de estar seguros de que se ha cargado el estado
       if (!isPremium) {
         toast({
           title: 'Función premium',
           description: 'La conexión con Strava está disponible solo para usuarios premium',
           variant: 'destructive',
         });
+        setIsConnecting(false);
         return;
       }
-      
-      setIsConnecting(true);
       
       try {
         const { data, error } = await supabase.functions.invoke('generate-strava-auth-url', {
@@ -62,9 +74,9 @@ export const StravaConnectCard = () => {
           description: 'No se pudo generar la URL de autenticación con Strava',
           variant: 'destructive',
         });
+        setIsConnecting(false);
       }
       
-      setIsConnecting(false);
     } catch (err) {
       console.error('Error al iniciar autenticación con Strava:', err);
       toast({
