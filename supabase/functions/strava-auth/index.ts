@@ -155,54 +155,88 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    logEvent(`Comprobando/creando perfil para usuario: ${user_id}`);
+    // Primero, consultemos la estructura de la tabla profiles para verificar si existe strava_athlete_id
+    logEvent(`Comprobando estructura de la tabla profiles para usuario: ${user_id}`);
     
-    // Check if profiles table exists and if not, create it
-    const { error: checkError, data: checkData } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user_id)
-      .limit(1)
-
-    if (checkError) {
-      logEvent(`Error comprobando tabla de perfiles: ${checkError.message}`);
+    try {
+      // Consulta la tabla profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user_id)
+        .limit(1);
       
-      // Attempt to create profiles table if needed
-      try {
-        const { error: createProfileError } = await supabase.rpc('create_profile_if_not_exists', {
-          user_id: user_id,
-          user_email: 'unknown@example.com' // We don't have the email here, will be updated later
-        })
-        
-        if (createProfileError) {
-          logEvent(`Error creando perfil: ${createProfileError.message}`);
-          throw createProfileError
-        }
-      } catch (createError) {
-        logEvent(`Excepción creando perfil: ${createError.message}`);
+      if (profileError) {
+        logEvent(`Error al consultar perfil: ${profileError.message}`);
+        throw profileError;
       }
-    }
-
-    logEvent(`Actualizando perfil con tokens de Strava`);
-    
-    // Update user profile with Strava tokens
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
+      
+      // Verificar si el perfil existe
+      if (!profileData || profileData.length === 0) {
+        logEvent(`Perfil no encontrado para usuario ${user_id}, intentando crear uno nuevo`);
+        
+        // Intentar crear un perfil para el usuario si no existe
+        const { error: createError } = await supabase.rpc('create_profile_if_not_exists', {
+          user_id: user_id,
+          user_email: 'unknown@example.com'
+        });
+        
+        if (createError) {
+          logEvent(`Error al crear perfil: ${createError.message}`);
+          throw createError;
+        }
+        
+        logEvent(`Perfil creado para usuario ${user_id}`);
+      } else {
+        logEvent(`Perfil encontrado para usuario ${user_id}`);
+      }
+      
+      // Construir objeto para actualizar solo los campos que sabemos que existen
+      const updateObject: any = {
         strava_connected: true,
         strava_access_token: tokenData.access_token,
         strava_refresh_token: tokenData.refresh_token,
-        strava_token_expires_at: tokenData.expires_at,
-        strava_athlete_id: tokenData.athlete?.id || null
-      })
-      .eq('id', user_id)
+        strava_token_expires_at: tokenData.expires_at
+      };
+      
+      // Verificar si el atleta tiene ID en los datos del token
+      const athleteId = tokenData.athlete?.id?.toString();
+      if (athleteId) {
+        // Comprobar si la columna existe antes de intentar actualizarla
+        await supabase.rpc('check_column_exists', {
+          table_name: 'profiles',
+          column_name: 'strava_athlete_id'
+        }).then(({ data: exists, error }) => {
+          if (error) {
+            logEvent(`Error al verificar columna strava_athlete_id: ${error.message}`);
+          } else if (exists) {
+            logEvent(`La columna strava_athlete_id existe, añadiéndola al objeto de actualización`);
+            updateObject.strava_athlete_id = athleteId;
+          } else {
+            logEvent(`La columna strava_athlete_id no existe en la tabla profiles`);
+          }
+        }).catch(err => {
+          logEvent(`Excepción al verificar la columna: ${err.message}`);
+        });
+      }
 
-    if (updateError) {
-      logEvent(`Error actualizando perfil: ${updateError.message}`);
-      return new Response(
-        JSON.stringify({ error: 'Falló al actualizar perfil', details: updateError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      // Actualizar el perfil con los campos seguros
+      logEvent(`Actualizando perfil con tokens de Strava`);
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updateObject)
+        .eq('id', user_id);
+
+      if (updateError) {
+        logEvent(`Error actualizando perfil: ${updateError.message}`);
+        return new Response(
+          JSON.stringify({ error: 'Falló al actualizar perfil', details: updateError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } catch (profileCheckError: any) {
+      logEvent(`Error al manejar el perfil: ${profileCheckError.message}`);
+      // Continuamos con el proceso aunque falle la verificación del perfil
     }
     
     // Fetch user bikes from Strava

@@ -94,17 +94,36 @@ export const processStravaCallback = async (code: string, userId: string): Promi
       console.warn('⚠️ ADVERTENCIA: No se ha autorizado el scope profile:read_all. Es posible que no se puedan obtener las bicis del perfil de atleta.');
     }
     
+    // Preparar objeto de actualización para el perfil con solo los campos conocidos
+    const updateData: any = {
+      strava_connected: true,
+      strava_access_token: tokenData.access_token,
+      strava_refresh_token: tokenData.refresh_token,
+      strava_token_expires_at: tokenData.expires_at
+    };
+    
+    // Solo intentar actualizar el ID del atleta si existe en los datos del token
+    if (tokenData.athlete?.id) {
+      // Primero verificamos si la columna existe en la tabla profiles
+      await supabase.rpc('column_exists', {
+        p_table_name: 'profiles',
+        p_column_name: 'strava_athlete_id'
+      }).then(({ data: exists, error }) => {
+        if (!error && exists) {
+          updateData.strava_athlete_id = tokenData.athlete.id;
+        } else {
+          console.log('La columna strava_athlete_id no existe o hubo un error al verificarla.');
+        }
+      }).catch(err => {
+        console.error('Error al verificar columna:', err);
+      });
+    }
+    
     // Guardar datos del token en el perfil del usuario
     status = 'Guardando token en perfil de usuario...';
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({
-        strava_connected: true,
-        strava_access_token: tokenData.access_token,
-        strava_refresh_token: tokenData.refresh_token,
-        strava_token_expires_at: tokenData.expires_at,
-        strava_athlete_id: tokenData.athlete?.id || null
-      })
+      .update(updateData)
       .eq('id', userId);
 
     if (updateError) {
