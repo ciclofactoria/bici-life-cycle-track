@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { usePremiumFeatures } from "@/services/premiumService";
@@ -121,7 +122,7 @@ export const PremiumStatus = () => {
         )}
       </div>
 
-      {userId && (
+      {userId && showDowngradeDialog && activeBikesCount > 1 && (
         <PremiumDowngradeDialog 
           open={showDowngradeDialog} 
           onOpenChange={setShowDowngradeDialog}

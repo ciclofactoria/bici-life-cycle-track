@@ -42,7 +42,7 @@ const Index = () => {
       <div className="bici-container pt-6">
         <BikesHeader onRefreshComplete={fetchBikes} />
         
-        {/* Only show premium alert if user is NOT premium and has at least one bike */}
+        {/* Solo mostrar alerta premium si el usuario NO es premium y tiene al menos una bicicleta */}
         {!isPremium && bikeData.length >= 1 && <PremiumBikeAlert />}
         
         <BikeList 
@@ -61,7 +61,7 @@ const Index = () => {
       />
       <BottomNav activePage="/" />
       
-      {/* Only show downgrade dialog if user is not premium and has more than one bike */}
+      {/* Solo mostrar diálogo de degradación si el usuario no es premium y tiene más de una bicicleta */}
       {userId && showDowngradeDialog && (
         <PremiumDowngradeDialog 
           open={showDowngradeDialog} 

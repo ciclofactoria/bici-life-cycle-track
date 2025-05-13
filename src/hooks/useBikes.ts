@@ -85,12 +85,12 @@ export const useBikes = () => {
         console.log("Processed bikes:", mappedBikes);
         setBikeData(mappedBikes);
         
-        // Only show downgrade dialog if not premium AND has more than one bike
-        // We should wait until premium status is loaded before making this decision
+        // Solo mostrar el diálogo de degradación si no es premium Y tiene más de una bicicleta
+        // Esperar hasta que se cargue el estado premium antes de tomar esta decisión
         if (!premiumLoading && !isPremium && mappedBikes.length > 1) {
           setShowDowngradeDialog(true);
         } else {
-          // Make sure dialog is hidden if user is premium
+          // Asegurarse de que el diálogo está oculto si el usuario es premium
           setShowDowngradeDialog(false);
         }
       }
@@ -107,13 +107,13 @@ export const useBikes = () => {
   };
 
   useEffect(() => {
-    // Only fetch bikes once we know the premium status to avoid flickering
+    // Solo buscar bicicletas una vez que conocemos el estado premium para evitar parpadeos
     if (!premiumLoading) {
       fetchBikes();
     }
   }, [premiumLoading]);
 
-  // Re-check bikes whenever premium status changes
+  // Volver a verificar las bicicletas cada vez que cambia el estado premium
   useEffect(() => {
     if (!premiumLoading) {
       fetchBikes();

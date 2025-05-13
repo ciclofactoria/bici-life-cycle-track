@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 import { BikeProps } from '@/components/BikeCard';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePremiumFeatures } from '@/services/premiumService';
 
 interface PremiumDowngradeDialogProps {
   open: boolean;
@@ -30,11 +31,19 @@ const PremiumDowngradeDialog = ({ open, onOpenChange, userId }: PremiumDowngrade
   const [activeBikes, setActiveBikes] = useState<BikeProps[]>([]);
   const [selectedBikeId, setSelectedBikeId] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isPremium } = usePremiumFeatures();
   const navigate = useNavigate();
+
+  // Si el usuario es premium, cerrar automáticamente el diálogo
+  useEffect(() => {
+    if (isPremium && open) {
+      onOpenChange(false);
+    }
+  }, [isPremium, open, onOpenChange]);
 
   useEffect(() => {
     const fetchActiveBikes = async () => {
-      if (open && userId) {
+      if (open && userId && !isPremium) {
         setIsLoading(true);
         try {
           const { data, error } = await supabase
@@ -73,7 +82,7 @@ const PremiumDowngradeDialog = ({ open, onOpenChange, userId }: PremiumDowngrade
     };
 
     fetchActiveBikes();
-  }, [open, userId, toast]);
+  }, [open, userId, toast, isPremium]);
 
   const handleSaveBikeSelection = async () => {
     if (!selectedBikeId) return;
@@ -100,7 +109,7 @@ const PremiumDowngradeDialog = ({ open, onOpenChange, userId }: PremiumDowngrade
       onOpenChange(false);
       
       // Redirigir a la página principal para refrescar la vista
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Error archiving bikes:', error);
       toast({
@@ -113,8 +122,13 @@ const PremiumDowngradeDialog = ({ open, onOpenChange, userId }: PremiumDowngrade
     }
   };
 
+  // Si el usuario es premium, no mostrar el diálogo
+  if (isPremium) {
+    return null;
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open && !isPremium} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Tu plan premium ha caducado</AlertDialogTitle>
