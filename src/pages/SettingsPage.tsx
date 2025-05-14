@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { usePremiumFeatures } from "@/services/premiumService";
 
 const LANGUAGES = [
   { code: "es", label: "Español" },
@@ -17,7 +18,8 @@ const DIST_UNITS = [
 ];
 
 const SettingsPage = () => {
-  const { user, isPremium } = useAuth();
+  const { user } = useAuth();
+  const { isPremium } = usePremiumFeatures();
   const [name, setName] = useState(user?.user_metadata?.full_name ?? "");
   const [editing, setEditing] = useState(false);
   const [language, setLanguage] = useState("es");
@@ -135,3 +137,4 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+
