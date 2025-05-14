@@ -220,6 +220,8 @@ const translations = {
     premium_popup_desc: "Para conectar con Strava necesitas tener una suscripción premium. Funcionalidades premium disponibles:",
     premium_popup_list: "Múltiples bicicletas, exportar historial, sincronización automática con Strava.",
     // General
+    appointments: "Citas",
+    alerts: "Alertas",
   },
   en: {
     more_title: "More",
@@ -442,6 +444,8 @@ const translations = {
     premium_popup_desc: "To connect Strava, you need a premium subscription. Premium features available:",
     premium_popup_list: "Multiple bikes, export history, automatic Strava synchronization.",
     // General
+    appointments: "Appointments",
+    alerts: "Alerts",
   }
 };
 
