@@ -118,14 +118,7 @@ export const SettingsCard = () => {
               {t("notifications_note", language)}
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">{t("distance_unit", language)}:</label>
-            <div className="flex gap-2">
-              <Button variant="default" size="sm" disabled>
-                {t("kilometers", language)}
-              </Button>
-            </div>
-          </div>
+          {/* Removed distance unit/kilometers */}
           <Button className="mt-2" onClick={handleSaveSettings} disabled={loading}>
             {t("save_settings", language)}
           </Button>

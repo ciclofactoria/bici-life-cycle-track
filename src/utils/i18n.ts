@@ -1,4 +1,3 @@
-
 const translations = {
   es: {
     more_title: "Más",
@@ -16,8 +15,6 @@ const translations = {
     notifications_on: "Activadas",
     notifications_off: "Desactivadas",
     notifications_note: "Incluye avisos de alertas y calendario.",
-    distance_unit: "Unidad de distancia",
-    kilometers: "Kilómetros",
     save_settings: "Guardar ajustes",
     settings_saved: "Ajustes guardados",
     profile_updated: "Perfil actualizado",
@@ -31,6 +28,12 @@ const translations = {
     free_badge: "Free",
     app_language_es: "Español",
     app_language_en: "Inglés",
+    add_bike: "Agregar Bicicleta",
+    no_bikes_found: "No se encontraron bicicletas",
+    add_first_bike: "Agrega tu primera bicicleta para comenzar a registrar el mantenimiento",
+    loading_bikes: "Cargando bicicletas...",
+    // BottomNav
+    maintenance_plan: "Plan de Mantenimiento"
   },
   en: {
     more_title: "More",
@@ -48,8 +51,6 @@ const translations = {
     notifications_on: "Enabled",
     notifications_off: "Disabled",
     notifications_note: "Includes alert and calendar notifications.",
-    distance_unit: "Distance unit",
-    kilometers: "Kilometers",
     save_settings: "Save settings",
     settings_saved: "Settings saved",
     profile_updated: "Profile updated",
@@ -63,6 +64,12 @@ const translations = {
     free_badge: "Free",
     app_language_es: "Spanish",
     app_language_en: "English",
+    add_bike: "Add bike",
+    no_bikes_found: "No bikes found",
+    add_first_bike: "Add your first bike to start tracking maintenance",
+    loading_bikes: "Loading bikes...",
+    // BottomNav
+    maintenance_plan: "Maintenance Plan"
   },
 };
 

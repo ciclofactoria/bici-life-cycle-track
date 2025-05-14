@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import BottomNav from '@/components/BottomNav';
 import FloatingActionButton from '@/components/FloatingActionButton';
@@ -8,6 +9,8 @@ import { useBikes } from '@/hooks/useBikes';
 import BikeList from '@/components/bike/BikeList';
 import PremiumBikeAlert from '@/components/bike/PremiumBikeAlert';
 import BikesHeader from '@/components/bike/BikesHeader';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 const Index = () => {
   const { toast } = useToast();
@@ -21,13 +24,13 @@ const Index = () => {
     setShowDowngradeDialog, 
     fetchBikes 
   } = useBikes();
+  const { language } = useLanguage();
 
   const handleAddBike = () => {
-    // Si el usuario no es premium y ya tiene una bicicleta, mostrar mensaje
     if (!isPremium && bikeData.length >= 1) {
       toast({
-        title: "Función premium",
-        description: "Solo los usuarios premium pueden registrar más de una bicicleta",
+        title: t("premium", language),
+        description: t("Only premium users can register more than one bike.", language),
         variant: "destructive"
       });
       return;
@@ -39,7 +42,6 @@ const Index = () => {
     <div className="pb-28">
       <div className="bici-container pt-6">
         <BikesHeader onRefreshComplete={fetchBikes} />
-        {/* Solo mostrar alerta premium si el usuario NO es premium y tiene al menos una bicicleta */}
         {!isPremium && bikeData.length >= 1 && <PremiumBikeAlert />}
         <BikeList 
           bikeData={bikeData}
@@ -48,14 +50,13 @@ const Index = () => {
           onAddBike={handleAddBike}
         />
       </div>
-      <FloatingActionButton onClick={handleAddBike} label="Agregar Bicicleta" />
+      <FloatingActionButton onClick={handleAddBike} label={t("add_bike", language)} />
       <AddBikeDialog 
         open={isAddDialogOpen} 
         onOpenChange={setIsAddDialogOpen}
         onSuccess={fetchBikes}
       />
       <BottomNav activePage="/" />
-      {/* Solo mostrar diálogo de degradación si el usuario NO es premium y tiene más de una bici */}
       {userId && showDowngradeDialog && !isPremium && (
         <PremiumDowngradeDialog 
           open={showDowngradeDialog} 

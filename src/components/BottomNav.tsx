@@ -2,33 +2,42 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Bike, Calendar, ChartBar, MoreHorizontal } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
+  labelKey: string;
   route: string;
 }
 
 const BottomNav = ({ activePage }: { activePage: string }) => {
+  const { language } = useLanguage();
+
   const navItems: NavItem[] = [
     {
       icon: Bike,
-      label: 'Bicicletas',
+      label: t('bikes', language),
+      labelKey: 'bikes',
       route: '/'
     },
     {
       icon: Calendar,
-      label: 'Plan de Mantenimiento',
+      label: t('maintenance_plan', language),
+      labelKey: 'maintenance_plan',
       route: '/calendar'
     },
     {
       icon: ChartBar,
-      label: 'Resumen',
+      label: t('summary', language),
+      labelKey: 'summary',
       route: '/summary'
     },
     {
       icon: MoreHorizontal,
-      label: 'Más',
+      label: t('more_title', language),
+      labelKey: 'more_title',
       route: '/more'
     }
   ];
