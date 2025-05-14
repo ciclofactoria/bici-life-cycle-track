@@ -1,4 +1,3 @@
-
 const translations = {
   es: {
     more_title: "Más",
@@ -121,6 +120,46 @@ const translations = {
     notifications_off: "Notificaciones desactivadas",
     notifications_note: "Recibirás notificaciones importantes sobre mantenimiento y alertas.",
     save_settings: "Guardar ajustes",
+
+    // Tipos de mantenimiento y reparaciones
+    wheel_truing: "Centrado de ruedas",
+    tire_change: "Cambio de neumáticos",
+    brake_adjustment: "Ajuste de frenos",
+    brake_pad_change: "Cambio de zapatas",
+    brake_oil_change: "Cambio de aceite de frenos",
+    chain_lubrication: "Lubricación de la cadena",
+    chain_change: "Cambio de cadena",
+    cassette_change: "Cambio de cassette",
+    gear_adjustment: "Ajuste de cambios",
+    headset_adjustment: "Ajuste de dirección",
+    suspension_service: "Servicio de suspensión",
+    cables_change: "Cambio de fundas y cables",
+    bottom_bracket_change: "Cambio de eje de pedalier",
+    custom_maintenance: "Mantenimiento personalizado",
+    tubeless_service: "Rellenar tubeless",
+    tire_replace: "Sustituir cubiertas",
+    chain_replace: "Sustituir cadena",
+    cogs_replace: "Sustituir piñones",
+    cable_housing_replace: "Sustituir fundas y cables",
+    tune_up: "Puesta a punto",
+    
+    // Cuadros de mantenimiento y citas
+    manage_maintenance_plan: "Gestionar Plan de Mantenimiento",
+    upcoming_appointments: "Próximas citas",
+    add_appointment: "Añadir cita",
+    no_appointments: "No hay citas programadas",
+
+    connect_apps_desc: "Conecta con otras aplicaciones para sincronizar datos",
+    connecting: "Conectando...",
+    connect_strava: "Conectar con Strava",
+    premium_feature: "Función premium",
+    strava_sync_premium_desc: "La sincronización de bicicletas con Strava es una característica premium.",
+    multiple_bikes: "Registro de múltiples bicicletas",
+    auto_strava_sync: "Sincronización automática con Strava",
+    import_strava_bikes: "Importación de bicicletas desde Strava",
+    advanced_stats: "Estadísticas avanzadas de mantenimiento",
+    maintenance_export: "Exportación de datos de mantenimiento",
+    custom_alerts: "Alertas personalizadas de mantenimiento",
   },
   en: {
     more_title: "More",
@@ -243,7 +282,47 @@ const translations = {
     notifications_off: "Notifications disabled",
     notifications_note: "You will receive important notifications about maintenance and alerts.",
     save_settings: "Save settings",
-  },
+
+    // Maintenance and repair types
+    wheel_truing: "Wheel truing",
+    tire_change: "Tire change",
+    brake_adjustment: "Brake adjustment",
+    brake_pad_change: "Brake pad change",
+    brake_oil_change: "Brake oil change",
+    chain_lubrication: "Chain lubrication",
+    chain_change: "Chain change",
+    cassette_change: "Cassette change",
+    gear_adjustment: "Gear adjustment",
+    headset_adjustment: "Headset adjustment",
+    suspension_service: "Suspension service",
+    cables_change: "Cables and housing change",
+    bottom_bracket_change: "Bottom bracket change",
+    custom_maintenance: "Custom maintenance",
+    tubeless_service: "Tubeless refill",
+    tire_replace: "Replace tires",
+    chain_replace: "Replace chain",
+    cogs_replace: "Replace cogs",
+    cable_housing_replace: "Replace cables and housing",
+    tune_up: "Tune-up",
+
+    // Maintenance appointment dialogs
+    manage_maintenance_plan: "Manage Maintenance Plan",
+    upcoming_appointments: "Upcoming appointments",
+    add_appointment: "Add appointment",
+    no_appointments: "No appointments scheduled",
+
+    connect_apps_desc: "Connect with other applications to synchronize data",
+    connecting: "Connecting...",
+    connect_strava: "Connect with Strava",
+    premium_feature: "Premium feature",
+    strava_sync_premium_desc: "Strava bike sync is a premium feature.",
+    multiple_bikes: "Register multiple bikes",
+    auto_strava_sync: "Automatic Strava synchronization",
+    import_strava_bikes: "Import bikes from Strava",
+    advanced_stats: "Advanced maintenance statistics",
+    maintenance_export: "Maintenance data export",
+    custom_alerts: "Custom maintenance alerts",
+  }
 };
 
 export type TranslationKey = keyof typeof translations["es"];
@@ -257,4 +336,3 @@ export function t(key: TranslationKey, lang: "es" | "en", vars?: Record<string, 
   }
   return str;
 }
-

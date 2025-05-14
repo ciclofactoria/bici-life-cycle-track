@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,8 @@ import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/utils/i18n";
 
 interface MaintenanceSummary {
   type: string;
@@ -25,6 +26,7 @@ interface BikeWithSpent {
 
 const Summary = () => {
   const { toast } = useToast();
+  const { language } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [maintenanceTypes, setMaintenanceTypes] = useState<MaintenanceSummary[]>([]);
   const [bikes, setBikes] = useState<BikeWithSpent[]>([]);
@@ -125,7 +127,7 @@ const Summary = () => {
   return (
     <div className="pb-24">
       <div className="bici-container pt-6">
-        <h1 className="text-2xl font-bold mb-6">Resumen de Gastos</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("summary", language)}</h1>
 
         {isLoading ? (
           <p className="text-center py-8">Cargando datos...</p>
@@ -134,12 +136,12 @@ const Summary = () => {
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-medium">Total Gastado</h2>
+                  <h2 className="text-lg font-medium"> {t("total_spent", language)} </h2>
                   <p className="text-2xl font-semibold text-bicicare-green">{totalSpent}€</p>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  {bikes.length} bicicletas, {maintenanceTypes.length} tipos de mantenimiento
+                  {bikes.length} {t("bikes", language)}, {maintenanceTypes.length} {t("maintenance_type", language)}
                 </p>
               </CardContent>
             </Card>

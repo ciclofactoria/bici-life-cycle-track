@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { usePremiumFeatures } from "@/services/premiumService";
@@ -7,6 +6,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import PremiumDowngradeDialog from "./PremiumDowngradeDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/utils/i18n";
 
 export const PremiumStatus = () => {
   const { isPremium, premiumUntil, loading, verifyWithWordPress } = usePremiumFeatures();
@@ -14,7 +15,8 @@ export const PremiumStatus = () => {
   const [activeBikesCount, setActiveBikesCount] = useState<number>(0);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState<boolean>(false);
   const [prevIsPremium, setPrevIsPremium] = useState<boolean | null>(null);
-  
+  const { language } = useLanguage();
+
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -76,7 +78,7 @@ export const PremiumStatus = () => {
                 {loading
                   ? "Verificando estado..."
                   : isPremium
-                  ? "Usuario Premium"
+                  ? t("premium", language)
                   : "Usuario Gratuito"}
               </h3>
               {isPremium && premiumUntil && (

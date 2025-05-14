@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { 
   Select, 
@@ -11,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { maintenanceCategories } from '@/data/mockData';
 import { Disc, Cog, Wrench } from 'lucide-react';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/utils/i18n";
 
 interface MaintenanceCategorySelectProps {
   value: string;
@@ -34,21 +35,23 @@ const getCategoryIcon = (categoryName: string) => {
 };
 
 const MaintenanceCategorySelect = ({ value, onValueChange }: MaintenanceCategorySelectProps) => {
+  const { language } = useLanguage();
+
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Selecciona el tipo" />
+        <SelectValue placeholder={t("maintenance_type", language)} />
       </SelectTrigger>
       <SelectContent className="max-h-[300px]">
         {maintenanceCategories.map((category) => (
           <SelectGroup key={category.name}>
             <SelectLabel className="flex items-center font-medium text-primary">
               {getCategoryIcon(category.name)}
-              {category.name}
+              {t(category.name, language)}
             </SelectLabel>
             {category.types.map((type) => (
               <SelectItem key={type} value={type} className="pl-8 text-sm">
-                {type}
+                {t(type, language)}
               </SelectItem>
             ))}
           </SelectGroup>

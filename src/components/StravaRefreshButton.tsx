@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -8,6 +7,8 @@ import { usePremiumFeatures } from '@/services/premiumService';
 import { importBikesFromActivities } from '@/services/stravaService/importBikesFromActivities';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/utils/i18n";
 
 interface StravaRefreshButtonProps {
   onRefreshComplete: () => void;
@@ -18,6 +19,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const { toast } = useToast();
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
+  const { language } = useLanguage();
 
   const refreshStravaConnection = async () => {
     try {
@@ -125,9 +127,9 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Función Premium</DialogTitle>
+            <DialogTitle>{t("premium_feature", language)}</DialogTitle>
             <DialogDescription>
-              La sincronización de bicicletas con Strava es una característica premium.
+              {t("strava_sync_premium_desc", language)}
             </DialogDescription>
           </DialogHeader>
           
@@ -142,12 +144,12 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
             <h3 className="font-medium text-lg">Con Premium obtendrás:</h3>
             
             <ul className="list-disc pl-5 space-y-2">
-              <li>Registro de múltiples bicicletas</li>
-              <li>Sincronización automática con Strava</li>
-              <li>Importación de bicicletas desde Strava</li>
-              <li>Estadísticas avanzadas de mantenimiento</li>
-              <li>Exportación de datos de mantenimiento</li>
-              <li>Alertas personalizadas de mantenimiento</li>
+              <li>{t("multiple_bikes", language)}</li>
+              <li>{t("auto_strava_sync", language)}</li>
+              <li>{t("import_strava_bikes", language)}</li>
+              <li>{t("advanced_stats", language)}</li>
+              <li>{t("maintenance_export", language)}</li>
+              <li>{t("custom_alerts", language)}</li>
             </ul>
             
             <Button 
