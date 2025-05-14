@@ -7,34 +7,32 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumFeatures } from "@/services/premiumService";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/utils/i18n";
 
 const LANGUAGES = [
-  { code: "es", label: "Español" },
-  { code: "en", label: "English" },
-];
-const DIST_UNITS = [
-  { code: "km", label: "Kilómetros" },
-  { code: "mi", label: "Millas" },
+  { code: "es", labelKey: "app_language_es" },
+  { code: "en", labelKey: "app_language_en" },
 ];
 
 export const SettingsCard = () => {
   const { user } = useAuth();
   const { isPremium } = usePremiumFeatures();
   const { toast } = useToast();
+  const { language, setLanguage } = useLanguage();
 
-  // Simulación de settings locales. Para guardar de verdad, conecta a backend/Supabase.
   const [name, setName] = useState(user?.user_metadata?.full_name ?? "");
   const [editing, setEditing] = useState(false);
-  const [language, setLanguage] = useState("es");
   const [notifications, setNotifications] = useState(true);
-  const [distanceUnit, setDistanceUnit] = useState("km");
   const [loading, setLoading] = useState(false);
 
   const handleSaveProfile = async () => {
     setLoading(true);
-    // Aquí deberías actualizar el nombre del usuario vía Supabase o tu backend.
     setTimeout(() => {
-      toast({ title: "Perfil actualizado", description: "Nombre cambiado con éxito." });
+      toast({
+        title: t("profile_updated", language),
+        description: t("name_changed", language),
+      });
       setEditing(false);
       setLoading(false);
     }, 800);
@@ -42,9 +40,11 @@ export const SettingsCard = () => {
 
   const handleSaveSettings = async () => {
     setLoading(true);
-    // Aquí deberías guardar settings en persistencia real.
     setTimeout(() => {
-      toast({ title: "Ajustes guardados", description: "Tus preferencias han sido actualizadas." });
+      toast({
+        title: t("settings_saved", language),
+        description: t("preferences_updated", language),
+      });
       setLoading(false);
     }, 700);
   };
@@ -52,12 +52,12 @@ export const SettingsCard = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Ajustes</CardTitle>
+        <CardTitle>{t("settings", language)}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Perfil */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium mb-1">Nombre:</label>
+          <label className="block text-sm font-medium mb-1">{t("name", language)}:</label>
           <div className="flex items-center gap-2">
             <Input
               value={name}
@@ -67,75 +67,67 @@ export const SettingsCard = () => {
             />
             {editing ? (
               <Button size="sm" onClick={handleSaveProfile} disabled={loading}>
-                Guardar
+                {t("save", language)}
               </Button>
             ) : (
               <Button size="sm" variant="outline" onClick={() => setEditing(true)} disabled={loading}>
-                Editar
+                {t("edit", language)}
               </Button>
             )}
           </div>
-          <label className="block text-sm font-medium mb-1 mt-4">Email:</label>
+          <label className="block text-sm font-medium mb-1 mt-4">{t("email", language)}:</label>
           <Input value={user?.email || ""} disabled readOnly className="max-w-xs" />
           <div className="flex items-center gap-2 mt-2">
-            <span>Premium:</span>
+            <span>{t("premium", language)}:</span>
             {isPremium ? (
-              <Badge variant="default">Premium</Badge>
+              <Badge variant="default">{t("premium_badge", language)}</Badge>
             ) : (
-              <Badge variant="outline">Free</Badge>
+              <Badge variant="outline">{t("free_badge", language)}</Badge>
             )}
           </div>
         </div>
         {/* Preferencias */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Idioma de la aplicación:</label>
+            <label className="block text-sm font-medium mb-1">{t("language", language)}:</label>
             <div className="flex gap-2">
               {LANGUAGES.map(lang => (
                 <Button
                   key={lang.code}
                   variant={language === lang.code ? "default" : "outline"}
-                  onClick={() => setLanguage(lang.code)}
+                  onClick={() => setLanguage(lang.code as "es" | "en")}
                   size="sm"
                 >
-                  {lang.label}
+                  {t(lang.labelKey as any, language)}
                 </Button>
               ))}
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Notificaciones:</label>
+            <label className="block text-sm font-medium mb-1">{t("notifications", language)}:</label>
             <Button
               variant={notifications ? "default" : "outline"}
               onClick={() => setNotifications(!notifications)}
               size="sm"
             >
-              {notifications ? "Activadas" : "Desactivadas"}
+              {notifications
+                ? t("notifications_on", language)
+                : t("notifications_off", language)}
             </Button>
             <div className="text-xs text-muted-foreground">
-              Incluye avisos de alertas y calendario.
+              {t("notifications_note", language)}
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Unidad de distancia:</label>
+            <label className="block text-sm font-medium mb-1">{t("distance_unit", language)}:</label>
             <div className="flex gap-2">
-              {DIST_UNITS.map(unit => (
-                <Button
-                  key={unit.code}
-                  variant={distanceUnit === unit.code ? "default" : "outline"}
-                  onClick={() => setDistanceUnit(unit.code)}
-                  size="sm"
-                >
-                  {unit.label}
-                </Button>
-              ))}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Las distancias se recalcularán automáticamente si cambias de unidad.
+              <Button variant="default" size="sm" disabled>
+                {t("kilometers", language)}
+              </Button>
             </div>
           </div>
           <Button className="mt-2" onClick={handleSaveSettings} disabled={loading}>
-            Guardar ajustes
+            {t("save_settings", language)}
           </Button>
         </div>
       </CardContent>
