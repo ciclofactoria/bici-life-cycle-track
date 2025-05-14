@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,6 +14,8 @@ import MaintenanceCategorySelect from './MaintenanceCategorySelect';
 import { usePremiumFeatures } from '@/services/premiumService';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HelpCircle } from "lucide-react";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface MaintenanceFormData {
   type: string;
@@ -41,7 +42,8 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
   const { isPremium } = usePremiumFeatures();
   const [isLoadingDistance, setIsLoadingDistance] = useState(false);
   const [showAddTypeHelp, setShowAddTypeHelp] = useState(true);
-  
+  const { language } = useLanguage();
+
   const form = useForm<MaintenanceFormData>({
     defaultValues: {
       type: '',
@@ -295,26 +297,26 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Agregar Mantenimiento</DialogTitle>
+          <DialogTitle>{t("add_maintenance_dialog_title", language)}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {showNewTypeInput ? (
               <div className="space-y-2">
-                <FormLabel>Nuevo tipo de mantenimiento</FormLabel>
+                <FormLabel>{t("new_maintenance_type", language)}</FormLabel>
                 <div className="flex gap-2">
                   <Input 
                     value={newTypeName}
                     onChange={(e) => setNewTypeName(e.target.value)}
-                    placeholder="Nombre del nuevo tipo"
+                    placeholder={t("new_type_name_placeholder", language)}
                     className="flex-1"
                   />
                   <div className="flex gap-1">
                     <Button type="button" onClick={handleAddNewType}>
-                      Guardar
+                      {t("save", language)}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => setShowNewTypeInput(false)}>
-                      Cancelar
+                      {t("cancel", language)}
                     </Button>
                   </div>
                 </div>
@@ -326,7 +328,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center">
-                      Tipo de mantenimiento
+                      {t("maintenance_type", language)}
                       <Popover open={showAddTypeHelp} onOpenChange={setShowAddTypeHelp}>
                         <PopoverTrigger asChild>
                           <Button 
@@ -338,15 +340,14 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
                             }}
                           >
                             <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                            <span className="sr-only">Ayuda</span>
+                            <span className="sr-only">{t("help", language)}</span>
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent side="top" align="start" className="w-80">
                           <div className="space-y-2">
-                            <h4 className="font-medium">¿No encuentras el tipo que buscas?</h4>
+                            <h4 className="font-medium">{t("cant_find_type_title", language)}</h4>
                             <p className="text-sm text-muted-foreground">
-                              Puedes crear un tipo personalizado haciendo clic en el botón + 
-                              a la derecha del selector.
+                              {t("cant_find_type_desc", language)}
                             </p>
                           </div>
                         </PopoverContent>
@@ -371,7 +372,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="bg-background">
                             <DropdownMenuItem onClick={() => setShowNewTypeInput(true)}>
-                              Añadir nuevo tipo
+                              {t("add_new_type", language)}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -389,7 +390,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    Kilometraje actual
+                    {t("current_mileage", language)}
                     {stravaId && isPremium && (
                       <span className="ml-2 text-xs bg-orange-500 text-white px-1.5 rounded">
                         Strava
@@ -407,7 +408,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
                   </FormControl>
                   {stravaId && isPremium && (
                     <p className="text-xs text-muted-foreground">
-                      La distancia se actualiza automáticamente desde Strava al cambiar la fecha
+                      {t("strava_distance_desc", language)}
                     </p>
                   )}
                   <FormMessage />
@@ -420,7 +421,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
               name="labor_cost"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mano de obra (€)</FormLabel>
+                  <FormLabel>{t("labor_cost", language)}</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -439,7 +440,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
               name="materials_cost"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Materiales (€)</FormLabel>
+                  <FormLabel>{t("materials_cost", language)}</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
@@ -458,7 +459,7 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
               name="date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fecha</FormLabel>
+                  <FormLabel>{t("date", language)}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -472,9 +473,9 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notas</FormLabel>
+                  <FormLabel>{t("notes", language)}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Notas adicionales" {...field} />
+                    <Input placeholder={t("additional_notes_placeholder", language)} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -483,10 +484,10 @@ const AddMaintenanceDialog = ({ open, onOpenChange, bikeId, onSuccess, stravaId 
             
             <div className="flex justify-end gap-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
+                {t("cancel", language)}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creando...' : 'Crear'}
+                {isSubmitting ? t("creating", language) : t("create", language)}
               </Button>
             </div>
           </form>

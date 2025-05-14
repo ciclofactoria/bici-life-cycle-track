@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface MaintenanceAlertDialogProps {
   open: boolean;
@@ -42,6 +44,7 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
   onSaved
 }) => {
   const { toast } = useToast();
+  const { language } = useLanguage();
   const [alertType, setAlertType] = useState<AlertType>('distance');
   const [maintenanceType, setMaintenanceType] = useState<MaintenanceType>('tubeless');
   const [customType, setCustomType] = useState<string>('');
@@ -64,22 +67,20 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
   const handleSave = async () => {
     if (maintenanceType === 'custom' && !customType.trim()) {
       toast({
-        title: "Error",
-        description: "Por favor introduce un tipo de mantenimiento personalizado",
+        title: t("error", language),
+        description: t("custom_maintenance_required", language),
         variant: "destructive"
       });
       return;
     }
-
     if (!userId) {
       toast({
-        title: "Error",
-        description: "Usuario no autenticado",
+        title: t("error", language),
+        description: t("not_authenticated", language),
         variant: "destructive"
       });
       return;
     }
-
     setIsSaving(true);
     
     try {
@@ -114,8 +115,8 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
       if (error) throw error;
 
       toast({
-        title: "Alerta configurada",
-        description: `Se ha configurado una alerta de mantenimiento para ${bikeName}`,
+        title: t("alert_set", language),
+        description: t("alert_set_desc", language, { bikeName }),
       });
       
       onSaved();
@@ -123,8 +124,8 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
     } catch (error) {
       console.error('Error saving maintenance alert:', error);
       toast({
-        title: "Error",
-        description: "No se pudo guardar la alerta de mantenimiento",
+        title: t("error", language),
+        description: t("alert_save_failed", language),
         variant: "destructive"
       });
     } finally {
@@ -136,25 +137,25 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Configurar Alerta de Mantenimiento</DialogTitle>
+          <DialogTitle>{t("configure_alert", language)}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="alertType">Tipo de Alerta</Label>
+            <Label htmlFor="alertType">{t("alert_type", language)}</Label>
             <Tabs value={alertType} onValueChange={(v) => setAlertType(v as AlertType)} className="w-full">
               <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="distance">Por Distancia</TabsTrigger>
-                <TabsTrigger value="time">Por Tiempo</TabsTrigger>
+                <TabsTrigger value="distance">{t("by_distance", language)}</TabsTrigger>
+                <TabsTrigger value="time">{t("by_time", language)}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="maintenanceType">Tipo de Mantenimiento</Label>
+            <Label htmlFor="maintenanceType">{t("maintenance_type", language)}</Label>
             <Select value={maintenanceType} onValueChange={(v) => setMaintenanceType(v as MaintenanceType)}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona tipo de mantenimiento" />
+                <SelectValue placeholder={t("select_maintenance_type", language)} />
               </SelectTrigger>
               <SelectContent>
                 {maintenanceTypes.map((type) => (
@@ -166,19 +167,19 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
 
           {maintenanceType === 'custom' && (
             <div className="space-y-2">
-              <Label htmlFor="customType">Tipo Personalizado</Label>
+              <Label htmlFor="customType">{t("custom_type", language)}</Label>
               <Input
                 id="customType"
                 value={customType}
                 onChange={(e) => setCustomType(e.target.value)}
-                placeholder="Ej: Cambio suspensión"
+                placeholder={t("custom_type_placeholder", language)}
               />
             </div>
           )}
 
           {alertType === 'distance' ? (
             <div className="space-y-2">
-              <Label htmlFor="distanceValue">Kilómetros</Label>
+              <Label htmlFor="distanceValue">{t("kilometers", language)}</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="distanceValue"
@@ -187,15 +188,15 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
                   value={distanceValue}
                   onChange={(e) => setDistanceValue(Number(e.target.value))}
                 />
-                <span className="text-sm text-muted-foreground">km</span>
+                <span className="text-sm text-muted-foreground">{t("km", language)}</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Se creará una alerta cuando la bicicleta alcance {distanceValue} km adicionales desde ahora.
+                {t("alert_distance_desc", language, { distanceValue })}
               </p>
             </div>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="timeMonths">Meses</Label>
+              <Label htmlFor="timeMonths">{t("months", language)}</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="timeMonths"
@@ -205,19 +206,19 @@ const MaintenanceAlertDialog: React.FC<MaintenanceAlertDialogProps> = ({
                   value={timeMonths}
                   onChange={(e) => setTimeMonths(Number(e.target.value))}
                 />
-                <span className="text-sm text-muted-foreground">meses</span>
+                <span className="text-sm text-muted-foreground">{t("months_unit", language)}</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Se creará una alerta para dentro de {timeMonths} meses.
+                {t("alert_time_desc", language, { timeMonths })}
               </p>
             </div>
           )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancel", language)}</Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Guardando...' : 'Guardar'}
+            {isSaving ? t("saving", language) : t("save", language)}
           </Button>
         </DialogFooter>
       </DialogContent>

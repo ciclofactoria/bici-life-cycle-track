@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search } from "lucide-react";
 import type { MaintenanceProps } from '@/components/MaintenanceItem';
 import { maintenanceCategories } from '@/data/mockData';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface FilterMaintenanceDialogProps {
   open: boolean;
@@ -23,7 +24,8 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
     lastDate: string;
     totalCost: number;
   }[]>([]);
-  
+  const { language } = useLanguage();
+
   // Get category for a type
   const getCategoryForType = (type: string): string => {
     for (const category of maintenanceCategories) {
@@ -92,13 +94,13 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Buscar por tipo de reparación</DialogTitle>
+          <DialogTitle>{t("search_repair_type", language)}</DialogTitle>
         </DialogHeader>
         
         <div className="relative mb-4">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar tipo de reparación..."
+            placeholder={t("search_repair_type_placeholder", language)}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8"
@@ -109,11 +111,11 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tipo de Reparación</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead className="text-right">Cantidad</TableHead>
-                <TableHead className="text-right">Último Servicio</TableHead>
-                <TableHead className="text-right">Costo Total</TableHead>
+                <TableHead>{t("repair_type", language)}</TableHead>
+                <TableHead>{t("category", language)}</TableHead>
+                <TableHead className="text-right">{t("quantity", language)}</TableHead>
+                <TableHead className="text-right">{t("last_service", language)}</TableHead>
+                <TableHead className="text-right">{t("total_cost", language)}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -121,16 +123,16 @@ const FilterMaintenanceDialog = ({ open, onOpenChange, maintenance }: FilterMain
                 repairTypeSummary.map((item) => (
                   <TableRow key={item.type}>
                     <TableCell className="font-medium">{item.type}</TableCell>
-                    <TableCell>{item.category || "Personalizado"}</TableCell>
+                    <TableCell>{item.category || t("custom", language)}</TableCell>
                     <TableCell className="text-right">{item.count}</TableCell>
                     <TableCell className="text-right">{item.lastDate}</TableCell>
-                    <TableCell className="text-right">${item.totalCost}</TableCell>
+                    <TableCell className="text-right">€{item.totalCost}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                    No se encontraron resultados
+                    {t("no_results_found", language)}
                   </TableCell>
                 </TableRow>
               )}

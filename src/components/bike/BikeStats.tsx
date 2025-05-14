@@ -4,6 +4,8 @@ import { CalendarClock, Bike } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface BikeStatsProps {
   bikeId: string;
@@ -27,6 +29,7 @@ const BikeStats = ({
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [nextAppointment, setNextAppointment] = useState<string | null>(null);
   const [alertCount, setAlertCount] = useState(0);
+  const { language } = useLanguage();
   
   useEffect(() => {
     if (bikeId) {
@@ -91,20 +94,19 @@ const BikeStats = ({
     }
   };
 
-  // Display the full distance number without any formatting or limit
   const formattedDistance = totalDistance ? 
     `${Math.floor(totalDistance / 1000)} km` : 
-    'No disponible';
+    t("not_available", language);
 
   return (
     <div className="bg-card rounded-lg p-4 my-6">
       <div className="grid grid-cols-3 gap-2 mb-4">
         <div className="flex flex-col items-center">
-          <p className="text-xs text-muted-foreground">Gasto Total</p>
+          <p className="text-xs text-muted-foreground">{t("total_spent", language)}</p>
           <p className="font-medium text-bicicare-green">{totalSpent} €</p>
         </div>
         <div className="flex flex-col items-center">
-          <p className="text-xs text-muted-foreground">Último Servicio</p>
+          <p className="text-xs text-muted-foreground">{t("last_service", language)}</p>
           <p className="font-medium">{lastMaintenance}</p>
         </div>
         <div className="flex flex-col items-center">
@@ -113,7 +115,7 @@ const BikeStats = ({
               <Bike className="h-3 w-3 text-orange-500 mr-1" /> : 
               null
             }
-            <p>Distancia Total</p>
+            <p>{t("distance", language)}</p>
           </div>
           <p className="font-medium">{formattedDistance}</p>
         </div>
@@ -125,18 +127,18 @@ const BikeStats = ({
             <CalendarClock className="h-4 w-4 text-bicicare-green" />
             <p className="text-xs text-muted-foreground">
               {appointmentCount > 0 || alertCount > 0
-                ? `Plan de mantenimiento (${appointmentCount + alertCount} total)` 
-                : 'Plan de Mantenimiento'}
+                ? `${t("maintenance_plan", language)} (${appointmentCount + alertCount} ${t("total", language)})` 
+                : t("maintenance_plan", language)}
             </p>
           </div>
-          <p className="font-medium mb-2">{nextAppointment || 'No programado'}</p>
+          <p className="font-medium mb-2">{nextAppointment || t("not_scheduled", language)}</p>
           <Button 
             variant="outline" 
             size="sm" 
             className="w-full"
             onClick={onScheduleAppointment}
           >
-            Gestionar Plan de Mantenimiento
+            {t("manage_plan", language)}
           </Button>
         </div>
       </div>
