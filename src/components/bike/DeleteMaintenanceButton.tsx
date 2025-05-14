@@ -19,10 +19,14 @@ export const DeleteMaintenanceButton: React.FC<Props> = ({ maintenanceId, onDele
     if (!window.confirm("¿Seguro que quieres borrar este registro?")) return;
     setLoading(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from('maintenance')
-        .update({ deleted: true })
+        .delete()
         .eq('id', maintenanceId);
+
+      if (error) {
+        throw error;
+      }
 
       toast({
         title: "Borrado",
