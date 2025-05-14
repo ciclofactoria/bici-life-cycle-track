@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import BottomNav from '@/components/BottomNav';
 import FloatingActionButton from '@/components/FloatingActionButton';
@@ -33,18 +32,15 @@ const Index = () => {
       });
       return;
     }
-    
     setIsAddDialogOpen(true);
   };
 
   return (
-    <div className="pb-28"> {/* Increased bottom padding for more space */}
+    <div className="pb-28">
       <div className="bici-container pt-6">
         <BikesHeader onRefreshComplete={fetchBikes} />
-        
         {/* Solo mostrar alerta premium si el usuario NO es premium y tiene al menos una bicicleta */}
         {!isPremium && bikeData.length >= 1 && <PremiumBikeAlert />}
-        
         <BikeList 
           bikeData={bikeData}
           isLoading={isLoading}
@@ -52,7 +48,6 @@ const Index = () => {
           onAddBike={handleAddBike}
         />
       </div>
-      
       <FloatingActionButton onClick={handleAddBike} label="Agregar Bicicleta" />
       <AddBikeDialog 
         open={isAddDialogOpen} 
@@ -60,9 +55,8 @@ const Index = () => {
         onSuccess={fetchBikes}
       />
       <BottomNav activePage="/" />
-      
-      {/* Solo mostrar diálogo de degradación si el usuario no es premium y tiene más de una bicicleta */}
-      {userId && showDowngradeDialog && (
+      {/* Solo mostrar diálogo de degradación si el usuario NO es premium y tiene más de una bici */}
+      {userId && showDowngradeDialog && !isPremium && (
         <PremiumDowngradeDialog 
           open={showDowngradeDialog} 
           onOpenChange={setShowDowngradeDialog}

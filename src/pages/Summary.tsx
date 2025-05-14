@@ -35,19 +35,20 @@ const Summary = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch bikes
+        // Incluir bicis archivadas también
         const { data: bikesData, error: bikesError } = await supabase
           .from('bikes')
           .select('*')
-          .eq('archived', false);
-          
-        if (bikesError) throw bikesError;
+          .in('archived', [false, true]); // incluir archivadas y activas
         
-        // Fetch all maintenance records
+        if (bikesError) throw bikesError;
+
+        // Solo considerar mantenimientos NO eliminados (por ejemplo, donde deleted !== true/null o no existe el flag)
         const { data: maintenanceData, error: maintenanceError } = await supabase
           .from('maintenance')
-          .select('*');
-          
+          .select('*')
+          .is('deleted', null); // Asume columna "deleted", filtra los borrados lógicos
+
         if (maintenanceError) throw maintenanceError;
         
         // Process maintenance data
@@ -116,7 +117,6 @@ const Summary = () => {
         setIsLoading(false);
       }
     };
-    
     fetchData();
   }, [toast]);
 

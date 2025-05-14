@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -85,12 +84,10 @@ export const useBikes = () => {
         console.log("Processed bikes:", mappedBikes);
         setBikeData(mappedBikes);
         
-        // Solo mostrar el diálogo de degradación si no es premium Y tiene más de una bicicleta
-        // Esperar hasta que se cargue el estado premium antes de tomar esta decisión
+        // Solo mostrar el diálogo de degradación si NO ES premium Y hay más de una bici activa
         if (!premiumLoading && !isPremium && mappedBikes.length > 1) {
           setShowDowngradeDialog(true);
         } else {
-          // Asegurarse de que el diálogo está oculto si el usuario es premium
           setShowDowngradeDialog(false);
         }
       }
@@ -107,13 +104,11 @@ export const useBikes = () => {
   };
 
   useEffect(() => {
-    // Solo buscar bicicletas una vez que conocemos el estado premium para evitar parpadeos
     if (!premiumLoading) {
       fetchBikes();
     }
   }, [premiumLoading]);
 
-  // Volver a verificar las bicicletas cada vez que cambia el estado premium
   useEffect(() => {
     if (!premiumLoading) {
       fetchBikes();
