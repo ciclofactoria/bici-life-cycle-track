@@ -213,7 +213,6 @@ const translations = {
     // Más
     user_verified: "Usuario verificado",
     not_verified: "No verificado",
-    connect_apps: "Conectar con apps",
     connect_apps_desc: "Sincroniza tus bicis y datos conectando con aplicaciones de terceros.",
     // Premium Strava - popup
     premium_popup_title: "Función Premium",
@@ -371,7 +370,7 @@ const translations = {
     manage_maintenance_plan: "Manage Maintenance Plan",
     upcoming_appointments: "Upcoming appointments",
     add_appointment: "Add appointment",
-    no_appointments: "No appointments scheduled",
+    no_appointments scheduled",
 
     connect_apps_desc: "Connect with other applications to synchronize data",
     connecting: "Connecting...",
@@ -436,7 +435,7 @@ const translations = {
     summary_actions: "Actions",
     // Más
     user_verified: "User verified",
-    not_verified: "Not verified",
+    not_verified",
     connect_apps: "Connect with apps",
     connect_apps_desc: "Sync your bikes and data by connecting with third-party apps.",
     // Premium Strava - popup
