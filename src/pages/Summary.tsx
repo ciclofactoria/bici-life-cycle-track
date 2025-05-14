@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
 import BottomNav from '@/components/BottomNav';
-import { Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -39,60 +40,56 @@ const Summary = () => {
           .from('bikes')
           .select('*')
           .in('archived', [false, true]); // incluir archivadas y activas
-        
+
         if (bikesError) throw bikesError;
 
-        // Solo considerar mantenimientos NO eliminados
+        // Obtener todos los mantenimientos (no hay campo deleted, así que omitimos ese filtro)
         const { data: maintenanceData, error: maintenanceError } = await supabase
           .from('maintenance')
-          .select('*')
-          .is('deleted', null)
-          .or('deleted.eq.false');
+          .select('*');
 
         if (maintenanceError) throw maintenanceError;
-        
-        // Process maintenance data
-        if (maintenanceData && maintenanceData.length > 0) {
-          // Calculate total spent
-          const total = maintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
-          setTotalSpent(total);
-          
-          // Group by type
-          const typeSummary: Record<string, {count: number, totalCost: number}> = {};
-          
-          maintenanceData.forEach(record => {
-            if (!typeSummary[record.type]) {
-              typeSummary[record.type] = {count: 0, totalCost: 0};
-            }
-            typeSummary[record.type].count += 1;
-            typeSummary[record.type].totalCost += record.cost || 0;
-          });
-          
-          // Convert to array for display
-          const summaryArray = Object.keys(typeSummary).map(type => ({
-            type,
-            count: typeSummary[type].count,
-            totalCost: typeSummary[type].totalCost
-          }));
-          
-          // Sort by count (most frequent first)
-          summaryArray.sort((a, b) => b.count - a.count);
-          
-          setMaintenanceTypes(summaryArray);
-        }
-        
+
+        // Filtrado defensivo: sólo mantenimientos válidos (puede añadirse lógica si en futuro hay soft-delete)
+        const validMaintenanceData = maintenanceData ?? [];
+
+        // Calculate total spent
+        const total = validMaintenanceData.reduce((sum, record) => sum + (record.cost || 0), 0);
+        setTotalSpent(total);
+
+        // Group by type
+        const typeSummary: Record<string, {count: number, totalCost: number}> = {};
+        validMaintenanceData.forEach(record => {
+          if (!typeSummary[record.type]) {
+            typeSummary[record.type] = {count: 0, totalCost: 0};
+          }
+          typeSummary[record.type].count += 1;
+          typeSummary[record.type].totalCost += record.cost || 0;
+        });
+
+        // Convert to array for display
+        const summaryArray = Object.keys(typeSummary).map(type => ({
+          type,
+          count: typeSummary[type].count,
+          totalCost: typeSummary[type].totalCost
+        }));
+        // Sort by count (most frequent first)
+        summaryArray.sort((a, b) => b.count - a.count);
+
+        setMaintenanceTypes(summaryArray);
+
         // Process bike data with total spent
-        if (bikesData && maintenanceData) {
+        if (bikesData) {
           const bikeSpentMap: Record<string, number> = {};
-          
+
           // Calculate total spent per bike
-          maintenanceData.forEach(record => {
+          validMaintenanceData.forEach(record => {
             if (!bikeSpentMap[record.bike_id]) {
               bikeSpentMap[record.bike_id] = 0;
             }
             bikeSpentMap[record.bike_id] += record.cost || 0;
           });
-          
+
           // Map bikes with their total spent
           const bikesWithSpent = bikesData.map(bike => ({
             id: bike.id,
@@ -100,10 +97,10 @@ const Summary = () => {
             type: bike.type,
             totalSpent: bikeSpentMap[bike.id] || 0
           }));
-          
+
           // Sort by total spent (highest first)
           bikesWithSpent.sort((a, b) => b.totalSpent - a.totalSpent);
-          
+
           setBikes(bikesWithSpent);
         }
       } catch (error) {
@@ -121,7 +118,7 @@ const Summary = () => {
   }, [toast]);
 
   // Filter maintenance types based on search query
-  const filteredMaintenanceTypes = maintenanceTypes.filter(item => 
+  const filteredMaintenanceTypes = maintenanceTypes.filter(item =>
     item.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -129,7 +126,7 @@ const Summary = () => {
     <div className="pb-24">
       <div className="bici-container pt-6">
         <h1 className="text-2xl font-bold mb-6">Resumen de Gastos</h1>
-        
+
         {isLoading ? (
           <p className="text-center py-8">Cargando datos...</p>
         ) : (
@@ -140,13 +137,13 @@ const Summary = () => {
                   <h2 className="text-lg font-medium">Total Gastado</h2>
                   <p className="text-2xl font-semibold text-bicicare-green">{totalSpent}€</p>
                 </div>
-                
+
                 <p className="text-sm text-muted-foreground">
                   {bikes.length} bicicletas, {maintenanceTypes.length} tipos de mantenimiento
                 </p>
               </CardContent>
             </Card>
-            
+
             <div className="mb-6">
               <h2 className="text-lg font-medium mb-4">Por Bicicleta</h2>
               <div className="rounded-md border">
@@ -178,7 +175,7 @@ const Summary = () => {
                 </Table>
               </div>
             </div>
-            
+
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-medium">Por Tipo de Reparación</h2>
@@ -192,7 +189,7 @@ const Summary = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
