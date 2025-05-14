@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -83,7 +82,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     if (!date) {
       toast({
         title: t("error", language),
-        description: language === "es" ? "Por favor, selecciona una fecha" : "Please select a date",
+        description: t("select_date", language),
         variant: "destructive",
       });
       return;
@@ -115,11 +114,8 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
       if (error) throw error;
 
       toast({
-        title: language === "es" ? "Cita guardada" : "Appointment saved",
-        description:
-          language === "es"
-            ? "La cita se ha guardado correctamente."
-            : "The appointment was saved successfully.",
+        title: t("appointment_saved", language),
+        description: t("appointment_saved_desc", language),
       });
 
       onSaved();
@@ -128,10 +124,7 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
       console.error("Error saving appointment:", error);
       toast({
         title: t("error", language),
-        description:
-          language === "es"
-            ? "No se pudo guardar la cita"
-            : "Could not save appointment",
+        description: t("appointment_error", language),
         variant: "destructive",
       });
     } finally {
@@ -148,19 +141,16 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
             {bikeName}: {t("upcoming_appointments", language)}
           </DialogDescription>
         </DialogHeader>
-
         <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as "appointments" | "alerts")}>
           <TabsList className="w-full">
-            <TabsTrigger value="appointments">{language === "es" ? "Citas" : "Appointments"}</TabsTrigger>
-            <TabsTrigger value="alerts">{language === "es" ? "Alertas" : "Alerts"}</TabsTrigger>
+            <TabsTrigger value="appointments">{t("appointments", language) || (language === "es" ? "Citas" : "Appointments")}</TabsTrigger>
+            <TabsTrigger value="alerts">{t("alerts", language) || (language === "es" ? "Alertas" : "Alerts")}</TabsTrigger>
           </TabsList>
-
           <TabsContent value="appointments" className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="date">{t("date", language)}</Label>
               <DatePickerInline id="date" selected={date} onSelect={setDate} />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="notes">{t("notes", language)}</Label>
               <Textarea
@@ -170,7 +160,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
-
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
                 {t("cancel", language)}
@@ -179,7 +168,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
                 {isSaving ? t("saving", language) : t("add_appointment", language)}
               </Button>
             </DialogFooter>
-
             <div className="border-t pt-4 mt-2">
               <h3 className="text-lg font-semibold mb-2">
                 {t("upcoming_appointments", language)}
@@ -198,7 +186,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
               )}
             </div>
           </TabsContent>
-
           <TabsContent value="alerts" className="space-y-4 py-2">
             <MaintenanceAlertDialog
               open={activeTab === "alerts"}
@@ -210,7 +197,6 @@ const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
               bikeName={bikeName}
               onSaved={onSaved}
             />
-
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
                 {t("cancel", language)}

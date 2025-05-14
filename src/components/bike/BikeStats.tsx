@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CalendarClock, Bike } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -120,7 +119,6 @@ const BikeStats = ({
           <p className="font-medium">{formattedDistance}</p>
         </div>
       </div>
-      
       <div className="border-t pt-4 mt-2">
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-2 mb-1">
