@@ -20,6 +20,7 @@ import AuthCallback from "./pages/AuthCallback";
 import StravaCallback from "./pages/StravaCallback";
 import ArchivedBikes from "./pages/ArchivedBikes";
 import PremiumInfo from "./pages/PremiumInfo";
+import { ToastProvider } from "@/hooks/use-toast"; // <-- ADD THIS LINE
 
 const queryClient = new QueryClient();
 
@@ -40,51 +41,53 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/strava-callback" element={<StravaCallback />} />
-              <Route path="/auth/strava/callback" element={<Navigate to="/strava-callback" replace />} />
-              {/* Handle Strava redirect at root domain level */}
-              <Route path="/" element={
-                <RootRouteHandler />
-              } />
-              <Route path="/bike/:id" element={
-                <ProtectedRoute>
-                  <BikeDetail />
-                </ProtectedRoute>
-              } />
-              <Route path="/calendar" element={
-                <ProtectedRoute>
-                  <Calendar />
-                </ProtectedRoute>
-              } />
-              <Route path="/summary" element={
-                <ProtectedRoute>
-                  <Summary />
-                </ProtectedRoute>
-              } />
-              <Route path="/more" element={
-                <ProtectedRoute>
-                  <More />
-                </ProtectedRoute>
-              } />
-              <Route path="/premium" element={
-                <ProtectedRoute>
-                  <PremiumInfo />
-                </ProtectedRoute>
-              } />
-              <Route path="/archived-bikes" element={<ProtectedRoute><ArchivedBikes /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ToastProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/strava-callback" element={<StravaCallback />} />
+                <Route path="/auth/strava/callback" element={<Navigate to="/strava-callback" replace />} />
+                {/* Handle Strava redirect at root domain level */}
+                <Route path="/" element={
+                  <RootRouteHandler />
+                } />
+                <Route path="/bike/:id" element={
+                  <ProtectedRoute>
+                    <BikeDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/calendar" element={
+                  <ProtectedRoute>
+                    <Calendar />
+                  </ProtectedRoute>
+                } />
+                <Route path="/summary" element={
+                  <ProtectedRoute>
+                    <Summary />
+                  </ProtectedRoute>
+                } />
+                <Route path="/more" element={
+                  <ProtectedRoute>
+                    <More />
+                  </ProtectedRoute>
+                } />
+                <Route path="/premium" element={
+                  <ProtectedRoute>
+                    <PremiumInfo />
+                  </ProtectedRoute>
+                } />
+                <Route path="/archived-bikes" element={<ProtectedRoute><ArchivedBikes /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 };
