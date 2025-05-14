@@ -148,8 +148,6 @@ const translations = {
     upcoming_appointments: "Próximas citas",
     add_appointment: "Añadir cita",
     no_appointments: "No hay citas programadas",
-
-    connect_apps_desc: "Conecta con otras aplicaciones para sincronizar datos",
     connecting: "Conectando...",
     connect_strava: "Conectar con Strava",
     premium_feature: "Función premium",
@@ -371,9 +369,9 @@ const translations = {
     upcoming_appointments: "Upcoming appointments",
     add_appointment: "Add appointment",
     no_appointments: "No appointments scheduled",
-    connect_apps_desc: "Connect with other applications to synchronize data",
     connecting: "Connecting...",
     connect_strava: "Connect with Strava",
+		connect_apps: "Connect with apps",
     premium_feature: "Premium feature",
     strava_sync_premium_desc: "Strava bike sync is a premium feature.",
     multiple_bikes: "Register multiple bikes",
@@ -435,7 +433,7 @@ const translations = {
     // Más
     user_verified: "User verified",
     not_verified: "Not verified",
-    connect_apps: "Connect with apps",
+		connect_apps: "Connect with apps",
     connect_apps_desc: "Sync your bikes and data by connecting with third-party apps.",
     // Premium Strava - popup
     premium_popup_title: "Premium Feature",
