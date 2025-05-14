@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,11 +42,12 @@ const Summary = () => {
         
         if (bikesError) throw bikesError;
 
-        // Solo considerar mantenimientos NO eliminados (por ejemplo, donde deleted !== true/null o no existe el flag)
+        // Solo considerar mantenimientos NO eliminados
         const { data: maintenanceData, error: maintenanceError } = await supabase
           .from('maintenance')
           .select('*')
-          .is('deleted', null); // Asume columna "deleted", filtra los borrados lógicos
+          .is('deleted', null)
+          .or('deleted.eq.false');
 
         if (maintenanceError) throw maintenanceError;
         
@@ -126,7 +126,7 @@ const Summary = () => {
   );
 
   return (
-    <div className="pb-24"> {/* Increased bottom padding from pb-16 to pb-24 */}
+    <div className="pb-24">
       <div className="bici-container pt-6">
         <h1 className="text-2xl font-bold mb-6">Resumen de Gastos</h1>
         

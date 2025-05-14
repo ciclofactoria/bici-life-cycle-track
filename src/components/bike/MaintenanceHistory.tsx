@@ -1,10 +1,10 @@
 
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { MaintenanceProps } from '@/components/MaintenanceItem';
-import { Filter, ArrowUpDown, Edit, Trash2 } from 'lucide-react';
+import { Filter, ArrowUpDown, Edit } from 'lucide-react';
 import EditMaintenanceDialog from '@/components/EditMaintenanceDialog';
+import DeleteMaintenanceButton from "./DeleteMaintenanceButton";
 
 interface MaintenanceHistoryProps {
   maintenance: MaintenanceProps[];
@@ -61,7 +61,6 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
             <div 
               key={item.id} 
               className="p-3 border rounded-md hover:bg-accent transition-colors cursor-pointer flex items-center justify-between"
-              onClick={() => {/* Opcional: mostrar detalles */}}
             >
               <div className="flex-1">
                 <div className="flex justify-between">
@@ -88,7 +87,10 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
-                <DeleteMaintenanceButton maintenanceId={item.id} />
+                <DeleteMaintenanceButton 
+                  maintenanceId={item.id} 
+                  onDeleted={() => window.location.reload()} 
+                />
               </div>
             </div>
           ))}
@@ -105,50 +107,3 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
 };
 
 export default MaintenanceHistory;
-
-// Botón modularizado borrado
-const DeleteMaintenanceButton = ({ maintenanceId }: { maintenanceId: string }) => {
-  const [loading, setLoading] = React.useState(false);
-  const { toast } = require('@/hooks/use-toast');
-
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!window.confirm("¿Seguro que quieres borrar este registro?")) return;
-    setLoading(true);
-    try {
-      const { supabase } = require('@/integrations/supabase/client');
-      // Borrado lógico: marca como deleted
-      await supabase
-        .from('maintenance')
-        .update({ deleted: true })
-        .eq('id', maintenanceId);
-
-      toast({
-        title: "Borrado",
-        description: "Registro eliminado correctamente",
-      });
-      window.location.reload(); // Forzar refresco de la vista. Mejorable con states!
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo borrar el registro",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Button
-      size="icon"
-      variant="ghost"
-      onClick={handleDelete}
-      aria-label="Borrar"
-      disabled={loading}
-    >
-      <Trash2 className="h-4 w-4" />
-    </Button>
-  );
-};
-
