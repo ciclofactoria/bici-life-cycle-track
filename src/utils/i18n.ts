@@ -1,3 +1,4 @@
+
 const translations = {
   es: {
     more_title: "Más",
@@ -96,7 +97,6 @@ const translations = {
     already_premium_info: "Si ya has adquirido un plan premium y no se refleja en la aplicación, haz clic en 'Verificar estado' en la parte superior de esta página.",
     strava: "Strava",
     total_spent: "Gasto Total",
-    last_service: "Último Servicio",
     distance: "Distancia",
     maintenance_history: "Historial de Mantenimiento",
     filter: "Filtrar",
@@ -105,6 +105,22 @@ const translations = {
     add_maintenance: "Agregar Mantenimiento",
     receipt: "Factura",
     premium_bike_alert: "Los usuarios premium pueden registrar múltiples bicicletas e importarlas desde Strava",
+
+    // ---- Missing keys added below ----
+    bikes: "Bicicletas",
+    summary: "Resumen",
+    profile_updated: "Perfil actualizado",
+    name_changed: "Nombre cambiado exitosamente",
+    settings_saved: "Ajustes guardados",
+    preferences_updated: "Preferencias actualizadas",
+    premium_badge: "Premium",
+    free_badge: "Gratuito",
+    language: "Idioma",
+    notifications: "Notificaciones",
+    notifications_on: "Notificaciones activadas",
+    notifications_off: "Notificaciones desactivadas",
+    notifications_note: "Recibirás notificaciones importantes sobre mantenimiento y alertas.",
+    save_settings: "Guardar ajustes",
   },
   en: {
     more_title: "More",
@@ -203,7 +219,6 @@ const translations = {
     already_premium_info: "If you already bought a premium plan and it does not show up in the app, click 'Check status' at the top of this page.",
     strava: "Strava",
     total_spent: "Total Spent",
-    last_service: "Last Service",
     distance: "Distance",
     maintenance_history: "Maintenance History",
     filter: "Filter",
@@ -212,6 +227,22 @@ const translations = {
     add_maintenance: "Add Maintenance",
     receipt: "Receipt",
     premium_bike_alert: "Premium users can register multiple bikes and import them from Strava",
+
+    // ---- Missing keys added below ----
+    bikes: "Bikes",
+    summary: "Summary",
+    profile_updated: "Profile updated",
+    name_changed: "Name changed successfully",
+    settings_saved: "Settings saved",
+    preferences_updated: "Preferences updated",
+    premium_badge: "Premium",
+    free_badge: "Free",
+    language: "Language",
+    notifications: "Notifications",
+    notifications_on: "Notifications enabled",
+    notifications_off: "Notifications disabled",
+    notifications_note: "You will receive important notifications about maintenance and alerts.",
+    save_settings: "Save settings",
   },
 };
 
@@ -226,3 +257,4 @@ export function t(key: TranslationKey, lang: "es" | "en", vars?: Record<string, 
   }
   return str;
 }
+
