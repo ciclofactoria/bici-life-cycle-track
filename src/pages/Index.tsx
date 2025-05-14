@@ -30,7 +30,7 @@ const Index = () => {
     if (!isPremium && bikeData.length >= 1) {
       toast({
         title: t("premium", language),
-        description: t("Only premium users can register more than one bike.", language),
+        description: t("only_premium_many_bikes", language),
         variant: "destructive"
       });
       return;

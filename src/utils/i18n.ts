@@ -33,7 +33,8 @@ const translations = {
     add_first_bike: "Agrega tu primera bicicleta para comenzar a registrar el mantenimiento",
     loading_bikes: "Cargando bicicletas...",
     // BottomNav
-    maintenance_plan: "Plan de Mantenimiento"
+    maintenance_plan: "Plan de Mantenimiento",
+    only_premium_many_bikes: "Solo los usuarios premium pueden registrar más de una bicicleta.",
   },
   en: {
     more_title: "More",
@@ -69,7 +70,8 @@ const translations = {
     add_first_bike: "Add your first bike to start tracking maintenance",
     loading_bikes: "Loading bikes...",
     // BottomNav
-    maintenance_plan: "Maintenance Plan"
+    maintenance_plan: "Maintenance Plan",
+    only_premium_many_bikes: "Only premium users can register more than one bike.",
   },
 };
 
