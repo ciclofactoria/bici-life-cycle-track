@@ -5,6 +5,8 @@ import { MaintenanceProps } from '@/components/MaintenanceItem';
 import { Filter, ArrowUpDown, Edit } from 'lucide-react';
 import EditMaintenanceDialog from '@/components/EditMaintenanceDialog';
 import DeleteMaintenanceButton from "./DeleteMaintenanceButton";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface MaintenanceHistoryProps {
   maintenance: MaintenanceProps[];
@@ -20,6 +22,7 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
   onAddMaintenance 
 }) => {
   const [editId, setEditId] = useState<string | null>(null);
+  const { language } = useLanguage();
 
   const handleEdit = (id: string) => setEditId(id);
   const handleCloseDialog = () => setEditId(null);
@@ -27,7 +30,7 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
   return (
     <div className="mt-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Historial de Mantenimiento</h2>
+        <h2 className="text-xl font-semibold">{t("maintenance_history", language)}</h2>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
@@ -35,7 +38,7 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
             onClick={onFilter}
           >
             <Filter className="h-4 w-4 mr-1" />
-            Filtrar
+            {t("filter", language)}
           </Button>
           <Button 
             variant="outline" 
@@ -43,16 +46,15 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
             onClick={onExport}
           >
             <ArrowUpDown className="h-4 w-4 mr-1" />
-            Exportar
+            {t("export", language)}
           </Button>
         </div>
       </div>
-
       {maintenance.length === 0 ? (
         <div className="text-center py-8 border-t">
-          <p className="text-muted-foreground mb-4">No hay registros de mantenimiento</p>
+          <p className="text-muted-foreground mb-4">{t("no_maintenance_records", language)}</p>
           <Button onClick={onAddMaintenance}>
-            Agregar Mantenimiento
+            {t("add_maintenance", language)}
           </Button>
         </div>
       ) : (
@@ -83,7 +85,7 @@ const MaintenanceHistory: React.FC<MaintenanceHistoryProps> = ({
                   size="icon"
                   variant="ghost"
                   onClick={() => handleEdit(item.id)}
-                  aria-label="Editar"
+                  aria-label={t("edit", language)}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>

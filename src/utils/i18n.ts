@@ -1,4 +1,3 @@
-
 const translations = {
   es: {
     more_title: "Más",
@@ -59,6 +58,17 @@ const translations = {
     premium_info_msg: "Para disfrutar de todas las funcionalidades premium, visita nuestra web y adquiere tu suscripción. Una vez completado el proceso, tu cuenta será actualizada automáticamente.",
     get_premium_plan: "Obtener Plan Premium",
     already_premium_info: "Si ya has adquirido un plan premium y no se refleja en la aplicación, haz clic en 'Verificar estado' en la parte superior de esta página.",
+    strava: "Strava",
+    total_spent: "Gasto Total",
+    last_service: "Último Servicio",
+    distance: "Distancia",
+    maintenance_history: "Historial de Mantenimiento",
+    filter: "Filtrar",
+    export: "Exportar",
+    no_maintenance_records: "No hay registros de mantenimiento",
+    add_maintenance: "Agregar Mantenimiento",
+    receipt: "Factura",
+    premium_bike_alert: "Los usuarios premium pueden registrar múltiples bicicletas e importarlas desde Strava",
   },
   en: {
     more_title: "More",
@@ -118,7 +128,18 @@ const translations = {
     how_to_get: "How to get it?",
     premium_info_msg: "To enjoy all premium features, visit our website and get your subscription. Once completed, your account will be upgraded automatically.",
     get_premium_plan: "Get Premium Plan",
-    already_premium_info: "If you already bought a premium plan and it does not show up in the app, click 'Check status' at the top of this page."
+    already_premium_info: "If you already bought a premium plan and it does not show up in the app, click 'Check status' at the top of this page.",
+    strava: "Strava",
+    total_spent: "Total Spent",
+    last_service: "Last Service",
+    distance: "Distance",
+    maintenance_history: "Maintenance History",
+    filter: "Filter",
+    export: "Export",
+    no_maintenance_records: "No maintenance records",
+    add_maintenance: "Add Maintenance",
+    receipt: "Receipt",
+    premium_bike_alert: "Premium users can register multiple bikes and import them from Strava",
   },
 };
 

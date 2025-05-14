@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { FileImage, Bike } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 export interface MaintenanceProps {
   id: string;
@@ -15,7 +17,7 @@ export interface MaintenanceProps {
 }
 
 const MaintenanceItem = ({ maintenance }: { maintenance: MaintenanceProps }) => {
-  // Format distance in kilometers if available
+  const { language } = useLanguage();
   const formattedDistance = maintenance.distance_at_maintenance 
     ? `${Math.round(maintenance.distance_at_maintenance / 1000)} km` 
     : null;
@@ -42,7 +44,7 @@ const MaintenanceItem = ({ maintenance }: { maintenance: MaintenanceProps }) => 
             {maintenance.hasReceipt && (
               <div className="flex items-center justify-end mt-1 text-xs text-muted-foreground">
                 <FileImage className="h-3 w-3 mr-1" />
-                Factura
+                {t("receipt", language)}
               </div>
             )}
           </div>
