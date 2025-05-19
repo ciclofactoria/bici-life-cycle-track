@@ -10,6 +10,7 @@ import enAppointments from "./maintenance/en-appointments";
 import enCalendar from "./maintenance/en-calendar";
 import enSummary from "./maintenance/en-summary";
 import enCategories from "./maintenance/en-categories";
+import enStrava from "./maintenance/en-strava";
 
 const enMaintenance = {
   ...enWheelMaintenance,
@@ -23,6 +24,7 @@ const enMaintenance = {
   ...enCalendar,
   ...enSummary,
   ...enCategories,
+  ...enStrava,
 };
 
 export default enMaintenance;

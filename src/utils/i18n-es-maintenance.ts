@@ -1,10 +1,13 @@
+
 import esWheelMaintenance from "./maintenance/es-wheel-maintenance";
+import esStrava from "./maintenance/es-strava";
 
 // We'll gradually move all categories to separate files, but for now we'll only create
 // the wheel maintenance file as an example and keep the rest here
 
 const esMaintenance = {
   ...esWheelMaintenance,
+  ...esStrava,
   
   // Brake maintenance
   "brake_adjustment": "Ajuste de frenos",

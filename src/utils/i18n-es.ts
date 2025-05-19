@@ -22,24 +22,6 @@ export const translations = {
   general: esGeneral,
   maintenance: esMaintenance,
   premium: esPremium,
-  
-  // Traducciones específicas para errores de autenticación
-  "user_not_authenticated": "Debes iniciar sesión para realizar esta acción",
-  "strava_disconnected": "Strava desconectado",
-  "strava_disconnect_success": "Tu cuenta de Strava ha sido desconectada exitosamente",
-  "strava_disconnect_error": "Error al desconectar la cuenta de Strava",
-  "connecting": "Conectando...",
-  "disconnecting": "Desconectando...",
-  "connect_strava": "Conectar con Strava",
-  "disconnect_strava": "Desconectar de Strava",
-  "connecting_strava": "Conectando con Strava",
-  "redirecting_strava": "Serás redirigido a Strava para autorización",
-  "strava_auth_url_error": "Error al generar URL de autorización de Strava",
-  "strava_auth_start_error": "Error al iniciar autenticación con Strava",
-  "verifying_premium": "Verificando estado premium",
-  "wait_verifying_subscription": "Por favor espera mientras verificamos tu suscripción",
-  "syncing": "Sincronizando...",
-  "sync_with_strava": "Sincronizar con Strava",
 };
 
 export default es;
