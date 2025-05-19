@@ -145,7 +145,22 @@ const enMaintenance = {
   appointment_delete_error: "Could not delete the appointment",
   bikes: "bikes",
   summary_load_error: "Could not load the summary",
-
+  // Strava connection translations
+  connecting_strava: "Connecting with Strava",
+  redirecting_strava: "Redirecting to Strava authorization page...",
+  strava_auth_url_error: "Could not generate Strava authentication URL",
+  strava_auth_start_error: "Could not start Strava authentication",
+  verifying_premium: "Verifying premium status",
+  wait_verifying_subscription: "Please wait while we verify your subscription",
+  premium_feature: "Premium feature",
+  strava_premium_only: "Strava connection is available only for premium users",
+  strava_disconnected: "Strava disconnected",
+  strava_disconnect_success: "Your Strava account has been successfully disconnected",
+  strava_disconnect_error: "Could not disconnect your Strava account",
+  disconnecting: "Disconnecting...",
+  disconnect_strava: "Disconnect from Strava",
+  syncing: "Syncing...",
+  sync_with_strava: "Sync with Strava",
   // Categories from Spanish
   "Centrado de rueda delantera": "Front wheel truing",
   "Centrado de rueda trasera": "Rear wheel truing",

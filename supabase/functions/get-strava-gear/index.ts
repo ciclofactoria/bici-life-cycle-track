@@ -38,11 +38,13 @@ serve(async (req) => {
     }
 
     logEvent(`Llamando a API de Strava para obtener datos de atleta (ID: ${requestId})`);
+    
+    // Primero obtener los datos principales del atleta - esto no requiere scope especial
     const response = await fetch('https://www.strava.com/api/v3/athlete', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
       },
-    })
+    });
 
     const responseText = await response.text();
     logEvent(`Respuesta bruta recibida de Strava (ID: ${requestId})`, {
@@ -50,6 +52,7 @@ serve(async (req) => {
       response_length: responseText.length
     });
     
+    // Intentamos parsear la respuesta
     let data;
     try {
       data = JSON.parse(responseText);
@@ -69,6 +72,92 @@ serve(async (req) => {
         scopes_from_header: scopesHeader || "no encontrado en headers"
       });
       
+      if (!data.bikes || data.bikes.length === 0) {
+        // Si no tenemos bicicletas, intentemos obtenerlas de otra manera
+        logEvent(`No se encontraron bicis en datos de atleta o falta profile:read_all (ID: ${requestId}).`);
+        logEvent(`Intentando obtener equipo directamente (ID: ${requestId})`);
+        
+        // Intentemos obtener el equipo directamente - esto requiere scope read_all
+        const gearResponse = await fetch('https://www.strava.com/api/v3/athlete/gear', {
+          headers: {
+            'Authorization': `Bearer ${access_token}`,
+          },
+        });
+        
+        if (gearResponse.ok) {
+          const gearData = await gearResponse.json();
+          
+          if (gearData && Array.isArray(gearData) && gearData.length > 0) {
+            logEvent(`Se encontraron ${gearData.length} bicis en endpoint de equipo (ID: ${requestId})`);
+            
+            // Filtrar solo las bicis (excluir zapatos, etc.)
+            const bikes = gearData.filter(item => item.resource_state === 3 && item.type === 'bike');
+            
+            if (bikes.length > 0) {
+              data.bikes = bikes;
+              logEvent(`Se filtraron ${bikes.length} bicis del equipo (ID: ${requestId})`);
+            }
+          } else {
+            logEvent(`No se encontraron bicicletas en endpoint de equipo (ID: ${requestId})`);
+          }
+        } else {
+          logEvent(`Error al consultar endpoint de equipo: ${gearResponse.status} (ID: ${requestId})`);
+        }
+        
+        // Si aún no tenemos bicis, intentemos consultar actividades recientes para extraer IDs de bicis
+        if (!data.bikes || data.bikes.length === 0) {
+          logEvent(`Intentando extraer bicis de actividades recientes (ID: ${requestId})`);
+          
+          const activitiesResponse = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=50', {
+            headers: {
+              'Authorization': `Bearer ${access_token}`,
+            },
+          });
+          
+          if (activitiesResponse.ok) {
+            const activities = await activitiesResponse.json();
+            
+            if (activities && Array.isArray(activities) && activities.length > 0) {
+              // Extraer IDs de bicis únicas de las actividades
+              const bikeIds = new Set();
+              const bikesMap = new Map();
+              
+              activities.forEach(activity => {
+                if (activity.type === 'Ride' && activity.gear_id && activity.gear_id.startsWith('b')) {
+                  bikeIds.add(activity.gear_id);
+                  if (!bikesMap.has(activity.gear_id)) {
+                    bikesMap.set(activity.gear_id, {
+                      id: activity.gear_id,
+                      name: activity.gear_name || `Bike ${activity.gear_id.substring(1, 6)}`,
+                      primary: false,
+                      distance: 0,
+                      activities: 0,
+                      type: 'Road', // Valor por defecto
+                    });
+                  }
+                  
+                  // Acumular distancia y contar actividades
+                  const bikeInfo = bikesMap.get(activity.gear_id);
+                  bikeInfo.distance += activity.distance || 0;
+                  bikeInfo.activities += 1;
+                }
+              });
+              
+              if (bikesMap.size > 0) {
+                // Convertir el Map a un array para data.bikes
+                data.bikes = Array.from(bikesMap.values());
+                logEvent(`Se extrajeron ${data.bikes.length} bicis de actividades recientes (ID: ${requestId})`);
+              } else {
+                logEvent(`No se encontraron bicis en actividades recientes (ID: ${requestId})`);
+              }
+            }
+          } else {
+            logEvent(`Error al consultar actividades: ${activitiesResponse.status} (ID: ${requestId})`);
+          }
+        }
+      }
+      
+      // Log final sobre bicis encontradas
       if (data.bikes && data.bikes.length > 0) {
         logEvent(`Bicis encontradas (ID: ${requestId})`, {
           count: data.bikes.length,
@@ -80,7 +169,7 @@ serve(async (req) => {
           }))
         });
       } else {
-        logEvent(`No se encontraron bicis en datos de atleta (ID: ${requestId}). Verificar si profile:read_all scope está autorizado.`);
+        logEvent(`No se encontraron bicis por ningún medio (ID: ${requestId})`);
         
         // Print the resource state to understand what permissions we have
         logEvent(`Estado de recurso: ${data.resource_state || "desconocido"}`, {
@@ -107,10 +196,18 @@ serve(async (req) => {
 
     // Add default placeholder images to bikes that don't have images
     let bikesList = data.bikes || [];
-    bikesList = bikesList.map((bike: any) => {
+    const placeholderImages = [
+      'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+      'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=900&q=60',
+      'https://images.unsplash.com/photo-1511994298241-608e28f14fde?auto=format&fit=crop&w=900&q=60'
+    ];
+    
+    bikesList = bikesList.map((bike: any, index: number) => {
+      // Asignar imagen por rotación
+      const imageUrl = placeholderImages[index % placeholderImages.length];
       return {
         ...bike,
-        image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60'
+        image: imageUrl
       }
     });
 

@@ -5,11 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePremiumFeatures } from '@/services/premiumService';
-import { importBikesFromActivities } from '@/services/stravaService/importBikesFromActivities';
+import { getStravaBikes, importBikesToDatabase } from '@/services/stravaService';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StravaRefreshButtonProps {
   onRefreshComplete: () => void;
@@ -21,18 +22,17 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const { toast } = useToast();
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
   const { language } = useLanguage();
+  const { user } = useAuth();
 
   const refreshStravaConnection = async () => {
     try {
       setIsLoading(true);
 
-      // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!userData.user) {
+      // Verificar que el usuario esté autenticado
+      if (!user) {
         toast({
-          title: "Error",
-          description: "Debes iniciar sesión para usar esta función",
+          title: t("error", language),
+          description: t("user_not_authenticated", language),
           variant: "destructive"
         });
         return;
@@ -53,7 +53,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('strava_access_token, strava_refresh_token, strava_token_expires_at')
-        .eq('id', userData.user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (profileError) throw profileError;
@@ -69,10 +69,12 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
 
       // Refresh token if needed
       const now = Math.floor(Date.now() / 1000);
+      let currentToken = profileData.strava_access_token;
+      
       if (profileData.strava_token_expires_at <= now) {
         console.log("El token ha expirado, refrescando...");
         const { data: refreshData, error: refreshError } = await supabase.functions.invoke('refresh-strava-token', {
-          body: { email: userData.user.email }
+          body: { email: user.email }
         });
 
         if (refreshError) throw refreshError;
@@ -80,20 +82,27 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
           throw new Error("Error al refrescar el token de Strava");
         }
 
+        currentToken = refreshData.access_token;
         console.log("Token de Strava actualizado con éxito");
       }
 
-      // Use the current or refreshed token to import bikes
-      const currentToken = profileData.strava_token_expires_at <= now ? 
-        (await supabase.functions.invoke('refresh-strava-token', { body: { email: userData.user.email } })).data?.access_token : 
-        profileData.strava_access_token;
-
-      if (!currentToken) {
-        throw new Error("No se pudo obtener un token de acceso válido");
+      // Get bikes from Strava
+      console.log("Obteniendo bicicletas con token:", currentToken.substring(0, 5) + "...");
+      const bikes = await getStravaBikes(currentToken);
+      
+      if (!bikes || bikes.length === 0) {
+        console.log("No se encontraron bicicletas en Strava");
+        toast({
+          title: "Sin bicicletas",
+          description: "No se encontraron bicicletas en tu cuenta de Strava",
+        });
+        return;
       }
-
-      // Import bikes from Strava activities
-      const importedCount = await importBikesFromActivities(userData.user.id, currentToken);
+      
+      console.log(`Se encontraron ${bikes.length} bicicletas en Strava:`, bikes);
+      
+      // Import bikes to database
+      const importedCount = await importBikesToDatabase(user.id, bikes);
       
       toast({
         title: "Sincronización completada",

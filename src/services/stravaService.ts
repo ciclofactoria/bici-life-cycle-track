@@ -101,25 +101,73 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
   for (const bike of bikes) {
     console.log("Importando bicicleta:", bike);
 
-    const { error } = await supabase
+    // Primero verificamos si ya existe esta bicicleta para este usuario
+    const { data: existingBike, error: checkError } = await supabase
       .from('bikes')
-      .upsert({
-        name: bike.name || `Bicicleta ${bike.id}`,
-        type: bike.type || 'Road',
-        strava_id: bike.id,
-        total_distance: bike.distance || 0,
-        image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
-        user_id: userId
-      });
+      .select('id, total_distance')
+      .eq('strava_id', bike.id)
+      .eq('user_id', userId)
+      .maybeSingle();
 
-    if (!error) {
-      importedCount++;
-      console.log(`Bicicleta ${bike.name || bike.id} importada correctamente`);
-    } else {
-      console.error(`Error al importar bicicleta ${bike.name || bike.id}:`, error);
+    if (checkError) {
+      console.error(`Error al comprobar si la bici ${bike.name || bike.id} ya existe:`, checkError);
+      continue;
+    }
+
+    try {
+      if (existingBike) {
+        // Si ya existe, actualizamos los datos (especialmente la distancia)
+        console.log(`Bicicleta ${bike.name} ya existe, ID: ${existingBike.id}, actualizando datos...`);
+        
+        // Actualizamos solo si la nueva distancia es mayor que la existente
+        if (bike.distance && (bike.distance > (existingBike.total_distance || 0))) {
+          console.log(`Actualizando distancia de ${existingBike.total_distance}m a ${bike.distance}m`);
+          
+          const { error: updateError } = await supabase
+            .from('bikes')
+            .update({
+              name: bike.name,
+              total_distance: bike.distance,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingBike.id);
+            
+          if (updateError) {
+            console.error(`Error al actualizar bicicleta ${bike.name}:`, updateError);
+            continue;
+          }
+        } else {
+          console.log(`No se actualizó la distancia porque la actual (${existingBike.total_distance}m) es mayor o igual que la nueva (${bike.distance || 0}m)`);
+        }
+        importedCount++;
+      } else {
+        // Si no existe, la insertamos
+        console.log(`Insertando nueva bici: ${bike.name} con ${bike.distance || 0}m`);
+        
+        const { error: insertError } = await supabase
+          .from('bikes')
+          .insert({
+            name: bike.name || `Bicicleta ${bike.id.substring(0, 6)}`,
+            type: bike.type || 'Road',
+            strava_id: bike.id,
+            user_id: userId,
+            total_distance: bike.distance || 0,
+            image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+          });
+          
+        if (insertError) {
+          console.error(`Error al insertar bicicleta ${bike.name}:`, insertError);
+          continue;
+        }
+        importedCount++;
+      }
+      
+      console.log(`Bicicleta ${bike.name} procesada correctamente`);
+    } catch (err) {
+      console.error(`Error al procesar bicicleta ${bike.name}:`, err);
     }
   }
 
-  console.log(`Se importaron ${importedCount} de ${bikes.length} bicicletas`);
+  console.log(`Se importaron/actualizaron ${importedCount} de ${bikes.length} bicicletas`);
   return importedCount;
 };
