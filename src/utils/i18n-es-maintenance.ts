@@ -131,6 +131,20 @@ const esMaintenance = {
   type: "Tipo",
   alerts: "Alertas",
   maintenance_plan: "Plan de Mantenimiento",
+  // Traducciones de página de resumen
+  by_bike: "Por Bicicleta",
+  by_repair_type: "Por Tipo de Reparación",
+  expenses: "Gastos",
+  search_type: "Buscar tipo...",
+  no_bikes_registered: "No hay bicicletas registradas",
+  maintenance_types: "tipos de mantenimiento",
+  active_alerts: "Alertas activas",
+  unknown_bike: "Bicicleta desconocida",
+  success: "Éxito",
+  appointment_deleted: "Cita eliminada",
+  appointment_delete_error: "No se pudo eliminar la cita",
+  bikes: "bicicletas",
+  summary_load_error: "No se pudo cargar el resumen",
 
   // Categorías específicas en español
   "Centrado de rueda delantera": "Centrado de rueda delantera",

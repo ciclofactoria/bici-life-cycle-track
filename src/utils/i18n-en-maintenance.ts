@@ -131,6 +131,20 @@ const enMaintenance = {
   type: "Type",
   alerts: "Alerts",
   maintenance_plan: "Maintenance Plan",
+  // Summary page translations
+  by_bike: "By Bike",
+  by_repair_type: "By Repair Type",
+  expenses: "Expenses",
+  search_type: "Search type...",
+  no_bikes_registered: "No bikes registered",
+  maintenance_types: "maintenance types",
+  active_alerts: "Active alerts",
+  unknown_bike: "Unknown bike",
+  success: "Success",
+  appointment_deleted: "Appointment deleted",
+  appointment_delete_error: "Could not delete the appointment",
+  bikes: "bikes",
+  summary_load_error: "Could not load the summary",
 
   // Categories from Spanish
   "Centrado de rueda delantera": "Front wheel truing",

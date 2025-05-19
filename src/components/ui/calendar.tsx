@@ -2,10 +2,11 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import { es } from "date-fns/locale";
+import { es, enUS } from "date-fns/locale";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -15,6 +16,9 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const { language } = useLanguage();
+  const locale = language === 'es' ? es : enUS;
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -57,7 +61,7 @@ function Calendar({
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
       }}
-      locale={es}
+      locale={locale}
       weekStartsOn={1}
       {...props}
     />

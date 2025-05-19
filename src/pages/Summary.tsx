@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,22 +38,22 @@ const Summary = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Incluir bicis archivadas también
+        // Include archived bikes
         const { data: bikesData, error: bikesError } = await supabase
           .from('bikes')
           .select('*')
-          .in('archived', [false, true]); // incluir archivadas y activas
+          .in('archived', [false, true]);
 
         if (bikesError) throw bikesError;
 
-        // Obtener todos los mantenimientos (no hay campo deleted, así que omitimos ese filtro)
+        // Get all maintenance records
         const { data: maintenanceData, error: maintenanceError } = await supabase
           .from('maintenance')
           .select('*');
 
         if (maintenanceError) throw maintenanceError;
 
-        // Filtrado defensivo: sólo mantenimientos válidos (puede añadirse lógica si en futuro hay soft-delete)
+        // Defensive filtering: only valid maintenance records
         const validMaintenanceData = maintenanceData ?? [];
 
         // Calculate total spent
@@ -108,8 +109,8 @@ const Summary = () => {
       } catch (error) {
         console.error('Error fetching summary data:', error);
         toast({
-          title: "Error",
-          description: "No se pudo cargar el resumen",
+          title: t("error", language),
+          description: t("summary_load_error", language),
           variant: "destructive"
         });
       } finally {
@@ -117,7 +118,7 @@ const Summary = () => {
       }
     };
     fetchData();
-  }, [toast]);
+  }, [toast, language]);
 
   // Filter maintenance types based on search query
   const filteredMaintenanceTypes = maintenanceTypes.filter(item =>
@@ -127,34 +128,34 @@ const Summary = () => {
   return (
     <div className="pb-24">
       <div className="bici-container pt-6">
-        <h1 className="text-2xl font-bold mb-6">{t("summary", language)}</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("summary_title", language)}</h1>
 
         {isLoading ? (
-          <p className="text-center py-8">Cargando datos...</p>
+          <p className="text-center py-8">{t("loading", language)}</p>
         ) : (
           <>
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-medium"> {t("total_spent", language)} </h2>
+                  <h2 className="text-lg font-medium">{t("total_spent", language)}</h2>
                   <p className="text-2xl font-semibold text-bicicare-green">{totalSpent}€</p>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  {bikes.length} {t("bikes", language)}, {maintenanceTypes.length} {t("maintenance_type", language)}
+                  {bikes.length} {t("bikes", language)}, {maintenanceTypes.length} {t("maintenance_types", language)}
                 </p>
               </CardContent>
             </Card>
 
             <div className="mb-6">
-              <h2 className="text-lg font-medium mb-4">Por Bicicleta</h2>
+              <h2 className="text-lg font-medium mb-4">{t("by_bike", language)}</h2>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Bicicleta</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead className="text-right">Gasto</TableHead>
+                      <TableHead>{t("bike", language)}</TableHead>
+                      <TableHead>{t("type", language)}</TableHead>
+                      <TableHead className="text-right">{t("expenses", language)}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -169,7 +170,7 @@ const Summary = () => {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
-                          No hay bicicletas registradas
+                          {t("no_bikes_registered", language)}
                         </TableCell>
                       </TableRow>
                     )}
@@ -180,11 +181,11 @@ const Summary = () => {
 
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium">Por Tipo de Reparación</h2>
+                <h2 className="text-lg font-medium">{t("by_repair_type", language)}</h2>
                 <div className="relative w-48">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar tipo..."
+                    placeholder={t("search_type", language)}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8"
@@ -196,9 +197,9 @@ const Summary = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tipo de Reparación</TableHead>
-                      <TableHead className="text-right">Cantidad</TableHead>
-                      <TableHead className="text-right">Costo Total</TableHead>
+                      <TableHead>{t("repair_type", language)}</TableHead>
+                      <TableHead className="text-right">{t("quantity", language)}</TableHead>
+                      <TableHead className="text-right">{t("total_cost", language)}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -213,7 +214,7 @@ const Summary = () => {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
-                          {searchQuery ? 'No se encontraron resultados' : 'No hay registros de mantenimiento'}
+                          {searchQuery ? t("no_results_found", language) : t("no_maintenance_records", language)}
                         </TableCell>
                       </TableRow>
                     )}
