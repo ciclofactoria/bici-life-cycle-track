@@ -1,6 +1,6 @@
 
 import React from 'react';
-import AddMaintenanceDialog from '@/components/AddMaintenanceDialog';
+import AddMaintenanceDialog from '@/components/maintenance/AddMaintenanceDialog';
 import EditBikeDialog from '@/components/EditBikeDialog';
 import FilterMaintenanceDialog from '@/components/FilterMaintenanceDialog';
 import AppointmentDialog from '@/components/AppointmentDialog';
