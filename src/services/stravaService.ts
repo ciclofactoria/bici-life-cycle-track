@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { StravaApiClient } from './stravaService/stravaApiClient';
 
 export const exchangeCodeForToken = async (authCode: string, userEmail: string) => {
   // Configuración de cliente y secreto - Estos vendrán de variables de entorno en producción
@@ -64,47 +64,8 @@ export const saveStravaToken = async (userId: string, userEmail: string, data: a
 };
 
 export const getStravaBikes = async (accessToken: string) => {
-  // Obtener bicicletas con el token
-  console.log("Obteniendo bicicletas con el token:", accessToken.substring(0, 5) + "...");
-  
-  try {
-    const { data, error } = await supabase.functions.invoke('get-strava-gear', {
-      body: { access_token: accessToken }
-    });
-    
-    if (error) {
-      console.error("Error en la función get-strava-gear:", error);
-      throw new Error(`Error al obtener bicicletas: ${error.message}`);
-    }
-    
-    if (!data) {
-      console.error("No se recibieron datos de get-strava-gear");
-      return [];
-    }
-    
-    if (data.need_refresh) {
-      // El token necesita ser actualizado
-      console.log("El token de Strava ha expirado y necesita actualización");
-      throw new Error("Token de Strava expirado. Por favor, reconecta tu cuenta de Strava.");
-    }
-    
-    if (!data.gear || !Array.isArray(data.gear)) {
-      console.error("Formato de datos incorrecto:", data);
-      return [];
-    }
-    
-    console.log(`Se encontraron ${data.gear.length} bicicletas desde get-strava-gear:`, data.gear);
-    return data.gear || [];
-  } catch (err: any) {
-    console.error("Error al obtener bicicletas de Strava:", err);
-    
-    // Si el error indica que el token necesita actualizarse
-    if (err.message && (err.message.includes("expirado") || err.message.includes("expired") || err.status === 401)) {
-      throw new Error("Token de Strava expirado. Por favor, reconecta tu cuenta de Strava.");
-    }
-    
-    throw err;
-  }
+  // Use our enhanced client instead
+  return await StravaApiClient.getBikes(accessToken);
 };
 
 export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
@@ -187,28 +148,8 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
 };
 
 export const refreshStravaToken = async (email: string) => {
-  try {
-    console.log("Refrescando token de Strava para:", email);
-    
-    const { data, error } = await supabase.functions.invoke('refresh-strava-token', {
-      body: { email }
-    });
-    
-    if (error) {
-      console.error("Error al refrescar token de Strava:", error);
-      throw new Error(`Error al refrescar token: ${error.message}`);
-    }
-    
-    if (!data || !data.access_token) {
-      throw new Error("No se recibió un token válido al refrescar");
-    }
-    
-    console.log("Token de Strava refrescado con éxito");
-    return data;
-  } catch (err) {
-    console.error("Error en refreshStravaToken:", err);
-    throw err;
-  }
+  // Use our enhanced client instead
+  return await StravaApiClient.refreshToken(email);
 };
 
 // Función para manejar la desconexión de Strava

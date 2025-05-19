@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 
 const corsHeaders = {
@@ -10,6 +9,22 @@ const corsHeaders = {
 function logEvent(message, data = {}) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] GET-STRAVA-GEAR: ${message}`, JSON.stringify(data));
+}
+
+// Helper function to standardize error responses
+function errorResponse(message, status = 400, details = null) {
+  const errorBody = {
+    error: message,
+    message: message,
+    details: details,
+    timestamp: new Date().toISOString(),
+    request_id: crypto.randomUUID()
+  };
+  
+  return new Response(JSON.stringify(errorBody), {
+    status: status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }
 
 serve(async (req) => {
@@ -24,7 +39,16 @@ serve(async (req) => {
   }
 
   try {
-    const { access_token } = await req.json()
+    // Validate request body
+    let bodyJson;
+    try {
+      bodyJson = await req.json();
+    } catch (bodyError) {
+      logEvent(`Error parsing request body: ${bodyError.message} (ID: ${requestId})`);
+      return errorResponse('Invalid request body', 400, { request_id: requestId });
+    }
+    
+    const { access_token } = bodyJson;
     
     logEvent(`Solicitud recibida con token`, { 
       request_id: requestId,
@@ -34,7 +58,7 @@ serve(async (req) => {
     
     if (!access_token) {
       logEvent(`Error: Access token requerido pero no proporcionado (ID: ${requestId})`);
-      throw new Error('Access token is required')
+      return errorResponse('Access token is required', 400, { request_id: requestId });
     }
 
     logEvent(`Llamando a API de Strava para obtener datos de atleta (ID: ${requestId})`);
@@ -74,15 +98,11 @@ serve(async (req) => {
       if (!response.ok) {
         if (response.status === 401) {
           logEvent(`Token expirado o inválido. Necesita actualización (ID: ${requestId})`);
-          return new Response(JSON.stringify({ 
-            error: "Authentication error",
-            message: "El token de Strava ha expirado o no es válido. Por favor, reconecta tu cuenta de Strava.",
-            need_refresh: true,
-            request_id: requestId
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 401,
-          });
+          return errorResponse(
+            "El token de Strava ha expirado o no es válido. Por favor, reconecta tu cuenta de Strava.",
+            401,
+            { need_refresh: true, request_id: requestId }
+          );
         }
         
         logEvent(`Error de API de Strava (ID: ${requestId})`, {
@@ -90,7 +110,11 @@ serve(async (req) => {
           message: data.message || "Error desconocido"
         });
         
-        throw new Error(`Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`)
+        return errorResponse(
+          `Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`,
+          response.status,
+          { request_id: requestId }
+        );
       }
       
       if (!data.bikes || data.bikes.length === 0) {
@@ -249,13 +273,10 @@ serve(async (req) => {
     })
   } catch (error) {
     logEvent(`Error en get-strava-gear: ${error.message || "Error desconocido"} (ID: ${requestId})`);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      message: "Error al obtener bicicletas de Strava. Verifica que has autorizado el permiso profile:read_all.",
-      request_id: requestId
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    return errorResponse(
+      "Error al obtener bicicletas de Strava. Verifica que has autorizado el permiso profile:read_all.",
+      500, 
+      { request_id: requestId }
+    );
   }
 })

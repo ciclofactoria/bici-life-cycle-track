@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -11,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
+import { useStravaErrorHandler } from '@/utils/stravaErrorHandler';
 
 interface StravaRefreshButtonProps {
   onRefreshComplete: () => void;
@@ -25,6 +25,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
   const { language } = useLanguage();
   const { user } = useAuth();
+  const { handleStravaError } = useStravaErrorHandler();
 
   const handleTokenRefresh = async () => {
     if (!user?.email) return null;
@@ -72,7 +73,10 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        handleStravaError(profileError);
+        return;
+      }
 
       if (!profileData || !profileData.strava_access_token) {
         toast({
@@ -95,11 +99,11 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
           currentToken = await handleTokenRefresh();
           console.log("Token refrescado con éxito");
         } catch (refreshError) {
-          console.error("Error al refrescar el token:", refreshError);
-          setErrorMessage(language === "en" ? 
+          const errorMsg = language === "en" ? 
             "Your Strava token has expired. Please reconnect your account in the 'More' section." : 
-            "Tu token de Strava ha expirado. Por favor, reconecta tu cuenta en la sección 'Más'."
-          );
+            "Tu token de Strava ha expirado. Por favor, reconecta tu cuenta en la sección 'Más'.";
+          
+          setErrorMessage(errorMsg);
           setShowErrorDialog(true);
           return;
         }
@@ -148,24 +152,12 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
           );
           setShowErrorDialog(true);
         } else {
-          toast({
-            title: language === "en" ? "Sync Error" : "Error de sincronización",
-            description: stravaError.message || (language === "en" ? 
-              "Could not import bikes from Strava" : 
-              "No se pudieron importar las bicicletas de Strava"),
-            variant: "destructive"
-          });
+          // Use our new error handler
+          handleStravaError(stravaError, language === "en" ? "Sync Error" : "Error de sincronización");
         }
       }
     } catch (error: any) {
-      console.error("Error al sincronizar con Strava:", error);
-      toast({
-        title: language === "en" ? "Sync Error" : "Error de sincronización",
-        description: error.message || (language === "en" ? 
-          "Could not import bikes from Strava" : 
-          "No se pudieron importar las bicicletas de Strava"),
-        variant: "destructive"
-      });
+      handleStravaError(error, language === "en" ? "Sync Error" : "Error de sincronización");
     } finally {
       setIsLoading(false);
     }
