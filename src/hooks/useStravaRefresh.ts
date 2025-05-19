@@ -1,28 +1,26 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { usePremiumFeatures } from '@/services/premiumService';
-import { getStravaBikes, importBikesToDatabase, refreshStravaToken } from '@/services/stravaService';
-import { AlertCircle, RefreshCw, AlertTriangle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from "@/contexts/LanguageContext";
-import { t } from "@/utils/i18n";
+import { getStravaBikes, importBikesToDatabase, refreshStravaToken } from '@/services/stravaService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStravaErrorHandler } from '@/utils/stravaErrorHandler';
+import { usePremiumFeatures } from '@/services/premiumService';
 import { useNavigate } from 'react-router-dom';
 
-interface StravaRefreshButtonProps {
-  onRefreshComplete: () => void;
+interface UseStravaRefreshOptions {
+  onPremiumRequired: () => void;
+  onError: (message: string) => void;
+  onComplete: () => void;
 }
 
-const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComplete }) => {
+export function useStravaRefresh({
+  onPremiumRequired,
+  onError,
+  onComplete
+}: UseStravaRefreshOptions) {
   const [isLoading, setIsLoading] = useState(false);
-  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -58,7 +56,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
           variant: "destructive"
         });
         
-        // Redirect to auth page con estado para regresar después de autenticarse
+        // Redirect to auth page
         setTimeout(() => {
           navigate('/auth', { state: { returnTo: '/' } });
         }, 1500);
@@ -72,7 +70,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       }
       
       if (!isPremium) {
-        setShowPremiumDialog(true);
+        onPremiumRequired();
         setIsLoading(false);
         return;
       }
@@ -116,8 +114,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
             "Your Strava token has expired. Please reconnect your account in the 'More' section." : 
             "Tu token de Strava ha expirado. Por favor, reconecta tu cuenta en la sección 'Más'.";
           
-          setErrorMessage(errorMsg);
-          setShowErrorDialog(true);
+          onError(errorMsg);
           setIsLoading(false);
           return;
         }
@@ -137,7 +134,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
               "No se encontraron bicicletas en tu cuenta de Strava",
             variant: "default"
           });
-          onRefreshComplete();
+          onComplete();
           setIsLoading(false);
           return;
         }
@@ -155,17 +152,16 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
         });
         
         // Refrescar la lista de bicicletas
-        onRefreshComplete();
+        onComplete();
       } catch (stravaError: any) {
         console.error("Error al obtener bicicletas de Strava:", stravaError);
         
         // Si el error está relacionado con token expirado, ofrecer reconexión
         if (stravaError.message && (stravaError.message.includes("expirado") || stravaError.message.includes("expired"))) {
-          setErrorMessage(language === "en" ? 
+          onError(language === "en" ? 
             "Your Strava token has expired. Please reconnect your account in the 'More' section." : 
             "Tu token de Strava ha expirado. Por favor, reconecta tu cuenta en la sección 'Más'."
           );
-          setShowErrorDialog(true);
         } else {
           // Use our new error handler
           handleStravaError(stravaError, language === "en" ? "Sync Error" : "Error de sincronización");
@@ -178,95 +174,10 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
     }
   };
 
-  return (
-    <>
-      <Button 
-        onClick={refreshStravaConnection} 
-        className="bg-[#F97316] hover:bg-[#ea6c10] text-white" 
-        disabled={isLoading || isPremiumLoading}
-      >
-        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-        {isLoading ? 
-          (language === "en" ? "Syncing..." : "Sincronizando...") : 
-          (language === "en" ? "Sync with Strava" : "Sincronizar con Strava")}
-      </Button>
-
-      {/* Dialog premium */}
-      <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("premium_popup_title", language)}</DialogTitle>
-            <DialogDescription>
-              {t("strava_sync_premium_desc", language)}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <Alert className="bg-amber-50 border-amber-200">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
-                {language === "en" ? "Upgrade to Premium to unlock all features." : "Actualiza a Premium para desbloquear todas las funciones."}
-              </AlertDescription>
-            </Alert>
-            
-            <h3 className="font-medium text-lg">{language === "en" ? "With Premium you'll get:" : "Con Premium obtendrás:"}</h3>
-            
-            <ul className="list-disc pl-5 space-y-2">
-              <li>{t("multiple_bikes", language)}</li>
-              <li>{t("auto_strava_sync", language)}</li>
-              <li>{t("import_strava_bikes", language)}</li>
-              <li>{t("advanced_stats", language)}</li>
-              <li>{t("maintenance_export", language)}</li>
-              <li>{t("custom_alerts", language)}</li>
-            </ul>
-            
-            <Button 
-              onClick={() => window.location.href = "/premium"} 
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-            >
-              {language === "en" ? "View Premium Plans" : "Ver Planes Premium"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de error */}
-      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {language === "en" ? "Strava Connection Error" : "Error de Conexión con Strava"}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>
-                {language === "en" ? "Authentication Error" : "Error de Autenticación"}
-              </AlertTitle>
-              <AlertDescription>
-                {errorMessage}
-              </AlertDescription>
-            </Alert>
-            
-            <p className="text-sm text-gray-600">
-              {language === "en" ? 
-                "To fix this issue, please disconnect and reconnect your Strava account in the 'More' section." : 
-                "Para solucionar este problema, desconecta y vuelve a conectar tu cuenta de Strava en la sección 'Más'."}
-            </p>
-            
-            <Button 
-              onClick={() => window.location.href = "/more"}
-              className="w-full"
-            >
-              {language === "en" ? "Go to More Section" : "Ir a la Sección Más"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};
-
-export default StravaRefreshButton;
+  return {
+    isLoading,
+    isPremiumLoading,
+    isPremium,
+    refreshStravaConnection
+  };
+}
