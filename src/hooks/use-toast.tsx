@@ -35,6 +35,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  // Set up global toast reference
+  React.useEffect(() => {
+    // @ts-ignore
+    window.__GLOBAL_TOAST__ = showToast;
+    return () => {
+      // @ts-ignore
+      window.__GLOBAL_TOAST__ = undefined;
+    };
+  }, [showToast]);
+
   return (
     <ToastContext.Provider value={{ toasts, showToast }}>
       {children}
@@ -63,12 +73,4 @@ export const toast = (params: Omit<Toast, "id">) => {
   }
 };
 
-// Save the global ref for the global toast helper
-if (typeof window !== "undefined") {
-  // @ts-ignore
-  window.__GLOBAL_TOAST__ = undefined;
-  // To use, one can do:
-  // -- in the ToastProvider effect:
-  //   useEffect(() => { window.__GLOBAL_TOAST__ = showToast; }, [showToast]);
-}
-
+// Save the global ref for the global toast helper is now handled in the ToastProvider component
