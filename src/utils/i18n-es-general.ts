@@ -20,6 +20,7 @@ const esGeneral = {
   email: "Email",
   plan: "Plan",
   manage_plan: "Gestionar Plan de Mantenimiento",
+  maintenance_plan: "Plan de mantenimiento",
   not_available: "No disponible",
   not_scheduled: "No programado",
   total: "total",

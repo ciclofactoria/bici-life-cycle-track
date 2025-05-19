@@ -20,6 +20,7 @@ const enGeneral = {
   email: "Email",
   plan: "Plan",
   manage_plan: "Manage Maintenance Plan",
+  maintenance_plan: "Maintenance plan",
   not_available: "Not available",
   not_scheduled: "Not scheduled",
   total: "total",
