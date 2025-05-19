@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { es } from 'date-fns/locale'; // Import Spanish locale from date-fns
+import { es } from 'date-fns/locale'; 
 import { DayPicker } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import BikeList from '@/components/bike/BikeList';
 import StravaRefreshButton from '@/components/strava/StravaRefreshButton';
+import BottomNav from '@/components/BottomNav';
+import BikesHeader from '@/components/bike/BikesHeader';
 
 const Index: React.FC = () => {
   const { user } = useAuth();
@@ -22,7 +24,6 @@ const Index: React.FC = () => {
   const navigate = useNavigate();
   const [bikes, setBikes] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-  const formattedDate = selectedDate ? format(selectedDate, "PPP", { locale: language === 'es' ? es : undefined }) : '';
 
   useEffect(() => {
     if (!user) {
@@ -94,46 +95,8 @@ const Index: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            {language === "en" ? "My Bikes" : "Mis Bicicletas"}
-          </h1>
-          <p className="text-gray-600">
-            {language === "en" ? "Welcome to your bike dashboard" : "Bienvenido a tu panel de bicicletas"}
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[280px] justify-start text-left font-normal",
-                  !selectedDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formattedDate ? formattedDate : (language === 'en' ? "Pick a date" : "Seleccionar fecha")}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
-              <DayPicker
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                locale={language === 'es' ? es : undefined}
-                showOutsideDays
-                className="border-0 shadow-sm rounded-lg"
-              />
-            </PopoverContent>
-          </Popover>
-
-          <StravaRefreshButton onRefreshComplete={handleRefreshComplete} />
-        </div>
-      </div>
+    <div className="container mx-auto px-4 py-8 pb-24">
+      <BikesHeader onRefreshComplete={handleRefreshComplete} />
 
       {bikes.length > 0 ? (
         <BikeList
@@ -153,6 +116,8 @@ const Index: React.FC = () => {
           </CardContent>
         </Card>
       )}
+      
+      <BottomNav activePage="/" />
     </div>
   );
 };
