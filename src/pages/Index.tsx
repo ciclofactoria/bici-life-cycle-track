@@ -95,7 +95,7 @@ const Index: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-24">
+    <div className="container mx-auto px-4 py-4 pb-20 max-w-md">
       <BikesHeader onRefreshComplete={handleRefreshComplete} />
 
       {bikes.length > 0 ? (
