@@ -16,31 +16,36 @@ export class StravaApiClient {
     try {
       console.log("Calling get-strava-gear function with token:", accessToken.substring(0, 5) + "...");
       
-      const { data, error, status } = await supabase.functions.invoke('get-strava-gear', {
+      const { data, error } = await supabase.functions.invoke('get-strava-gear', {
         body: { access_token: accessToken }
       });
       
       if (error) {
         console.error("Error in get-strava-gear edge function:", error);
-        error.status = status || 500;
-        throw error;
+        const errorWithStatus: Error & { status?: number } = new Error(error.message || "Error fetching Strava gear");
+        errorWithStatus.status = error?.status as number || 500;
+        throw errorWithStatus;
       }
       
       if (!data) {
         console.error("No data returned from get-strava-gear");
-        throw new Error("No data returned from Strava API");
+        const errorWithStatus: Error & { status?: number } = new Error("No data returned from Strava API");
+        errorWithStatus.status = 500;
+        throw errorWithStatus;
       }
       
       if (data.need_refresh) {
         console.log("Token needs refresh according to response");
-        const refreshError = new Error("Token de Strava expirado. Por favor, reconecta tu cuenta de Strava.");
+        const refreshError: Error & { status?: number } = new Error("Token de Strava expirado. Por favor, reconecta tu cuenta de Strava.");
         refreshError.status = 401;
         throw refreshError;
       }
       
       if (!data.gear || !Array.isArray(data.gear)) {
         console.error("Incorrect data format:", data);
-        throw new Error("Incorrect data format received from Strava API");
+        const errorWithStatus: Error & { status?: number } = new Error("Incorrect data format received from Strava API");
+        errorWithStatus.status = 500;
+        throw errorWithStatus;
       }
       
       console.log(`Found ${data.gear.length} bikes from Strava`);
@@ -68,18 +73,21 @@ export class StravaApiClient {
     try {
       console.log("Refreshing Strava token for:", email);
       
-      const { data, error, status } = await supabase.functions.invoke('refresh-strava-token', {
+      const { data, error } = await supabase.functions.invoke('refresh-strava-token', {
         body: { email }
       });
       
       if (error) {
         console.error("Error in refresh-strava-token function:", error);
-        error.status = status || 500;
-        throw error;
+        const errorWithStatus: Error & { status?: number } = new Error(error.message || "Error refreshing Strava token");
+        errorWithStatus.status = error?.status as number || 500;
+        throw errorWithStatus;
       }
       
       if (!data || !data.access_token) {
-        throw new Error("No valid token received during refresh");
+        const errorWithStatus: Error & { status?: number } = new Error("No valid token received during refresh");
+        errorWithStatus.status = 500;
+        throw errorWithStatus;
       }
       
       console.log("Strava token refreshed successfully");
