@@ -61,6 +61,13 @@ const esGeneral = {
   advanced_stats: "Estadísticas avanzadas",
   maintenance_export: "Exportar historial de mantenimiento",
   custom_alerts: "Alertas personalizadas",
+  
+  // Categorías principales de mantenimiento
+  "Ruedas": "Ruedas",
+  "Frenos": "Frenos",
+  "Transmisión": "Transmisión",
+  "Dirección y suspensión": "Dirección y suspensión",
+  "Montaje y ajustes generales": "Montaje y ajustes generales",
 };
 
 export default esGeneral;

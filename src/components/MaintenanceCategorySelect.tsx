@@ -23,12 +23,19 @@ interface MaintenanceCategorySelectProps {
 const getCategoryIcon = (categoryName: string) => {
   switch (categoryName) {
     case "Ruedas":
+    case "Wheels":
       return <Cog className="h-4 w-4 mr-2" />;
     case "Frenos":
+    case "Brakes":
       return <Disc className="h-4 w-4 mr-2" />;
     case "Transmisión":
+    case "Transmission":
       return <Cog className="h-4 w-4 mr-2" />;
     case "Dirección y suspensión":
+    case "Steering and suspension":
+      return <Wrench className="h-4 w-4 mr-2" />;
+    case "Montaje y ajustes generales":
+    case "Assembly and general adjustments":
       return <Wrench className="h-4 w-4 mr-2" />;
     default:
       return <Cog className="h-4 w-4 mr-2" />;
@@ -46,7 +53,7 @@ const MaintenanceCategorySelect = ({
       <SelectTrigger className="w-full">
         <SelectValue placeholder={t("maintenance_type", language)} />
       </SelectTrigger>
-      <SelectContent className="max-h-[300px]">
+      <SelectContent className="max-h-[300px] bg-background">
         {maintenanceCategories.map((category) => (
           <SelectGroup key={category.name}>
             <SelectLabel className="flex items-center font-medium text-primary">

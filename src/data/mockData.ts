@@ -118,64 +118,64 @@ export const maintenanceLogs: Maintenance[] = [
 
 export const maintenanceCategories = [
   {
-    name: 'Ruedas',
+    name: "Ruedas",
     types: [
-      'Centrado de rueda delantera',
-      'Centrado de rueda trasera',
-      'Sustitución de cámara',
-      'Sustitución de cubierta',
-      'Instalación de sistema tubeless',
-      'Reparación de pinchazo tubeless',
-      'Sustitución de válvula tubeless',
-      'Rodamientos rueda delantera',
-      'Rodamientos rueda trasera',
-      'Sustitución eje delantero',
-      'Sustitución eje trasero',
+      "Centrado de rueda delantera",
+      "Centrado de rueda trasera",
+      "Sustitución de cámara",
+      "Sustitución de cubierta",
+      "Instalación de sistema tubeless",
+      "Reparación de pinchazo tubeless",
+      "Sustitución de válvula tubeless",
+      "Rodamientos rueda delantera",
+      "Rodamientos rueda trasera",
+      "Sustitución eje delantero",
+      "Sustitución eje trasero"
     ]
   },
   {
-    name: 'Frenos',
+    name: "Frenos",
     types: [
-      'Purgado freno delantero',
-      'Purgado freno trasero',
-      'Sustitución de pastillas',
-      'Cambio de disco',
-      'Ajuste de freno delantero',
-      'Ajuste de freno trasero',
-      'Sustitución de zapatas',
-      'Cambio de cable y funda',
+      "Purgado freno delantero",
+      "Purgado freno trasero",
+      "Sustitución de pastillas",
+      "Cambio de disco",
+      "Ajuste de freno delantero",
+      "Ajuste de freno trasero",
+      "Sustitución de zapatas",
+      "Cambio de cable y funda"
     ]
   },
   {
-    name: 'Transmisión',
+    name: "Transmisión",
     types: [
-      'Ajuste de cambios (delantero y trasero)',
-      'Cambio de cadena',
-      'Cambio de cassette',
-      'Cambio de platos',
-      'Cambio de bielas',
-      'Cambio de pedalier',
-      'Cambio de cambio trasero',
-      'Cambio de desviador delantero',
-      'Cambio de cables y fundas',
+      "Ajuste de cambios (delantero y trasero)",
+      "Cambio de cadena",
+      "Cambio de cassette",
+      "Cambio de platos",
+      "Cambio de bielas",
+      "Cambio de pedalier",
+      "Cambio de cambio trasero",
+      "Cambio de desviador delantero",
+      "Cambio de cables y fundas"
     ]
   },
   {
-    name: 'Dirección y suspensión',
+    name: "Dirección y suspensión",
     types: [
-      'Ajuste de dirección (juego de dirección)',
-      'Sustitución de dirección',
-      'Mantenimiento de horquilla (retenes y aceite)',
-      'Mantenimiento de suspensión trasera',
+      "Ajuste de dirección (juego de dirección)",
+      "Sustitución de dirección",
+      "Mantenimiento de horquilla (retenes y aceite)",
+      "Mantenimiento de suspensión trasera",
     ]
   },
   {
-    name: 'Montaje y ajustes generales',
+    name: "Montaje y ajustes generales",
     types: [
-      'Puesta a punto',
-      'Limpieza y engrase completa',
-      'Montaje completo de bicicleta',
-      'Sustitución de componentes (manillar, potencia, tija, sillín, etc.)',
+      "Puesta a punto",
+      "Limpieza y engrase completa",
+      "Montaje completo de bicicleta",
+      "Sustitución de componentes (manillar, potencia, tija, sillín, etc.)"
     ]
   }
 ];

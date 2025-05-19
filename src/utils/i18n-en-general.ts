@@ -61,6 +61,13 @@ const enGeneral = {
   advanced_stats: "Advanced statistics",
   maintenance_export: "Export maintenance history",
   custom_alerts: "Custom alerts",
+  
+  // Categorías principales de mantenimiento
+  "Ruedas": "Wheels",
+  "Frenos": "Brakes",
+  "Transmisión": "Transmission",
+  "Dirección y suspensión": "Steering and suspension",
+  "Montaje y ajustes generales": "Assembly and general adjustments",
 };
 
 export default enGeneral;
