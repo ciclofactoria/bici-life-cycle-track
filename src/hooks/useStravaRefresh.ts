@@ -33,12 +33,16 @@ export function useStravaRefresh({
     try {
       const refreshData = await refreshStravaToken(user.email);
       if (!refreshData || !refreshData.access_token) {
-        throw new Error("No se pudo refrescar el token de Strava");
+        throw new Error(language === "en" ? 
+          "Could not refresh Strava token" : 
+          "No se pudo refrescar el token de Strava");
       }
       return refreshData.access_token;
     } catch (error) {
       console.error("Error al refrescar el token:", error);
-      throw new Error("Error al refrescar la conexión con Strava. Por favor, reconecta tu cuenta.");
+      throw new Error(language === "en" ? 
+        "Error refreshing Strava connection. Please reconnect your account." : 
+        "Error al refrescar la conexión con Strava. Por favor, reconecta tu cuenta.");
     }
   };
 
@@ -48,13 +52,17 @@ export function useStravaRefresh({
 
       // Verificar que el usuario esté autenticado
       if (!user) {
+        const errorMsg = language === "en" ? 
+          "You must be logged in to sync with Strava" : 
+          "Debes estar autenticado para sincronizar con Strava";
+        
         toast({
           title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
-          description: language === "en" ? 
-            "Please log in to sync with Strava" : 
-            "Por favor inicia sesión para sincronizar con Strava",
+          description: errorMsg,
           variant: "destructive"
         });
+        
+        onError(errorMsg);
         
         // Redirect to auth page
         setTimeout(() => {
@@ -89,13 +97,17 @@ export function useStravaRefresh({
       }
 
       if (!profileData || !profileData.strava_access_token) {
+        const errorMsg = language === "en" ? 
+          "You must connect your Strava account first in the 'More' section" : 
+          "Primero debes conectar tu cuenta de Strava en la sección 'Más'";
+          
         toast({
           title: language === "en" ? "No Strava Connection" : "No hay conexión con Strava",
-          description: language === "en" ? 
-            "You must connect your Strava account first in the 'More' section" : 
-            "Primero debes conectar tu cuenta de Strava en la sección 'Más'",
+          description: errorMsg,
           variant: "destructive"
         });
+        
+        onError(errorMsg);
         setIsLoading(false);
         return;
       }

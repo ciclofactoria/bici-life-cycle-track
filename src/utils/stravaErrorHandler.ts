@@ -11,6 +11,14 @@ export const getStravaErrorMessage = (error: any, language: 'en' | 'es'): string
   let errorMessage = error?.message || '';
   const errorStatus = error?.status || '';
   
+  // Check for authentication errors
+  if (errorMessage.includes('autenticado') || errorMessage.includes('authenticated') || 
+      errorMessage.includes('login') || errorMessage.includes('sesión')) {
+    return language === 'en'
+      ? 'You must be logged in to use Strava features.'
+      : 'Debes estar autenticado para usar las funciones de Strava.';
+  }
+  
   // Check for specific error types
   if (errorStatus === 401 || errorMessage.includes('expired') || errorMessage.includes('expirado')) {
     return language === 'en'
