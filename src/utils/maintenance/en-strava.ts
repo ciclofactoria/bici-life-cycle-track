@@ -19,7 +19,11 @@ const enStrava = {
   "connect_apps_desc": "Connect to third-party services to enhance your experience",
   "user_not_authenticated": "You must be logged in to perform this action",
   "syncing": "Syncing...",
-  "sync_with_strava": "Sync with Strava"
+  "sync_with_strava": "Sync with Strava",
+  "authentication_required": "Authentication Required",
+  "please_login_connect": "Please log in to connect with Strava",
+  "please_login_disconnect": "Please log in to disconnect from Strava",
+  "please_login_sync": "Please log in to sync with Strava"
 };
 
 export default enStrava;

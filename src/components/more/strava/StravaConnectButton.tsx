@@ -3,6 +3,8 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface StravaConnectButtonProps {
   isConnected: boolean;
@@ -22,10 +24,32 @@ export const StravaConnectButton: React.FC<StravaConnectButtonProps> = ({
   onDisconnect
 }) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleConnectClick = () => {
+    if (!user) {
+      // Redirect to auth page if not authenticated
+      navigate('/auth');
+      return;
+    }
+    
+    onConnect();
+  };
+
+  const handleDisconnectClick = () => {
+    if (!user) {
+      // Redirect to auth page if not authenticated
+      navigate('/auth');
+      return;
+    }
+    
+    onDisconnect();
+  };
 
   return isConnected ? (
     <Button 
-      onClick={onDisconnect}
+      onClick={handleDisconnectClick}
       className="w-full border-[#FC4C02] bg-white text-[#FC4C02] hover:bg-[#fff8f6]"
       variant="outline"
       disabled={isConnecting || isPremiumLoading}
@@ -39,7 +63,7 @@ export const StravaConnectButton: React.FC<StravaConnectButtonProps> = ({
     </Button>
   ) : (
     <Button 
-      onClick={onConnect}
+      onClick={handleConnectClick}
       className="w-full bg-[#FC4C02] hover:bg-[#ea6c10] text-white"
       disabled={isConnecting || isPremiumLoading}
     >

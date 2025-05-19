@@ -11,6 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
 import { useStravaErrorHandler } from '@/utils/stravaErrorHandler';
+import { useNavigate } from 'react-router-dom';
 
 interface StravaRefreshButtonProps {
   onRefreshComplete: () => void;
@@ -26,6 +27,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const { language } = useLanguage();
   const { user } = useAuth();
   const { handleStravaError } = useStravaErrorHandler();
+  const navigate = useNavigate();
 
   const handleTokenRefresh = async () => {
     if (!user?.email) return null;
@@ -49,10 +51,18 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       // Verificar que el usuario esté autenticado
       if (!user) {
         toast({
-          title: t("error", language),
-          description: t("user_not_authenticated", language),
+          title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+          description: language === "en" ? 
+            "Please log in to sync with Strava" : 
+            "Por favor inicia sesión para sincronizar con Strava",
           variant: "destructive"
         });
+        
+        // Redirect to auth page
+        setTimeout(() => {
+          navigate('/auth');
+        }, 1500);
+        
         return;
       }
 

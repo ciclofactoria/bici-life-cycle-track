@@ -19,7 +19,11 @@ const esStrava = {
   "connect_apps_desc": "Conecta con servicios de terceros para mejorar tu experiencia",
   "user_not_authenticated": "Debes iniciar sesión para realizar esta acción",
   "syncing": "Sincronizando...",
-  "sync_with_strava": "Sincronizar con Strava"
+  "sync_with_strava": "Sincronizar con Strava",
+  "authentication_required": "Autenticación Requerida",
+  "please_login_connect": "Por favor inicia sesión para conectar con Strava",
+  "please_login_disconnect": "Por favor inicia sesión para desconectar de Strava",
+  "please_login_sync": "Por favor inicia sesión para sincronizar con Strava"
 };
 
 export default esStrava;

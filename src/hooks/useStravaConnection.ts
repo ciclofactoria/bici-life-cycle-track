@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
 import { usePremiumFeatures } from '@/services/premiumService';
+import { useNavigate } from 'react-router-dom';
 
 export function useStravaConnection() {
   const { toast } = useToast();
@@ -15,6 +16,7 @@ export function useStravaConnection() {
   const { user } = useAuth();
   const [isStravaConnected, setIsStravaConnected] = useState<boolean | null>(null);
   const [isCheckingConnection, setIsCheckingConnection] = useState(true);
+  const navigate = useNavigate();
 
   // Verificar si el usuario ya tiene una conexión con Strava
   useEffect(() => {
@@ -51,10 +53,18 @@ export function useStravaConnection() {
       // Verificar que el usuario esté autenticado
       if (!user) {
         toast({
-          title: "Error",
-          description: t("user_not_authenticated", language),
+          title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+          description: language === "en" ? 
+            "Please log in to connect with Strava" : 
+            "Por favor inicia sesión para conectar con Strava",
           variant: "destructive"
         });
+        
+        // Redirect to auth page
+        setTimeout(() => {
+          navigate('/auth');
+        }, 1500);
+        
         return;
       }
       
@@ -133,10 +143,18 @@ export function useStravaConnection() {
     try {
       if (!user) {
         toast({
-          title: "Error",
-          description: t("user_not_authenticated", language),
+          title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+          description: language === "en" ? 
+            "Please log in to disconnect from Strava" : 
+            "Por favor inicia sesión para desconectar de Strava",
           variant: "destructive"
         });
+        
+        // Redirect to auth page
+        setTimeout(() => {
+          navigate('/auth');
+        }, 1500);
+        
         return;
       }
 
