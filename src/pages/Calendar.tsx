@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Bike, Bell, CalendarClock, Plus } from 'lucide-react';
@@ -29,6 +30,8 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import { DialogFooter } from '@/components/ui/dialog';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/utils/i18n';
 
 interface AppointmentDay {
   id: string;
@@ -55,6 +58,7 @@ const MaintenancePlanPage = () => {
   const [selectedBikeName, setSelectedBikeName] = useState<string>('');
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [availableBikes, setAvailableBikes] = useState<Bike[]>([]);
+  const { language } = useLanguage();
   
   // Get the current user ID
   useEffect(() => {
@@ -127,7 +131,7 @@ const MaintenancePlanPage = () => {
             id: maintenance.id,
             date: new Date(maintenance.date),
             type: 'maintenance',
-            bikeName: maintenance.bikes?.name || bikesMap.get(maintenance.bike_id)?.name || 'Bicicleta',
+            bikeName: maintenance.bikes?.name || bikesMap.get(maintenance.bike_id)?.name || t('bike', language),
             notes: maintenance.type,
             bike_id: maintenance.bike_id
           });
@@ -141,7 +145,7 @@ const MaintenancePlanPage = () => {
             id: appointment.id,
             date: new Date(appointment.date),
             type: 'appointment',
-            bikeName: appointment.bikes?.name || bikesMap.get(appointment.bike_id)?.name || 'Bicicleta',
+            bikeName: appointment.bikes?.name || bikesMap.get(appointment.bike_id)?.name || t('bike', language),
             notes: appointment.notes,
             bike_id: appointment.bike_id
           });
@@ -160,7 +164,7 @@ const MaintenancePlanPage = () => {
       if (alertsData) {
         alertsData.forEach(alert => {
           if (alert.alert_type === 'time' && alert.time_threshold_months) {
-            const bikeName = bikesMap.get(alert.bike_id)?.name || 'Bicicleta';
+            const bikeName = bikesMap.get(alert.bike_id)?.name || t('bike', language);
             const maintenanceTypeLabel = alert.custom_type || alert.maintenance_type;
             
             // Calculate target date for time-based alerts
@@ -173,7 +177,7 @@ const MaintenancePlanPage = () => {
               date: targetDate,
               type: 'alert',
               bikeName: bikeName,
-              notes: `${maintenanceTypeLabel} (automático)`,
+              notes: `${maintenanceTypeLabel} (${t('automatic', language)})`,
               alertType: alert.alert_type as 'time' | 'distance',
               maintenanceType: maintenanceTypeLabel,
               bike_id: alert.bike_id
@@ -206,16 +210,16 @@ const MaintenancePlanPage = () => {
       if (error) throw error;
       
       toast({
-        title: "Alerta eliminada",
-        description: "La alerta de mantenimiento ha sido eliminada correctamente"
+        title: t("alert_deleted", language),
+        description: t("alert_deleted_desc", language)
       });
       
       refetch();
     } catch (error) {
       console.error('Error deleting alert:', error);
       toast({
-        title: "Error",
-        description: "No se pudo eliminar la alerta",
+        title: t("error", language),
+        description: t("alert_delete_error", language),
         variant: "destructive"
       });
     }
@@ -225,8 +229,8 @@ const MaintenancePlanPage = () => {
     try {
       if (!userId) {
         toast({
-          title: "Error",
-          description: "Usuario no autenticado",
+          title: t("error", language),
+          description: t("not_authenticated", language),
           variant: "destructive"
         });
         return;
@@ -249,22 +253,22 @@ const MaintenancePlanPage = () => {
           type: maintenanceType,
           date: new Date().toISOString(),
           cost: 0,
-          notes: `Mantenimiento automático por alerta`,
+          notes: t("automatic_maintenance_alert", language),
         });
 
       if (maintenanceError) throw maintenanceError;
       
       toast({
-        title: "Mantenimiento registrado",
-        description: "Se ha registrado el mantenimiento y desactivado la alerta"
+        title: t("maintenance_recorded", language),
+        description: t("maintenance_alert_completed", language)
       });
       
       refetch();
     } catch (error) {
       console.error('Error completing alert:', error);
       toast({
-        title: "Error",
-        description: "No se pudo completar la operación",
+        title: t("error", language),
+        description: t("operation_failed", language),
         variant: "destructive"
       });
     }
@@ -299,10 +303,10 @@ const MaintenancePlanPage = () => {
       // Process alerts to add additional information
       return alerts?.map(alert => {
         const bikeInfo = bikesMap.get(alert.bike_id);
-        const bikeName = bikeInfo?.name || 'Bicicleta';
+        const bikeName = bikeInfo?.name || t('bike', language);
         const bikeDistance = bikeInfo?.totalDistance || 0;
         
-        let status = 'Pendiente';
+        let status = t('pending', language);
         let progress = 0;
         
         // Calculate progress for distance-based alerts
@@ -312,7 +316,7 @@ const MaintenancePlanPage = () => {
           const currentDistance = bikeDistance;
           
           if (currentDistance >= targetDistance) {
-            status = 'Requiere atención';
+            status = t('requires_attention', language);
             progress = 100;
           } else {
             progress = Math.round(((currentDistance - distanceAtCreation) / alert.distance_threshold) * 100);
@@ -329,7 +333,7 @@ const MaintenancePlanPage = () => {
           const elapsedDays = (new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
           
           if (new Date() >= targetDate) {
-            status = 'Requiere atención';
+            status = t('requires_attention', language);
             progress = 100;
           } else {
             progress = Math.round((elapsedDays / totalDays) * 100);
@@ -355,8 +359,8 @@ const MaintenancePlanPage = () => {
     return (
       <div className="pb-16">
         <div className="bici-container pt-6">
-          <h1 className="text-2xl font-bold mb-6">Plan de Mantenimiento</h1>
-          <div className="text-center">Cargando...</div>
+          <h1 className="text-2xl font-bold mb-6">{t("maintenance_plan", language)}</h1>
+          <div className="text-center">{t("loading", language)}</div>
         </div>
         <BottomNav activePage="/calendar" />
       </div>
@@ -397,8 +401,8 @@ const MaintenancePlanPage = () => {
   const handleNewEntityClick = () => {
     if (availableBikes.length === 0) {
       toast({
-        title: "No hay bicicletas",
-        description: "Necesitas crear al menos una bicicleta primero",
+        title: t("no_bikes", language),
+        description: t("create_bike_first", language),
         variant: "destructive"
       });
       return;
@@ -413,16 +417,19 @@ const MaintenancePlanPage = () => {
     refetch();
   };
 
+  // Get the appropriate date-fns locale based on the current language
+  const dateLocale = language === 'es' ? es : enUS;
+
   return (
     <div className="pb-16">
       <div className="bici-container pt-6">
-        <h1 className="text-2xl font-bold mb-6">Plan de Mantenimiento</h1>
+        <h1 className="text-2xl font-bold mb-6">{t("maintenance_plan", language)}</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
           <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="calendar">Calendario</TabsTrigger>
+            <TabsTrigger value="calendar">{t("calendar", language)}</TabsTrigger>
             <TabsTrigger value="alerts">
-              Alertas
+              {t("alerts", language)}
               {activeAlerts && activeAlerts.length > 0 && (
                 <Badge variant="destructive" className="ml-1">{activeAlerts.length}</Badge>
               )}
@@ -436,6 +443,7 @@ const MaintenancePlanPage = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
+                  locale={dateLocale}
                   modifiers={{
                     pastMaintenance: (date) => 
                       calendarData?.some(app => 
@@ -479,7 +487,7 @@ const MaintenancePlanPage = () => {
 
               <div className="rounded-lg border bg-card p-4 min-w-[350px]">
                 <h2 className="font-semibold mb-4">
-                  {selectedDate ? format(selectedDate, "d 'de' MMMM, yyyy", { locale: es }) : 'Selecciona una fecha'}
+                  {selectedDate ? format(selectedDate, "d 'of' MMMM, yyyy", { locale: dateLocale }) : t("select_date", language)}
                 </h2>
                 
                 {selectedDate && (
@@ -493,8 +501,8 @@ const MaintenancePlanPage = () => {
                           <span className="font-medium">{app.bikeName}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {app.type === 'maintenance' ? 'Mantenimiento' : 
-                           app.type === 'appointment' ? 'Cita programada' : 'Alerta de mantenimiento'}
+                          {app.type === 'maintenance' ? t("maintenance", language) : 
+                           app.type === 'appointment' ? t("scheduled_appointment", language) : t("maintenance_alert", language)}
                         </p>
                         {app.notes && (
                           <p className="text-sm mt-2 text-muted-foreground">{app.notes}</p>
@@ -504,7 +512,7 @@ const MaintenancePlanPage = () => {
                     
                     {selectedDateAppointments(selectedDate).length === 0 && (
                       <p className="text-sm text-muted-foreground">
-                        No hay eventos programados para este día
+                        {t("no_events_for_day", language)}
                       </p>
                     )}
                   </div>
@@ -513,17 +521,17 @@ const MaintenancePlanPage = () => {
             </div>
 
             <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Próximas citas</h2>
+              <h2 className="text-xl font-semibold mb-4">{t("upcoming_appointments", language)}</h2>
               
               {upcomingAppointments.length > 0 ? (
                 <div className="rounded-lg border overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Bicicleta</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Notas</TableHead>
+                        <TableHead>{t("date", language)}</TableHead>
+                        <TableHead>{t("bike", language)}</TableHead>
+                        <TableHead>{t("type", language)}</TableHead>
+                        <TableHead>{t("notes", language)}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -542,8 +550,8 @@ const MaintenancePlanPage = () => {
                               app.type === 'appointment' ? 'bg-red-100 text-red-800' : 
                               'bg-amber-100 text-amber-800'
                             }`}>
-                              {app.type === 'maintenance' ? 'Mantenimiento' : 
-                               app.type === 'appointment' ? 'Cita' : 'Alerta'}
+                              {app.type === 'maintenance' ? t("maintenance", language) : 
+                               app.type === 'appointment' ? t("appointment", language) : t("alert", language)}
                             </span>
                           </TableCell>
                           <TableCell className="max-w-[200px] truncate">{app.notes || '-'}</TableCell>
@@ -554,7 +562,7 @@ const MaintenancePlanPage = () => {
                 </div>
               ) : (
                 <p className="text-center text-muted-foreground p-4 border rounded-lg">
-                  No hay citas programadas próximamente
+                  {t("no_upcoming_appointments", language)}
                 </p>
               )}
             </div>
@@ -576,8 +584,8 @@ const MaintenancePlanPage = () => {
                         <div className="mt-2">
                           <p className="text-xs text-muted-foreground">
                             {alert.alert_type === 'distance' ? 
-                              `Cada ${Math.round((alert.distance_threshold || 0) / 1000)} km` : 
-                              `Cada ${alert.time_threshold_months} meses`}
+                              t("every_distance", language, { distance: Math.round((alert.distance_threshold || 0) / 1000) }) : 
+                              t("every_months", language, { months: alert.time_threshold_months })}
                           </p>
                         </div>
                         
@@ -608,7 +616,7 @@ const MaintenancePlanPage = () => {
                           className="h-8"
                           onClick={() => handleCompleteAlert(alert.id, alert.bike_id, alert.maintenanceType)}
                         >
-                          Completar
+                          {t("complete", language)}
                         </Button>
                         <Button 
                           size="sm"
@@ -616,7 +624,7 @@ const MaintenancePlanPage = () => {
                           className="h-8 text-red-500 hover:text-red-700"
                           onClick={() => handleDeleteAlert(alert.id)}
                         >
-                          Eliminar
+                          {t("delete", language)}
                         </Button>
                       </div>
                     </div>
@@ -625,9 +633,9 @@ const MaintenancePlanPage = () => {
               ) : (
                 <div className="text-center p-8 border rounded-lg">
                   <Bell className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <h3 className="text-lg font-medium mb-1">No hay alertas activas</h3>
+                  <h3 className="text-lg font-medium mb-1">{t("no_active_alerts", language)}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Configura alertas automáticas desde la ficha de cada bicicleta
+                    {t("configure_alerts_from_bikes", language)}
                   </p>
                 </div>
               )}
@@ -639,16 +647,16 @@ const MaintenancePlanPage = () => {
       {/* Floating action button */}
       <FloatingActionButton 
         onClick={handleNewEntityClick}
-        label="Añadir"
+        label={t("add", language)}
       />
       
       {/* Dialog to select bike */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Selecciona una bicicleta</DialogTitle>
+            <DialogTitle>{t("select_bike", language)}</DialogTitle>
             <DialogDescription>
-              Elige la bicicleta para la que quieres crear una cita o alerta de mantenimiento.
+              {t("choose_bike_for_appointment", language)}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -667,7 +675,7 @@ const MaintenancePlanPage = () => {
             ))}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>{t("cancel", language)}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
