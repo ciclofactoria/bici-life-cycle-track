@@ -57,6 +57,19 @@ export const AlertsList: React.FC<AlertsListProps> = ({ alerts, selectedBikeId }
   
   const handleComplete = async (alert: Alert) => {
     try {
+      // Get current user id from auth session
+      const { data: userSession } = await supabase.auth.getSession();
+      const user_id = userSession?.session?.user?.id;
+      
+      if (!user_id) {
+        toast({
+          title: t("error", language),
+          description: t("user_not_authenticated", language),
+          variant: "destructive"
+        });
+        return;
+      }
+      
       // 1. Create maintenance record
       const { error: maintenanceError } = await supabase
         .from('maintenance')
@@ -66,6 +79,7 @@ export const AlertsList: React.FC<AlertsListProps> = ({ alerts, selectedBikeId }
           date: new Date().toISOString().split('T')[0],
           cost: 0, // Default cost
           notes: t("automatic_maintenance_alert", language),
+          user_id: user_id // Adding the required user_id field
         });
         
       if (maintenanceError) throw maintenanceError;
