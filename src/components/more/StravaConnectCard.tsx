@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -13,9 +13,14 @@ import { t } from "@/utils/i18n";
 import { useStravaConnection } from '@/hooks/useStravaConnection';
 import { StravaConnectionStatus } from './strava/StravaConnectionStatus';
 import { StravaConnectButton } from './strava/StravaConnectButton';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const StravaConnectCard = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
   const {
     isStravaConnected,
     isCheckingConnection,
@@ -25,6 +30,18 @@ export const StravaConnectCard = () => {
     handleConnectStrava,
     handleDisconnectStrava
   } = useStravaConnection();
+
+  // Si no hay usuario autenticado, redirigimos a la página de autenticación
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    }
+  }, [user, navigate]);
+
+  // Si el usuario no está autenticado, no mostramos el contenido del componente
+  if (!user) {
+    return null;
+  }
 
   return (
     <Card>

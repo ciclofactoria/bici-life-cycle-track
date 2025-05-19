@@ -16,7 +16,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { Toaster } from './components/ui/toaster';
 import { Toaster as SonnerToaster } from './components/ui/sonner';
 import ProtectedRoute from './components/ProtectedRoute';
-import { ToastProvider } from './hooks/use-toast';
+import { ToastProvider } from './components/ui/toast';
 
 function App() {
   return (
@@ -27,6 +27,8 @@ function App() {
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/strava-callback" element={<StravaCallback />} />
+              <Route path="*" element={<NotFound />} />
               <Route
                 path="/"
                 element={
@@ -83,11 +85,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/strava-callback"
-                element={<StravaCallback />}
-              />
-              <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
             <SonnerToaster />

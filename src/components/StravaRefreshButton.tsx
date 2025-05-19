@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/toast';
 import { usePremiumFeatures } from '@/services/premiumService';
 import { getStravaBikes, importBikesToDatabase, refreshStravaToken } from '@/services/stravaService';
 import { AlertCircle, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -22,7 +23,6 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { toast } = useToast();
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -58,9 +58,9 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
           variant: "destructive"
         });
         
-        // Redirect to auth page
+        // Redirect to auth page con estado para regresar después de autenticarse
         setTimeout(() => {
-          navigate('/auth');
+          navigate('/auth', { state: { returnTo: '/' } });
         }, 1500);
         
         return;
@@ -73,6 +73,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
       
       if (!isPremium) {
         setShowPremiumDialog(true);
+        setIsLoading(false);
         return;
       }
 
@@ -85,6 +86,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
 
       if (profileError) {
         handleStravaError(profileError);
+        setIsLoading(false);
         return;
       }
 
@@ -96,6 +98,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
             "Primero debes conectar tu cuenta de Strava en la sección 'Más'",
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
       }
 
@@ -115,6 +118,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
           
           setErrorMessage(errorMsg);
           setShowErrorDialog(true);
+          setIsLoading(false);
           return;
         }
       }
@@ -134,6 +138,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
             variant: "default"
           });
           onRefreshComplete();
+          setIsLoading(false);
           return;
         }
         

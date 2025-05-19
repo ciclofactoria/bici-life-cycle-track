@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/toast';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,6 @@ import { usePremiumFeatures } from '@/services/premiumService';
 import { useNavigate } from 'react-router-dom';
 
 export function useStravaConnection() {
-  const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
   const { language } = useLanguage();
@@ -60,11 +59,8 @@ export function useStravaConnection() {
           variant: "destructive"
         });
         
-        // Redirect to auth page
-        setTimeout(() => {
-          navigate('/auth');
-        }, 1500);
-        
+        // Redirect to auth page con estado para volver a la página actual
+        navigate('/auth', { state: { returnTo: '/more' } });
         return;
       }
       
@@ -151,10 +147,7 @@ export function useStravaConnection() {
         });
         
         // Redirect to auth page
-        setTimeout(() => {
-          navigate('/auth');
-        }, 1500);
-        
+        navigate('/auth', { state: { returnTo: '/more' } });
         return;
       }
 

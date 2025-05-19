@@ -27,10 +27,10 @@ export const StravaConnectButton: React.FC<StravaConnectButtonProps> = ({
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Crear funciones de control que verifican la autenticación
   const handleConnectClick = () => {
     if (!user) {
-      // Redirect to auth page if not authenticated
-      navigate('/auth');
+      navigate('/auth', { state: { returnTo: '/more' } });
       return;
     }
     
@@ -39,8 +39,7 @@ export const StravaConnectButton: React.FC<StravaConnectButtonProps> = ({
 
   const handleDisconnectClick = () => {
     if (!user) {
-      // Redirect to auth page if not authenticated
-      navigate('/auth');
+      navigate('/auth', { state: { returnTo: '/more' } });
       return;
     }
     
