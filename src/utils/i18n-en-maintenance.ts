@@ -45,6 +45,10 @@ const enMaintenance = {
   months_unit: "months",
   alert_time_desc: "An alert will be set for {timeMonths} months from now.",
   saving: "Saving...",
+  error: "Error",
+  cancel: "Cancel",
+  creating: "Creating...",
+  create: "Create",
   // Maintenance and repair types
   wheel_truing: "Wheel truing",
   tire_change: "Tire change",
@@ -101,7 +105,7 @@ const enMaintenance = {
   scheduled_appointment: "Scheduled appointment",
   maintenance_alert: "Maintenance alert",
   no_events_for_day: "No events scheduled for this day",
-  upcoming_appointments: "Upcoming appointments",
+  // Fixed duplicate key: previously had 'upcoming_appointments' twice
   appointment: "Appointment",
   alert: "Alert",
   no_upcoming_appointments: "No upcoming appointments",
@@ -125,6 +129,8 @@ const enMaintenance = {
   operation_failed: "Could not complete the operation",
   automatic_maintenance_alert: "Automatic maintenance from alert",
   type: "Type",
+  alerts: "Alerts",
+  maintenance_plan: "Maintenance Plan",
 
   // Categories from Spanish
   "Centrado de rueda delantera": "Front wheel truing",
@@ -163,6 +169,12 @@ const enMaintenance = {
   "Limpieza y engrase completa": "Full cleaning and lubrication",
   "Montaje completo de bicicleta": "Full bike assembly",
   "Sustitución de componentes (manillar, potencia, tija, sillín, etc.)": "Component replacement (handlebar, stem, seatpost, saddle, etc.)",
+  // Categories
+  "Ruedas": "Wheels",
+  "Frenos": "Brakes",
+  "Transmisión": "Transmission",
+  "Dirección y suspensión": "Steering and suspension",
+  "Montaje y ajustes generales": "Assembly and general adjustments"
 };
 
 export default enMaintenance;

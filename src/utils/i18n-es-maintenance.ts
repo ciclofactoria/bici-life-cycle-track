@@ -45,6 +45,10 @@ const esMaintenance = {
   months_unit: "meses",
   alert_time_desc: "Se establecerá una alerta para dentro de {timeMonths} meses.",
   saving: "Guardando...",
+  error: "Error",
+  cancel: "Cancelar",
+  creating: "Creando...",
+  create: "Crear",
   // Tipos de mantenimiento y reparación
   wheel_truing: "Centrado de rueda",
   tire_change: "Cambio de cubierta",
@@ -101,7 +105,7 @@ const esMaintenance = {
   scheduled_appointment: "Cita programada",
   maintenance_alert: "Alerta de mantenimiento",
   no_events_for_day: "No hay eventos programados para este día",
-  upcoming_appointments: "Próximas citas",
+  // Fixed duplicate key: previously had 'upcoming_appointments' twice
   appointment: "Cita",
   alert: "Alerta",
   no_upcoming_appointments: "No hay citas programadas próximamente",
@@ -125,6 +129,8 @@ const esMaintenance = {
   operation_failed: "No se pudo completar la operación",
   automatic_maintenance_alert: "Mantenimiento automático por alerta",
   type: "Tipo",
+  alerts: "Alertas",
+  maintenance_plan: "Plan de Mantenimiento",
 
   // Categorías específicas en español
   "Centrado de rueda delantera": "Centrado de rueda delantera",
@@ -163,6 +169,12 @@ const esMaintenance = {
   "Limpieza y engrase completa": "Limpieza y engrase completa",
   "Montaje completo de bicicleta": "Montaje completo de bicicleta",
   "Sustitución de componentes (manillar, potencia, tija, sillín, etc.)": "Sustitución de componentes (manillar, potencia, tija, sillín, etc.)",
+  // Categorias
+  "Ruedas": "Ruedas",
+  "Frenos": "Frenos",
+  "Transmisión": "Transmisión",
+  "Dirección y suspensión": "Dirección y suspensión",
+  "Montaje y ajustes generales": "Montaje y ajustes generales"
 };
 
 export default esMaintenance;
