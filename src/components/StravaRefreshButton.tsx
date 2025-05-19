@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -121,13 +122,13 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
         disabled={isLoading || isPremiumLoading}
       >
         <RefreshCw className="h-4 w-4 mr-2" />
-        {isLoading ? "Sincronizando..." : "Sincronizar con Strava"}
+        {isLoading ? t("syncing", language) : t("sync_with_strava", language)}
       </Button>
 
       <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t("premium_feature", language)}</DialogTitle>
+            <DialogTitle>{t("premium_popup_title", language)}</DialogTitle>
             <DialogDescription>
               {t("strava_sync_premium_desc", language)}
             </DialogDescription>
@@ -137,11 +138,11 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
             <Alert className="bg-amber-50 border-amber-200">
               <AlertCircle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800">
-                Actualiza a Premium para desbloquear todas las funciones.
+                {language === "en" ? "Upgrade to Premium to unlock all features." : "Actualiza a Premium para desbloquear todas las funciones."}
               </AlertDescription>
             </Alert>
             
-            <h3 className="font-medium text-lg">Con Premium obtendrás:</h3>
+            <h3 className="font-medium text-lg">{language === "en" ? "With Premium you'll get:" : "Con Premium obtendrás:"}</h3>
             
             <ul className="list-disc pl-5 space-y-2">
               <li>{t("multiple_bikes", language)}</li>
@@ -156,7 +157,7 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
               onClick={() => window.location.href = "/premium"} 
               className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
             >
-              Ver Planes Premium
+              {language === "en" ? "View Premium Plans" : "Ver Planes Premium"}
             </Button>
           </div>
         </DialogContent>

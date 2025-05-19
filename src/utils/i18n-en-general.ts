@@ -1,4 +1,3 @@
-
 const enGeneral = {
   more_title: "More",
   actions: "Actions",
@@ -49,6 +48,9 @@ const enGeneral = {
   notifications_off: "Notifications disabled",
   notifications_note: "You will receive important notifications about maintenance and alerts.",
   save_settings: "Save settings",
+  my_bikes: "My Bikes",
+  sync_with_strava: "Sync with Strava",
+  syncing: "Syncing...",
 };
 
 export default enGeneral;
