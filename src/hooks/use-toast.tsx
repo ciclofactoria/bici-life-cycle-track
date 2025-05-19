@@ -1,5 +1,6 @@
 
 import * as React from "react"
+import { toast as sonnerToast } from "sonner";
 
 // Basic context for toasts
 const ToastContext = React.createContext<
@@ -63,14 +64,17 @@ export function useToast() {
   };
 }
 
-// This is a convenience export
+// Export a standalone toast function for direct usage
 export const toast = (params: Omit<Toast, "id">) => {
-  // In real usage, you'd want to ensure ToastProvider is mounted high up
+  // Use sonner toast for simpler implementation without context dependency
+  sonnerToast(params.title || "", {
+    description: params.description,
+    action: params.action,
+  });
+  
+  // Also try to use the context-based toast if available
   if (typeof window !== "undefined") {
-    // Small hack to trigger toasts globally
     // @ts-ignore
     window.__GLOBAL_TOAST__?.(params);
   }
 };
-
-// Save the global ref for the global toast helper is now handled in the ToastProvider component

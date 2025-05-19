@@ -16,7 +16,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { Toaster } from './components/ui/toaster';
 import { Toaster as SonnerToaster } from './components/ui/sonner';
 import ProtectedRoute from './components/ProtectedRoute';
-import { ToastProvider } from './components/ui/toast';
+import { ToastProvider } from './hooks/use-toast';
 
 function App() {
   return (
