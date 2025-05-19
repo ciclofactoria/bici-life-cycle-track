@@ -1,3 +1,4 @@
+
 import enGeneral from "./i18n-en-general";
 import enMaintenance from "./i18n-en-maintenance";
 import enPremium from "./i18n-en-premium";
@@ -17,9 +18,9 @@ const en = {
 };
 
 export const translations = {
-  general: generalTranslations,
-  maintenance: maintenanceTranslations,
-  premium: premiumTranslations,
+  general: enGeneral,
+  maintenance: enMaintenance,
+  premium: enPremium,
   
   // Traducciones específicas para errores de autenticación
   "user_not_authenticated": "You must be logged in to perform this action",

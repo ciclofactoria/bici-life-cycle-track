@@ -1,3 +1,4 @@
+
 // Import specific translation files
 import esGeneral from "./i18n-es-general";
 import esMaintenance from "./i18n-es-maintenance";
@@ -18,9 +19,9 @@ const es = {
 };
 
 export const translations = {
-  general: generalTranslations,
-  maintenance: maintenanceTranslations,
-  premium: premiumTranslations,
+  general: esGeneral,
+  maintenance: esMaintenance,
+  premium: esPremium,
   
   // Traducciones específicas para errores de autenticación
   "user_not_authenticated": "Debes iniciar sesión para realizar esta acción",
