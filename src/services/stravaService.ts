@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 export const exchangeCodeForToken = async (authCode: string, userEmail: string) => {
   // Configuración de cliente y secreto - Estos vendrán de variables de entorno en producción
@@ -81,6 +82,12 @@ export const getStravaBikes = async (accessToken: string) => {
       return [];
     }
     
+    if (data.need_refresh) {
+      // El token necesita ser actualizado
+      console.log("El token de Strava ha expirado y necesita actualización");
+      throw new Error("Token de Strava expirado. Por favor, reconecta tu cuenta de Strava.");
+    }
+    
     if (!data.gear || !Array.isArray(data.gear)) {
       console.error("Formato de datos incorrecto:", data);
       return [];
@@ -88,8 +95,14 @@ export const getStravaBikes = async (accessToken: string) => {
     
     console.log(`Se encontraron ${data.gear.length} bicicletas desde get-strava-gear:`, data.gear);
     return data.gear || [];
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error al obtener bicicletas de Strava:", err);
+    
+    // Si el error indica que el token necesita actualizarse
+    if (err.message && (err.message.includes("expirado") || err.message.includes("expired") || err.status === 401)) {
+      throw new Error("Token de Strava expirado. Por favor, reconecta tu cuenta de Strava.");
+    }
+    
     throw err;
   }
 };
@@ -136,10 +149,11 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
             console.error(`Error al actualizar bicicleta ${bike.name}:`, updateError);
             continue;
           }
+          importedCount++;
         } else {
           console.log(`No se actualizó la distancia porque la actual (${existingBike.total_distance}m) es mayor o igual que la nueva (${bike.distance || 0}m)`);
+          importedCount++; // Consideramos como "importada" aunque no haya cambios
         }
-        importedCount++;
       } else {
         // Si no existe, la insertamos
         console.log(`Insertando nueva bici: ${bike.name} con ${bike.distance || 0}m`);
@@ -152,7 +166,7 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
             strava_id: bike.id,
             user_id: userId,
             total_distance: bike.distance || 0,
-            image: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
+            image: bike.image || 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=900&q=60',
           });
           
         if (insertError) {
@@ -170,4 +184,56 @@ export const importBikesToDatabase = async (userId: string, bikes: any[]) => {
 
   console.log(`Se importaron/actualizaron ${importedCount} de ${bikes.length} bicicletas`);
   return importedCount;
+};
+
+export const refreshStravaToken = async (email: string) => {
+  try {
+    console.log("Refrescando token de Strava para:", email);
+    
+    const { data, error } = await supabase.functions.invoke('refresh-strava-token', {
+      body: { email }
+    });
+    
+    if (error) {
+      console.error("Error al refrescar token de Strava:", error);
+      throw new Error(`Error al refrescar token: ${error.message}`);
+    }
+    
+    if (!data || !data.access_token) {
+      throw new Error("No se recibió un token válido al refrescar");
+    }
+    
+    console.log("Token de Strava refrescado con éxito");
+    return data;
+  } catch (err) {
+    console.error("Error en refreshStravaToken:", err);
+    throw err;
+  }
+};
+
+// Función para manejar la desconexión de Strava
+export const disconnectStrava = async (userId: string) => {
+  if (!userId) {
+    throw new Error("ID de usuario requerido para desconectar Strava");
+  }
+  
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        strava_connected: false,
+        strava_access_token: null,
+        strava_refresh_token: null,
+        strava_token_expires_at: null,
+        strava_athlete_id: null
+      })
+      .eq('id', userId);
+      
+    if (error) throw error;
+    
+    return { success: true };
+  } catch (err) {
+    console.error("Error al desconectar Strava:", err);
+    throw err;
+  }
 };

@@ -39,7 +39,7 @@ serve(async (req) => {
 
     logEvent(`Llamando a API de Strava para obtener datos de atleta (ID: ${requestId})`);
     
-    // Primero obtener los datos principales del atleta - esto no requiere scope especial
+    // Primero obtener los datos principales del atleta
     const response = await fetch('https://www.strava.com/api/v3/athlete', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
@@ -52,12 +52,11 @@ serve(async (req) => {
       response_length: responseText.length
     });
     
-    // Intentamos parsear la respuesta
     let data;
     try {
       data = JSON.parse(responseText);
       
-      // Let's extract scope information from the headers to help with debugging
+      // Extraer información de scopes del header para debugging
       const scopesHeader = response.headers.get('x-oauth-scopes');
       
       logEvent(`Análisis de respuesta de Strava exitoso (ID: ${requestId})`, {
@@ -71,6 +70,28 @@ serve(async (req) => {
         bike_count: data.bikes ? data.bikes.length : 0,
         scopes_from_header: scopesHeader || "no encontrado en headers"
       });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          logEvent(`Token expirado o inválido. Necesita actualización (ID: ${requestId})`);
+          return new Response(JSON.stringify({ 
+            error: "Authentication error",
+            message: "El token de Strava ha expirado o no es válido. Por favor, reconecta tu cuenta de Strava.",
+            need_refresh: true,
+            request_id: requestId
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 401,
+          });
+        }
+        
+        logEvent(`Error de API de Strava (ID: ${requestId})`, {
+          status: response.status,
+          message: data.message || "Error desconocido"
+        });
+        
+        throw new Error(`Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`)
+      }
       
       if (!data.bikes || data.bikes.length === 0) {
         // Si no tenemos bicicletas, intentemos obtenerlas de otra manera
@@ -108,51 +129,57 @@ serve(async (req) => {
         if (!data.bikes || data.bikes.length === 0) {
           logEvent(`Intentando extraer bicis de actividades recientes (ID: ${requestId})`);
           
-          const activitiesResponse = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=50', {
-            headers: {
-              'Authorization': `Bearer ${access_token}`,
-            },
-          });
-          
-          if (activitiesResponse.ok) {
-            const activities = await activitiesResponse.json();
+          try {
+            const activitiesResponse = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=100', {
+              headers: {
+                'Authorization': `Bearer ${access_token}`,
+              },
+            });
             
-            if (activities && Array.isArray(activities) && activities.length > 0) {
-              // Extraer IDs de bicis únicas de las actividades
-              const bikeIds = new Set();
-              const bikesMap = new Map();
+            if (activitiesResponse.ok) {
+              const activities = await activitiesResponse.json();
               
-              activities.forEach(activity => {
-                if (activity.type === 'Ride' && activity.gear_id && activity.gear_id.startsWith('b')) {
-                  bikeIds.add(activity.gear_id);
-                  if (!bikesMap.has(activity.gear_id)) {
-                    bikesMap.set(activity.gear_id, {
-                      id: activity.gear_id,
-                      name: activity.gear_name || `Bike ${activity.gear_id.substring(1, 6)}`,
-                      primary: false,
-                      distance: 0,
-                      activities: 0,
-                      type: 'Road', // Valor por defecto
-                    });
+              if (activities && Array.isArray(activities) && activities.length > 0) {
+                logEvent(`Se encontraron ${activities.length} actividades para analizar (ID: ${requestId})`);
+                
+                // Extraer IDs de bicis únicas de las actividades
+                const bikeIds = new Set();
+                const bikesMap = new Map();
+                
+                activities.forEach(activity => {
+                  if ((activity.type === 'Ride' || activity.type === 'VirtualRide') && activity.gear_id && activity.gear_id.startsWith('b')) {
+                    bikeIds.add(activity.gear_id);
+                    if (!bikesMap.has(activity.gear_id)) {
+                      bikesMap.set(activity.gear_id, {
+                        id: activity.gear_id,
+                        name: activity.gear_name || `Bike ${activity.gear_id.substring(1, 6)}`,
+                        primary: false,
+                        distance: 0,
+                        activities: 0,
+                        type: 'Road', // Valor por defecto
+                      });
+                    }
+                    
+                    // Acumular distancia y contar actividades
+                    const bikeInfo = bikesMap.get(activity.gear_id);
+                    bikeInfo.distance += activity.distance || 0;
+                    bikeInfo.activities += 1;
                   }
-                  
-                  // Acumular distancia y contar actividades
-                  const bikeInfo = bikesMap.get(activity.gear_id);
-                  bikeInfo.distance += activity.distance || 0;
-                  bikeInfo.activities += 1;
+                });
+                
+                if (bikesMap.size > 0) {
+                  // Convertir el Map a un array para data.bikes
+                  data.bikes = Array.from(bikesMap.values());
+                  logEvent(`Se extrajeron ${data.bikes.length} bicis de actividades recientes (ID: ${requestId})`);
+                } else {
+                  logEvent(`No se encontraron bicis en actividades recientes (ID: ${requestId})`);
                 }
-              });
-              
-              if (bikesMap.size > 0) {
-                // Convertir el Map a un array para data.bikes
-                data.bikes = Array.from(bikesMap.values());
-                logEvent(`Se extrajeron ${data.bikes.length} bicis de actividades recientes (ID: ${requestId})`);
-              } else {
-                logEvent(`No se encontraron bicis en actividades recientes (ID: ${requestId})`);
               }
+            } else {
+              logEvent(`Error al consultar actividades: ${activitiesResponse.status} (ID: ${requestId})`);
             }
-          } else {
-            logEvent(`Error al consultar actividades: ${activitiesResponse.status} (ID: ${requestId})`);
+          } catch (activitiesError) {
+            logEvent(`Error obteniendo actividades: ${activitiesError.message} (ID: ${requestId})`);
           }
         }
       }
@@ -186,14 +213,6 @@ serve(async (req) => {
       throw new Error(`Error parsing Strava response: ${responseText}`);
     }
 
-    if (!response.ok) {
-      logEvent(`Error de API de Strava (ID: ${requestId})`, {
-        status: response.status,
-        message: data.message || "Error desconocido"
-      });
-      throw new Error(`Strava API error: ${data.message || 'Failed to fetch athlete data'} (Status: ${response.status})`)
-    }
-
     // Add default placeholder images to bikes that don't have images
     let bikesList = data.bikes || [];
     const placeholderImages = [
@@ -211,8 +230,7 @@ serve(async (req) => {
       }
     });
 
-    // Extract only the bikes array from the athlete data
-    // Make sure we return a consistent structure even if no bikes are found
+    // Asegurarse de devolver una estructura consistente
     const result = { 
       gear: bikesList,
       message: bikesList.length > 0 

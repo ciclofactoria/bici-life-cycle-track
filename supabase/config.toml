@@ -1,6 +1,4 @@
 
-# This file contains the configuration for Supabase Functions
-
 project_id = "tyqmfhtfvrffkaqttbcf"
 
 [functions.generate-strava-auth-url]
