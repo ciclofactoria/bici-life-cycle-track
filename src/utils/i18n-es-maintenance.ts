@@ -28,6 +28,7 @@ const esMaintenance = {
   last_service: "Último Servicio",
   custom_maintenance_required: "Por favor introduce un tipo de mantenimiento personalizado",
   not_authenticated: "Usuario no autenticado",
+  user_not_authenticated: "Usuario no autenticado",
   alert_set: "Alerta configurada",
   alert_set_desc: "Se ha configurado una alerta de mantenimiento para {bikeName}",
   alert_save_failed: "No se pudo guardar la alerta de mantenimiento",

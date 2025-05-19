@@ -28,6 +28,7 @@ const enMaintenance = {
   last_service: "Last Service",
   custom_maintenance_required: "Please enter a custom maintenance type",
   not_authenticated: "User not authenticated",
+  user_not_authenticated: "User not authenticated",
   alert_set: "Alert set",
   alert_set_desc: "A maintenance alert has been set up for {bikeName}",
   alert_save_failed: "Could not save maintenance alert",
@@ -105,7 +106,6 @@ const enMaintenance = {
   scheduled_appointment: "Scheduled appointment",
   maintenance_alert: "Maintenance alert",
   no_events_for_day: "No events scheduled for this day",
-  // Fixed duplicate key: previously had 'upcoming_appointments' twice
   appointment: "Appointment",
   alert: "Alert",
   no_upcoming_appointments: "No upcoming appointments",
