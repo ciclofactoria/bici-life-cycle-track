@@ -39,8 +39,9 @@ export async function registerServiceWorker() {
 
 // Verificar si la plataforma actual es una aplicación móvil
 export function isMobileApp() {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         (window as any).Capacitor !== undefined;
+  return typeof window !== 'undefined' && 
+         (window.matchMedia('(display-mode: standalone)').matches || 
+         (window as any).Capacitor !== undefined);
 }
 
 // Comprobar citas para el día siguiente (para navegadores web)

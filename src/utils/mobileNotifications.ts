@@ -1,5 +1,6 @@
 
-import { PushNotifications } from '@capacitor/push-notifications';
+// Import the PushNotifications type only to avoid direct dependency at build time
+import type { PushNotifications } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 
 // Function to register FCM token in Supabase - will be fully implemented in the future
@@ -23,11 +24,14 @@ const saveTokenToSupabase = async (token: string) => {
 // Initialize push notifications - simplified version for development
 export async function initPushNotifications() {
   try {
-    // Check if app is running on a device with Capacitor
-    if (!(window as any).Capacitor) {
+    // Check if app is running in a Capacitor environment
+    if (typeof window === 'undefined' || !(window as any).Capacitor) {
       console.log('Push notifications require Capacitor - running in browser mode');
       return false;
     }
+    
+    // Dynamically import Capacitor plugins only when in Capacitor environment
+    const { PushNotifications } = await import('@capacitor/push-notifications');
     
     // Request permission and register for push notifications
     const result = await PushNotifications.requestPermissions();
@@ -36,7 +40,7 @@ export async function initPushNotifications() {
       await PushNotifications.register();
       
       // Register notification listeners
-      registerNotificationListeners();
+      registerNotificationListeners(PushNotifications);
       return true;
     } else {
       console.log('Push notification permission denied');
@@ -49,25 +53,25 @@ export async function initPushNotifications() {
 }
 
 // Register event listeners for notifications
-async function registerNotificationListeners() {
+async function registerNotificationListeners(PushNotifications: any) {
   // Registration success listener
-  PushNotifications.addListener('registration', async (token) => {
+  PushNotifications.addListener('registration', async (token: { value: string }) => {
     console.log('Push registration success, token:', token.value);
     await saveTokenToSupabase(token.value);
   });
   
   // Registration error listener
-  PushNotifications.addListener('registrationError', (err) => {
+  PushNotifications.addListener('registrationError', (err: { error: string }) => {
     console.error('Push registration failed:', err.error);
   });
   
   // Push notification received listener
-  PushNotifications.addListener('pushNotificationReceived', (notification) => {
+  PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
     console.log('Push notification received:', notification);
   });
   
   // Push notification action listener (when user taps notification)
-  PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+  PushNotifications.addListener('pushNotificationActionPerformed', (action: any) => {
     console.log('Push notification action performed:', action);
   });
 }
