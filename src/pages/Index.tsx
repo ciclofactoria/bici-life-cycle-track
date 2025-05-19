@@ -1,28 +1,28 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { es } from 'date-fns/locale'; // Import Spanish locale from date-fns
 import { DayPicker } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import BikeList from '@/components/BikeList';
+import BikeList from '@/components/bike/BikeList';
 import StravaRefreshButton from '@/components/strava/StravaRefreshButton';
 
 const Index: React.FC = () => {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const { language } = useLanguage();
   const navigate = useNavigate();
   const [bikes, setBikes] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-  const formattedDate = selectedDate ? format(selectedDate, "PPP", { locale: language === 'es' ? require('date-fns/locale/es') : undefined }) : '';
+  const formattedDate = selectedDate ? format(selectedDate, "PPP", { locale: language === 'es' ? es : undefined }) : '';
 
   useEffect(() => {
     if (!user) {
@@ -97,8 +97,12 @@ const Index: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">{t('my_bikes')}</h1>
-          <p className="text-gray-600">{t('welcome_message')}</p>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {language === "en" ? "My Bikes" : "Mis Bicicletas"}
+          </h1>
+          <p className="text-gray-600">
+            {language === "en" ? "Welcome to your bike dashboard" : "Bienvenido a tu panel de bicicletas"}
+          </p>
         </div>
 
         <div className="flex gap-2">
@@ -112,7 +116,7 @@ const Index: React.FC = () => {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formattedDate ? formattedDate : t('pick_date')}
+                {formattedDate ? formattedDate : (language === 'en' ? "Pick a date" : "Seleccionar fecha")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
@@ -120,7 +124,7 @@ const Index: React.FC = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                locale={language === 'es' ? 'es' : 'en'}
+                locale={language === 'es' ? es : undefined}
                 showOutsideDays
                 className="border-0 shadow-sm rounded-lg"
               />
@@ -133,18 +137,19 @@ const Index: React.FC = () => {
 
       {bikes.length > 0 ? (
         <BikeList
-          bikes={bikes}
-          onBikeUpdated={handleBikeUpdated}
-          onBikeDeleted={handleBikeDeleted}
+          bikeData={bikes}
+          isLoading={false}
+          isPremium={true}
+          onAddBike={() => {}}
         />
       ) : (
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
-            <CardTitle>{t('no_bikes_yet')}</CardTitle>
-            <CardDescription>{t('add_your_first_bike')}</CardDescription>
+            <CardTitle>{language === "en" ? "No bikes yet" : "No hay bicicletas aún"}</CardTitle>
+            <CardDescription>{language === "en" ? "Add your first bike" : "Añade tu primera bicicleta"}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>{t('you_can_add_bikes_manually')}</p>
+            <p>{language === "en" ? "You can add bikes manually" : "Puedes añadir bicicletas manualmente"}</p>
           </CardContent>
         </Card>
       )}

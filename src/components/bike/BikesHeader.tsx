@@ -1,6 +1,6 @@
 
 import React from 'react';
-import StravaRefreshButton from '@/components/StravaRefreshButton';
+import StravaRefreshButton from '@/components/strava/StravaRefreshButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { t } from '@/utils/i18n';
 
