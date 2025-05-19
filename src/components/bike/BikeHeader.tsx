@@ -2,6 +2,8 @@
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BikeSettings } from "./BikeSettings";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/utils/i18n";
 
 interface BikeHeaderProps {
   image: string;
@@ -22,6 +24,8 @@ const BikeHeader = ({
   onEdit,
   bikeId
 }: BikeHeaderProps) => {
+  const { language } = useLanguage();
+  
   return (
     <div className="relative">
       <div className="h-48 bg-gray-200">
@@ -47,7 +51,7 @@ const BikeHeader = ({
             className="bg-secondary/90 hover:bg-secondary"
             onClick={onEdit}
           >
-            Editar
+            {t("edit", language)}
           </Button>
           <div className="bg-secondary/90 hover:bg-secondary rounded-md">
             <BikeSettings bikeId={bikeId} />

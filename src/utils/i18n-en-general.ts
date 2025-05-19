@@ -1,3 +1,4 @@
+
 const enGeneral = {
   more_title: "More",
   actions: "Actions",
@@ -51,6 +52,14 @@ const enGeneral = {
   my_bikes: "My Bikes",
   sync_with_strava: "Sync with Strava",
   syncing: "Syncing...",
+  premium_popup_title: "Premium Feature",
+  strava_sync_premium_desc: "Strava synchronization is a premium feature. Upgrade to premium to unlock all features.",
+  multiple_bikes: "Multiple bikes",
+  auto_strava_sync: "Automatic Strava sync",
+  import_strava_bikes: "Import bikes from Strava",
+  advanced_stats: "Advanced statistics",
+  maintenance_export: "Export maintenance history",
+  custom_alerts: "Custom alerts",
 };
 
 export default enGeneral;
