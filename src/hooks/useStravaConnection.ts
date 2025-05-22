@@ -91,7 +91,9 @@ export function useStravaConnection() {
         console.log('Generando URL de autenticación de Strava...');
         const { data, error } = await supabase.functions.invoke('generate-strava-auth-url', {
           body: {
-            redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback'
+            redirect_uri: 'https://bici-life-cycle-track.lovable.app/strava-callback',
+            // Usar un timestamp para evitar problemas de caché
+            timestamp: Date.now()
           }
         });
         

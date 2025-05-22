@@ -62,13 +62,18 @@ serve(async (req) => {
     // Usar el redirect_uri proporcionado o el predeterminado
     const redirectUri = body.redirect_uri || 'https://bici-life-cycle-track.lovable.app/strava-callback';
     
-    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`;
+    // Añadir un parámetro timestamp para evitar problemas de caché en la redirección
+    const timestamp = body.timestamp || Date.now();
+    
+    // Añadir approval_prompt=force para asegurar que Strava siempre muestre la pantalla de autorización
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&approval_prompt=force&_t=${timestamp}`;
     
     logEvent(`URL de autenticación de Strava generada`, {
       requestId,
       clientId,
       redirectUri,
-      scope
+      scope,
+      timestamp
     });
     
     return new Response(
