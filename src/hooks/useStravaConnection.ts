@@ -107,13 +107,28 @@ export function useStravaConnection() {
         
         console.log('Redirigiendo a página de autorización de Strava:', data.authUrl);
         
-        // Abrimos en la misma ventana para asegurar el manejo correcto de la redirección
-        window.location.href = data.authUrl;
+        // Usar window.open para abrir en una nueva ventana/pestaña
+        // Esto garantiza que se abra en el navegador por defecto
+        const stravaWindow = window.open(data.authUrl, '_blank', 'noopener,noreferrer');
+        
+        if (!stravaWindow) {
+          // Si el navegador bloquea la ventana emergente, intentar con redirección directa
+          window.location.href = data.authUrl;
+        }
         
         toast({
           title: t("connecting_strava", language),
-          description: t("redirecting_strava", language),
+          description: language === "en" ? 
+            "Redirecting to Strava authorization page in a new window" : 
+            "Redirigiendo a la página de autorización de Strava en una nueva ventana",
         });
+        
+        // No cambiamos el estado isConnecting a false aquí, ya que el usuario
+        // debe completar el proceso en la ventana externa
+        setTimeout(() => {
+          setIsConnecting(false);
+        }, 3000);
+        
       } catch (err) {
         console.error('Error generando URL de Strava:', err);
         toast({

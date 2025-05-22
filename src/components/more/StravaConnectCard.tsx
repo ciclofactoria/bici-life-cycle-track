@@ -15,6 +15,7 @@ import { StravaConnectionStatus } from './strava/StravaConnectionStatus';
 import { StravaConnectButton } from './strava/StravaConnectButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
 
 export const StravaConnectCard = () => {
   const { language } = useLanguage();
@@ -65,6 +66,30 @@ export const StravaConnectCard = () => {
               "Connect with Strava to automatically import your bikes and track your mileage." : 
               "Conecta con Strava para importar tus bicicletas automáticamente y seguir tu kilometraje."}
           </p>
+
+          <div className="bg-blue-50 p-3 rounded-md mb-4 text-xs text-blue-700">
+            <div className="flex items-start gap-2">
+              <ExternalLink size={16} className="mt-0.5 flex-shrink-0" />
+              <p>
+                {language === "en" ? 
+                  "The connection to Strava opens in your external browser. You'll need to authorize access in your browser and return to the app." : 
+                  "La conexión a Strava se abre en tu navegador externo. Necesitarás autorizar el acceso en tu navegador y volver a la aplicación."}
+              </p>
+            </div>
+          </div>
+          
+          {!isStravaConnected && (
+            <div className="bg-amber-50 p-3 rounded-md mb-4 text-xs text-amber-700">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+                <p>
+                  {language === "en" ? 
+                    "If you're asked for a verification code by email, check your spam folder. This is part of Strava's security process." :
+                    "Si Strava te solicita un código de verificación por correo electrónico, revisa tu carpeta de spam. Esto es parte del proceso de seguridad de Strava."}
+                </p>
+              </div>
+            </div>
+          )}
 
           <StravaConnectButton 
             isConnected={!!isStravaConnected}
