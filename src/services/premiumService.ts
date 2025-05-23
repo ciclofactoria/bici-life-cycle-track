@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 export interface SubscriptionStatus {
   isPremium: boolean;
@@ -163,8 +162,7 @@ export const handlePremiumDowngrade = async (userId: string): Promise<void> => {
       }
       
       // Notificar al usuario sobre lo que ha ocurrido
-      toast({
-        title: "Tu plan premium ha caducado",
+      toast("Tu plan premium ha caducado", {
         description: "Tus bicicletas adicionales han sido archivadas. Puedes recuperarlas si renuevas tu suscripción premium.",
         variant: "destructive",
       });
@@ -205,8 +203,7 @@ export const usePremiumFeatures = () => {
       );
       
       if (result) {
-        toast({
-          title: "¡Estado premium verificado!",
+        toast("¡Estado premium verificado!", {
           description: "Tu cuenta ha sido actualizada a premium.",
         });
         
@@ -215,8 +212,7 @@ export const usePremiumFeatures = () => {
         console.log("Nuevo estado premium tras verificación:", premiumStatus);
         setStatus(premiumStatus);
       } else {
-        toast({
-          title: "No se encontró suscripción premium",
+        toast("No se encontró suscripción premium", {
           description: "No se encontró una suscripción premium activa en tu cuenta de WordPress.",
           variant: "destructive",
         });

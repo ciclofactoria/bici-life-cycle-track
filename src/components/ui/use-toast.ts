@@ -4,12 +4,13 @@ import { toast as sonnerToast, type ToastT } from "sonner";
 
 // Make our ExtendedToastT type compatible with sonner's toast options
 // but make the 'id' property optional since sonner will generate it
-type ExtendedToastOptions = Partial<ToastT> & {
+export type ExtendedToastOptions = Partial<ToastT> & {
   variant?: "default" | "destructive" | "warning";
   description?: string;
+  title?: string;
 };
 
-// Personalizamos la función toast para soportar nuestra propiedad variant
+// Customize the toast function to support our variant and title/description properties
 export const toast = (
   message: string, 
   options?: ExtendedToastOptions
