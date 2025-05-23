@@ -22,7 +22,7 @@ export function useStravaDisconnect() {
         toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
           description: language === "en" ? 
             "Please log in to disconnect from Strava" : 
-            "Por favor inicia sesión para desconectar de Strava",
+            "Por favor inicia sesión para desconectar de Strava"
         });
         
         // Redirect to auth page
@@ -47,14 +47,14 @@ export function useStravaDisconnect() {
       if (error) throw error;
       
       toast(t("strava_disconnected", language), {
-        description: t("strava_disconnect_success", language),
+        description: t("strava_disconnect_success", language)
       });
 
       return { success: true };
     } catch (err) {
       console.error('Error al desconectar Strava:', err);
       toast(t('error', language), {
-        description: t('strava_disconnect_error', language),
+        description: t('strava_disconnect_error', language)
       });
       return { success: false };
     } finally {

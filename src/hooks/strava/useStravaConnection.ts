@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
 import { usePremiumFeatures } from '@/services/premiumService';
@@ -31,8 +31,7 @@ export function useStravaConnection() {
     try {
       // Verificar que el usuario esté autenticado
       if (!user) {
-        toast({
-          title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+        toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
           description: language === "en" ? 
             "Please log in to connect with Strava" : 
             "Por favor inicia sesión para conectar con Strava",
@@ -46,9 +45,8 @@ export function useStravaConnection() {
       
       // Si el usuario está cargando el estado premium, esperar un momento
       if (isPremiumLoading) {
-        toast({
-          title: t('verifying_premium', language),
-          description: t('wait_verifying_subscription', language),
+        toast(t('verifying_premium', language), {
+          description: t('wait_verifying_subscription', language)
         });
         // Esperar un breve periodo para dar tiempo a cargar el estado premium
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -56,10 +54,9 @@ export function useStravaConnection() {
       
       // Verificar si el usuario es premium para conectar con Strava
       if (!isPremium) {
-        toast({
-          title: t('premium_feature', language),
+        toast(t('premium_feature', language), {
           description: t('strava_premium_only', language),
-          variant: 'destructive',
+          variant: 'destructive'
         });
         return;
       }
@@ -68,10 +65,9 @@ export function useStravaConnection() {
       
     } catch (err) {
       console.error('Error al iniciar autenticación con Strava:', err);
-      toast({
-        title: t('error', language),
+      toast(t('error', language), {
         description: t('strava_auth_start_error', language),
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };

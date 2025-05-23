@@ -29,7 +29,7 @@ export const SettingsCard = () => {
     setLoading(true);
     setTimeout(() => {
       toast(t("profile_updated", language), {
-        description: t("name_changed", language),
+        description: t("name_changed", language)
       });
       setEditing(false);
       setLoading(false);
@@ -40,7 +40,7 @@ export const SettingsCard = () => {
     setLoading(true);
     setTimeout(() => {
       toast(t("settings_saved", language), {
-        description: t("preferences_updated", language),
+        description: t("preferences_updated", language)
       });
       setLoading(false);
     }, 700);

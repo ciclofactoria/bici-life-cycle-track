@@ -12,7 +12,7 @@ export function useStravaErrorHandler() {
     
     toast(title || 'Error de Strava', {
       description: errorMessage,
-      // La propiedad variant ahora es compatible con nuestro toast personalizado
+      variant: "destructive"
     });
   };
 

@@ -12,7 +12,7 @@ export const useMaintenanceExport = () => {
     // Verificar si el usuario es premium antes de exportar
     if (!isPremium) {
       toast("Función premium", {
-        description: 'Las exportaciones a Excel están disponibles solo para usuarios premium',
+        description: 'Las exportaciones a Excel están disponibles solo para usuarios premium'
       });
       return;
     }
@@ -20,12 +20,12 @@ export const useMaintenanceExport = () => {
     try {
       generateMaintenanceExcel(bike, maintenance);
       toast("Exportado con éxito", {
-        description: "El historial de mantenimiento se ha exportado a Excel",
+        description: "El historial de mantenimiento se ha exportado a Excel"
       });
     } catch (error) {
       console.error('Error exporting to Excel:', error);
       toast("Error", {
-        description: "No se pudo exportar el historial",
+        description: "No se pudo exportar el historial"
       });
     }
   };

@@ -33,13 +33,13 @@ export const useBikeAppointments = (bikeId: string | null, bikeName: string | un
       if (error) throw error;
 
       toast("Cita programada", {
-        description: "La cita ha sido programada correctamente",
+        description: "La cita ha sido programada correctamente"
       });
 
     } catch (error) {
       console.error('Error setting next appointment:', error);
       toast("Error", {
-        description: "No se pudo programar la cita",
+        description: "No se pudo programar la cita"
       });
     }
   };

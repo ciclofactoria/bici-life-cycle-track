@@ -27,13 +27,13 @@ export const ActionCards = () => {
   const handleExportFullHistory = async () => {
     if (!user) {
       toast(t("error", language), {
-        description: t("login_to_export", language),
+        description: t("login_to_export", language)
       });
       return;
     }
     if (!isPremium) {
       toast(t("premium", language), {
-        description: t('excel_exports_premium', language),
+        description: t('excel_exports_premium', language)
       });
       return;
     }
@@ -41,12 +41,12 @@ export const ActionCards = () => {
     try {
       await generateFullMaintenanceExcel(user.id);
       toast(t("export_success", language), {
-        description: t("full_history_exported", language),
+        description: t("full_history_exported", language)
       });
     } catch (error) {
       console.error("Error exportando historial completo:", error);
       toast(t("error", language), {
-        description: t("export_error", language),
+        description: t("export_error", language)
       });
     } finally {
       setIsExporting(false);

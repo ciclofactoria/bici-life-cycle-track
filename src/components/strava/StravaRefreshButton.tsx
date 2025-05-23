@@ -36,10 +36,10 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const handleClick = () => {
     // Verificar si el usuario está autenticado antes de proceder
     if (!user) {
-      toast("Autenticación Requerida", {
+      toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
         description: language === "en" ? 
           "Please log in to sync with Strava" : 
-          "Debes estar autenticado para sincronizar con Strava",
+          "Debes estar autenticado para sincronizar con Strava"
       });
       return;
     }

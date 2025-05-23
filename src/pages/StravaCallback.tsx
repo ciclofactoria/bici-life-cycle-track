@@ -43,7 +43,7 @@ const StravaCallback = () => {
           const errorMsg = handleAuthError(errorParam);
           setError(errorMsg);
           toast('Error de Strava', {
-            description: errorMsg,
+            description: errorMsg
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -53,7 +53,7 @@ const StravaCallback = () => {
           const errorMsg = handleMissingCode();
           setError(errorMsg);
           toast('Código ausente', {
-            description: errorMsg,
+            description: errorMsg
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -63,7 +63,7 @@ const StravaCallback = () => {
           const errorMsg = handleMissingUser();
           setError(errorMsg);
           toast('Sesión no encontrada', {
-            description: errorMsg,
+            description: errorMsg
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -109,7 +109,7 @@ const StravaCallback = () => {
             });
             
             toast('¡Conexión exitosa!', {
-              description: `Se importaron ${stravaAuthData.importedBikes || 0} bicicletas de Strava.`,
+              description: `Se importaron ${stravaAuthData.importedBikes || 0} bicicletas de Strava.`
             });
             
             setTimeout(() => {
@@ -133,7 +133,7 @@ const StravaCallback = () => {
         if (callbackError) {
           setError(callbackError);
           toast('Error', {
-            description: callbackError,
+            description: callbackError
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -144,18 +144,18 @@ const StravaCallback = () => {
         
         if (callbackResult && callbackResult.totalBikes > 0) {
           toast('¡Conexión exitosa!', {
-            description: `Se importaron ${callbackResult.totalBikes} bicicletas de Strava.`,
+            description: `Se importaron ${callbackResult.totalBikes} bicicletas de Strava.`
           });
         } else {
           const hasProfileReadAll = callbackResult?.scopes?.includes('profile:read_all');
           
           if (!hasProfileReadAll) {
             toast('No se encontraron bicicletas', {
-              description: 'No se pudieron importar bicicletas. Faltan permisos necesarios. Intenta volver a conectar con Strava.',
+              description: 'No se pudieron importar bicicletas. Faltan permisos necesarios. Intenta volver a conectar con Strava.'
             });
           } else {
             toast('Conexión con Strava completada', {
-              description: 'No se encontraron bicicletas para importar. Prueba a usar tus bicicletas en actividades en Strava.',
+              description: 'No se encontraron bicicletas para importar. Prueba a usar tus bicicletas en actividades en Strava.'
             });
           }
         }

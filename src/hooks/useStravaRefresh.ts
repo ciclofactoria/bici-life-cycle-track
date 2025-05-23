@@ -57,7 +57,7 @@ export function useStravaRefresh({
           "Debes estar autenticado para sincronizar con Strava";
         
         toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
-          description: errorMsg,
+          description: errorMsg
         });
         
         onError(errorMsg);
@@ -100,7 +100,7 @@ export function useStravaRefresh({
           "Primero debes conectar tu cuenta de Strava en la sección 'Más'";
           
         toast(language === "en" ? "No Strava Connection" : "No hay conexión con Strava", {
-          description: errorMsg,
+          description: errorMsg
         });
         
         onError(errorMsg);
@@ -138,7 +138,7 @@ export function useStravaRefresh({
           toast(language === "en" ? "No Bikes Found" : "Sin bicicletas", {
             description: language === "en" ? 
               "No bikes were found in your Strava account" : 
-              "No se encontraron bicicletas en tu cuenta de Strava",
+              "No se encontraron bicicletas en tu cuenta de Strava"
           });
           onComplete();
           setIsLoading(false);

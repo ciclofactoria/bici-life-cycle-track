@@ -28,14 +28,14 @@ export const DeleteMaintenanceButton: React.FC<Props> = ({ maintenanceId, onDele
       }
 
       toast("Borrado", {
-        description: "Registro eliminado correctamente",
+        description: "Registro eliminado correctamente"
       });
       
       if (onDeleted) onDeleted();
       else window.location.reload();
     } catch {
       toast("Error", {
-        description: "No se pudo borrar el registro",
+        description: "No se pudo borrar el registro"
       });
     } finally {
       setLoading(false);

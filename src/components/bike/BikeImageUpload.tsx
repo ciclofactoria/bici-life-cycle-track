@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BikeImageUploadProps {
@@ -9,7 +9,6 @@ interface BikeImageUploadProps {
 }
 
 const BikeImageUpload = ({ currentImage, onImageChange }: BikeImageUploadProps) => {
-  const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,19 +20,15 @@ const BikeImageUpload = ({ currentImage, onImageChange }: BikeImageUploadProps) 
     const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     
     if (!fileExt || !allowedExtensions.includes(fileExt)) {
-      toast({
-        title: "Formato no válido",
-        description: "Por favor sube una imagen en formato jpg, png, gif o webp",
-        variant: "destructive",
+      toast("Formato no válido", {
+        description: "Por favor sube una imagen en formato jpg, png, gif o webp"
       });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Archivo muy grande",
-        description: "El tamaño máximo permitido es 5MB",
-        variant: "destructive",
+      toast("Archivo muy grande", {
+        description: "El tamaño máximo permitido es 5MB"
       });
       return;
     }
@@ -57,16 +52,13 @@ const BikeImageUpload = ({ currentImage, onImageChange }: BikeImageUploadProps) 
         onImageChange(publicUrl.publicUrl);
       }
 
-      toast({
-        title: "Imagen subida",
-        description: "La imagen se ha subido correctamente",
+      toast("Imagen subida", {
+        description: "La imagen se ha subido correctamente"
       });
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo subir la imagen",
-        variant: "destructive",
+      toast("Error", {
+        description: "No se pudo subir la imagen"
       });
     } finally {
       setIsUploading(false);

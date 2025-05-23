@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface ResetPasswordDialogProps {
   open: boolean;
@@ -22,14 +22,11 @@ const ResetPasswordDialog = ({
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { resetPassword } = useAuth();
-  const { toast } = useToast();
 
   const handleResetPassword = async () => {
     if (!email) {
-      toast({
-        title: "Error",
-        description: "Por favor, introduce tu email",
-        variant: "destructive"
+      toast("Error", {
+        description: "Por favor, introduce tu email"
       });
       return;
     }
@@ -39,16 +36,13 @@ const ResetPasswordDialog = ({
     const { error } = await resetPassword(email);
     
     if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
+      toast("Error", {
+        description: error.message
       });
     } else {
       setResetEmailSent(true);
-      toast({
-        title: "Email enviado",
-        description: "Se ha enviado un email con las instrucciones para restablecer tu contraseña",
+      toast("Email enviado", {
+        description: "Se ha enviado un email con las instrucciones para restablecer tu contraseña"
       });
       setTimeout(() => {
         onOpenChange(false);

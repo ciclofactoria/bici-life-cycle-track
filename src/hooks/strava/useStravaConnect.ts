@@ -43,13 +43,13 @@ export function useStravaConnect() {
       window.location.href = data.authUrl;
       
       toast(t("connecting_strava", language), {
-        description: t("redirecting_strava", language),
+        description: t("redirecting_strava", language)
       });
       
     } catch (err) {
       console.error('Error generando URL de Strava:', err);
       toast(t('error', language), {
-        description: t('strava_auth_url_error', language),
+        description: t('strava_auth_url_error', language)
       });
     } finally {
       setIsConnecting(false);
