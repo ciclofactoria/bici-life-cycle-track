@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast'; 
+import { toast } from '@/components/ui/use-toast'; 
 import { useStravaRefresh } from '@/hooks/useStravaRefresh';
 import { StravaPremiumDialog } from './dialogs/StravaPremiumDialog';
 import { StravaErrorDialog } from './dialogs/StravaErrorDialog';
@@ -19,7 +19,6 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const [errorMessage, setErrorMessage] = useState("");
   const { language } = useLanguage();
   const { user } = useAuth();
-  const { toast } = useToast();
   
   const { 
     isLoading, 
@@ -37,12 +36,10 @@ const StravaRefreshButton: React.FC<StravaRefreshButtonProps> = ({ onRefreshComp
   const handleClick = () => {
     // Verificar si el usuario está autenticado antes de proceder
     if (!user) {
-      toast({
-        title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+      toast("Autenticación Requerida", {
         description: language === "en" ? 
           "Please log in to sync with Strava" : 
           "Debes estar autenticado para sincronizar con Strava",
-        variant: "destructive"
       });
       return;
     }

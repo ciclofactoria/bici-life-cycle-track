@@ -12,10 +12,8 @@ export const useBikeAppointments = (bikeId: string | null, bikeName: string | un
       // Obtener el ID del usuario actual
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session?.user?.id) {
-        toast({
-          title: "Error",
-          description: "Usuario no autenticado",
-          variant: "destructive"
+        toast("Error", {
+          description: "Usuario no autenticado"
         });
         return;
       }
@@ -34,17 +32,14 @@ export const useBikeAppointments = (bikeId: string | null, bikeName: string | un
 
       if (error) throw error;
 
-      toast({
-        title: "Cita programada",
+      toast("Cita programada", {
         description: "La cita ha sido programada correctamente",
       });
 
     } catch (error) {
       console.error('Error setting next appointment:', error);
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "No se pudo programar la cita",
-        variant: "destructive"
       });
     }
   };

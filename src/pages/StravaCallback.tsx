@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -18,7 +18,6 @@ import { StravaSuccess } from '@/components/strava/StravaSuccess';
 const StravaCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('Iniciando conexión...');
@@ -43,10 +42,8 @@ const StravaCallback = () => {
         if (errorParam) {
           const errorMsg = handleAuthError(errorParam);
           setError(errorMsg);
-          toast({
-            title: 'Error de Strava',
+          toast('Error de Strava', {
             description: errorMsg,
-            variant: 'destructive',
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -55,10 +52,8 @@ const StravaCallback = () => {
         if (!code) {
           const errorMsg = handleMissingCode();
           setError(errorMsg);
-          toast({
-            title: 'Código ausente',
+          toast('Código ausente', {
             description: errorMsg,
-            variant: 'destructive',
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -67,10 +62,8 @@ const StravaCallback = () => {
         if (!user) {
           const errorMsg = handleMissingUser();
           setError(errorMsg);
-          toast({
-            title: 'Sesión no encontrada',
+          toast('Sesión no encontrada', {
             description: errorMsg,
-            variant: 'destructive',
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -115,8 +108,7 @@ const StravaCallback = () => {
               scopes: scope || ''
             });
             
-            toast({
-              title: '¡Conexión exitosa!',
+            toast('¡Conexión exitosa!', {
               description: `Se importaron ${stravaAuthData.importedBikes || 0} bicicletas de Strava.`,
             });
             
@@ -140,10 +132,8 @@ const StravaCallback = () => {
         
         if (callbackError) {
           setError(callbackError);
-          toast({
-            title: 'Error',
+          toast('Error', {
             description: callbackError,
-            variant: 'destructive',
           });
           setTimeout(() => navigate('/more'), 3000);
           return;
@@ -153,22 +143,18 @@ const StravaCallback = () => {
         setResult(callbackResult);
         
         if (callbackResult && callbackResult.totalBikes > 0) {
-          toast({
-            title: '¡Conexión exitosa!',
+          toast('¡Conexión exitosa!', {
             description: `Se importaron ${callbackResult.totalBikes} bicicletas de Strava.`,
           });
         } else {
           const hasProfileReadAll = callbackResult?.scopes?.includes('profile:read_all');
           
           if (!hasProfileReadAll) {
-            toast({
-              title: 'No se encontraron bicicletas',
+            toast('No se encontraron bicicletas', {
               description: 'No se pudieron importar bicicletas. Faltan permisos necesarios. Intenta volver a conectar con Strava.',
-              variant: 'destructive',
             });
           } else {
-            toast({
-              title: 'Conexión con Strava completada',
+            toast('Conexión con Strava completada', {
               description: 'No se encontraron bicicletas para importar. Prueba a usar tus bicicletas en actividades en Strava.',
             });
           }
@@ -187,7 +173,7 @@ const StravaCallback = () => {
     };
 
     processCallback();
-  }, [searchParams, navigate, toast, user]);
+  }, [searchParams, navigate, user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

@@ -1,5 +1,5 @@
 
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Hook para manejar errores de Strava de forma consistente
@@ -9,11 +9,10 @@ export function useStravaErrorHandler() {
     console.error('Error de Strava:', error);
     
     const errorMessage = error?.message || 'Error desconocido con Strava';
-    const errorTitle = title || 'Error de Strava';
     
-    toast(errorTitle, {
+    toast(title || 'Error de Strava', {
       description: errorMessage,
-      variant: 'destructive',
+      // La propiedad variant ahora es compatible con nuestro toast personalizado
     });
   };
 

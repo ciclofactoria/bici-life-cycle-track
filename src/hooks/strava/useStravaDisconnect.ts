@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +23,6 @@ export function useStravaDisconnect() {
           description: language === "en" ? 
             "Please log in to disconnect from Strava" : 
             "Por favor inicia sesión para desconectar de Strava",
-          variant: "destructive"
         });
         
         // Redirect to auth page
@@ -56,7 +55,6 @@ export function useStravaDisconnect() {
       console.error('Error al desconectar Strava:', err);
       toast(t('error', language), {
         description: t('strava_disconnect_error', language),
-        variant: 'destructive',
       });
       return { success: false };
     } finally {

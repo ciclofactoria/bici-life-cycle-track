@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getStravaBikes, importBikesToDatabase, refreshStravaToken } from '@/services/stravaService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,10 +56,8 @@ export function useStravaRefresh({
           "You must be logged in to sync with Strava" : 
           "Debes estar autenticado para sincronizar con Strava";
         
-        toast({
-          title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+        toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
           description: errorMsg,
-          variant: "destructive"
         });
         
         onError(errorMsg);
@@ -101,10 +99,8 @@ export function useStravaRefresh({
           "You must connect your Strava account first in the 'More' section" : 
           "Primero debes conectar tu cuenta de Strava en la sección 'Más'";
           
-        toast({
-          title: language === "en" ? "No Strava Connection" : "No hay conexión con Strava",
+        toast(language === "en" ? "No Strava Connection" : "No hay conexión con Strava", {
           description: errorMsg,
-          variant: "destructive"
         });
         
         onError(errorMsg);
@@ -139,12 +135,10 @@ export function useStravaRefresh({
         
         if (!bikes || bikes.length === 0) {
           console.log("No se encontraron bicicletas en Strava");
-          toast({
-            title: language === "en" ? "No Bikes Found" : "Sin bicicletas",
+          toast(language === "en" ? "No Bikes Found" : "Sin bicicletas", {
             description: language === "en" ? 
               "No bikes were found in your Strava account" : 
               "No se encontraron bicicletas en tu cuenta de Strava",
-            variant: "default"
           });
           onComplete();
           setIsLoading(false);
@@ -156,8 +150,7 @@ export function useStravaRefresh({
         // Importar bicicletas a la base de datos
         const importedCount = await importBikesToDatabase(user.id, bikes);
         
-        toast({
-          title: language === "en" ? "Sync Complete" : "Sincronización completada",
+        toast(language === "en" ? "Sync Complete" : "Sincronización completada", {
           description: language === "en" ? 
             `${importedCount} bikes have been imported/updated from Strava` : 
             `Se han importado/actualizado ${importedCount} bicicletas desde Strava`

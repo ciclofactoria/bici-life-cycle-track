@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useNavigate } from 'react-router-dom';
@@ -42,17 +42,14 @@ export function useStravaConnect() {
       // Abrimos en la misma ventana para asegurar el manejo correcto de la redirección
       window.location.href = data.authUrl;
       
-      toast({
-        title: t("connecting_strava", language),
+      toast(t("connecting_strava", language), {
         description: t("redirecting_strava", language),
       });
       
     } catch (err) {
       console.error('Error generando URL de Strava:', err);
-      toast({
-        title: t('error', language),
+      toast(t('error', language), {
         description: t('strava_auth_url_error', language),
-        variant: 'destructive',
       });
     } finally {
       setIsConnecting(false);
