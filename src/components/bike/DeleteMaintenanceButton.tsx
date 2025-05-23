@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -12,7 +12,6 @@ interface Props {
 
 export const DeleteMaintenanceButton: React.FC<Props> = ({ maintenanceId, onDeleted }) => {
   const [loading, setLoading] = React.useState(false);
-  const { toast } = useToast();
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();

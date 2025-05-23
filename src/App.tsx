@@ -10,6 +10,7 @@ import StravaCallback from './pages/StravaCallback';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import PremiumProvider from './services/PremiumProvider';
+import { Toaster } from './components/ui/toaster';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               {/* Asegurándonos de que la ruta al StravaCallback está incluida */}
               <Route path="/strava-callback" element={<StravaCallback />} />
             </Routes>
+            <Toaster />
           </PremiumProvider>
         </LanguageProvider>
       </AuthProvider>

@@ -1,10 +1,9 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { generateMaintenanceExcel } from '@/utils/excelGenerator';
 import { usePremiumFeatures } from '@/services/premiumService';
 
 export const useMaintenanceExport = () => {
-  const { toast } = useToast();
   const { isPremium } = usePremiumFeatures();
 
   const handleExportExcel = (bike: any, maintenance: any[]) => {

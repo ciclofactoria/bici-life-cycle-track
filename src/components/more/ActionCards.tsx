@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Archive, FileText, ChevronRight } from 'lucide-react';
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { usePremiumFeatures } from '@/services/premiumService';
 import { generateFullMaintenanceExcel } from '@/utils/excelGenerator';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,7 +19,6 @@ import { t } from "@/utils/i18n";
 
 export const ActionCards = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const { isPremium, loading: isPremiumLoading } = usePremiumFeatures();
   const { language } = useLanguage();

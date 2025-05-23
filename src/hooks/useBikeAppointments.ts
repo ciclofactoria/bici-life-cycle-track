@@ -1,12 +1,10 @@
 
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useBikeAppointments = (bikeId: string | null, bikeName: string | undefined) => {
-  const { toast } = useToast();
-
   const handleSetNextAppointment = async (date: Date | undefined, notes: string) => {
     if (!bikeId || !date) return;
 
