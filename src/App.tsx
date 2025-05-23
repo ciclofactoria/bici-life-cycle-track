@@ -1,97 +1,34 @@
-
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Index from './pages/Index';
-import BikeDetail from './pages/BikeDetail';
-import ArchivedBikes from './pages/ArchivedBikes';
+import Home from './pages/Home';
 import Calendar from './pages/Calendar';
-import More from './pages/More';
 import Summary from './pages/Summary';
+import More from './pages/More';
 import Auth from './pages/Auth';
 import StravaCallback from './pages/StravaCallback';
-import AuthCallback from './pages/AuthCallback';
-import PremiumInfo from './pages/PremiumInfo';
-import NotFound from './pages/NotFound';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { Toaster } from './components/ui/toaster';
-import { Toaster as SonnerToaster } from './components/ui/sonner';
-import ProtectedRoute from './components/ProtectedRoute';
-import { ToastProvider } from './hooks/use-toast';
+import { PremiumProvider } from './services/premiumService';
 
 function App() {
   return (
-    <Router>
+    <AuthProvider>
       <LanguageProvider>
-        <ToastProvider>
-          <AuthProvider>
+        <PremiumProvider>
+          <Router>
             <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/summary" element={<Summary />} />
+              <Route path="/more" element={<More />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
+              {/* Asegurándonos de que la ruta al StravaCallback está incluida */}
               <Route path="/strava-callback" element={<StravaCallback />} />
-              <Route path="*" element={<NotFound />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/bike/:id"
-                element={
-                  <ProtectedRoute>
-                    <BikeDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/archived"
-                element={
-                  <ProtectedRoute>
-                    <ArchivedBikes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/calendar"
-                element={
-                  <ProtectedRoute>
-                    <Calendar />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/summary"
-                element={
-                  <ProtectedRoute>
-                    <Summary />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/more"
-                element={
-                  <ProtectedRoute>
-                    <More />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/premium"
-                element={
-                  <ProtectedRoute>
-                    <PremiumInfo />
-                  </ProtectedRoute>
-                }
-              />
             </Routes>
-            <Toaster />
-            <SonnerToaster />
-          </AuthProvider>
-        </ToastProvider>
+          </Router>
+        </PremiumProvider>
       </LanguageProvider>
-    </Router>
+    </AuthProvider>
   );
 }
 

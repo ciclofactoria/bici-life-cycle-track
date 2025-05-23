@@ -1,57 +1,40 @@
 
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import React from 'react';
+import { CheckCircle } from 'lucide-react';
+import type { StravaImportResult } from '@/services/stravaService/callbackProcessor';
 
 interface StravaSuccessProps {
-  result: {
-    totalBikes: number;
-    fromAthlete: number;
-    fromActivities: number;
-    scopes?: string;
-  };
+  result: StravaImportResult;
 }
 
-export const StravaSuccess = ({ result }: StravaSuccessProps) => {
+export const StravaSuccess: React.FC<StravaSuccessProps> = ({ result }) => {
   return (
-    <div className="mt-4 mb-4">
-      <Alert className={result.totalBikes > 0 ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"}>
-        <AlertTitle className={result.totalBikes > 0 ? "text-green-800" : "text-amber-800"}>
-          {result.totalBikes > 0 ? "Conexión exitosa con Strava" : "Conexión realizada con Strava"}
-        </AlertTitle>
-        <AlertDescription>
-          <div className={result.totalBikes > 0 ? "mt-2 text-green-700" : "mt-2 text-amber-700"}>
-            {result.totalBikes > 0 ? (
-              <>
-                <p className="font-medium">Se importaron {result.totalBikes} bicicletas:</p>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  {result.fromAthlete > 0 && (
-                    <li>{result.fromAthlete} desde perfil de atleta</li>
-                  )}
-                  {result.fromActivities > 0 && (
-                    <li>{result.fromActivities} desde actividades recientes</li>
-                  )}
-                </ul>
-              </>
-            ) : (
-              <>
-                <p>No se encontraron bicicletas para importar en tu cuenta de Strava.</p>
-                {result.scopes && !result.scopes.includes('profile:read_all') && (
-                  <div className="mt-2 p-2 bg-amber-100 rounded border border-amber-300">
-                    <p className="font-medium">⚠️ Faltan permisos necesarios</p>
-                    <p className="text-sm mt-1">
-                      No se ha autorizado el permiso para leer el perfil completo (profile:read_all).
-                      Este permiso es necesario para acceder a tus bicicletas.
-                    </p>
-                    <p className="text-sm mt-1">
-                      Por favor, desconecta y vuelve a conectar con Strava asegurándote de autorizar todos los permisos.
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-            <p className="mt-2">Redirigiendo a la página principal...</p>
+    <div className="flex flex-col items-center justify-center py-6">
+      <div className="bg-green-100 rounded-full p-3 mb-4">
+        <CheckCircle className="h-8 w-8 text-green-500" />
+      </div>
+      <h2 className="text-lg font-medium text-green-700 mb-2">¡Conexión exitosa!</h2>
+      
+      {result.totalBikes > 0 ? (
+        <div className="text-center">
+          <p className="text-gray-700">
+            Se importaron <span className="font-medium">{result.totalBikes}</span> bicicletas desde Strava.
+          </p>
+          <div className="text-sm text-gray-600 mt-2">
+            <p>• {result.fromAthlete} desde perfil de atleta</p>
+            <p>• {result.fromActivities} desde actividades</p>
           </div>
-        </AlertDescription>
-      </Alert>
+        </div>
+      ) : (
+        <p className="text-gray-600 text-center">
+          Conexión completada pero no se encontraron bicicletas para importar. 
+          Prueba a usar tus bicicletas en actividades en Strava.
+        </p>
+      )}
+      
+      <p className="text-sm text-gray-500 mt-4">
+        Serás redirigido automáticamente en unos segundos...
+      </p>
     </div>
   );
 };
