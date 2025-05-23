@@ -13,10 +13,10 @@ import PremiumProvider from './services/PremiumProvider';
 
 function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <PremiumProvider>
-          <Router>
+    <Router>
+      <AuthProvider>
+        <LanguageProvider>
+          <PremiumProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/calendar" element={<Calendar />} />
@@ -26,10 +26,10 @@ function App() {
               {/* Asegurándonos de que la ruta al StravaCallback está incluida */}
               <Route path="/strava-callback" element={<StravaCallback />} />
             </Routes>
-          </Router>
-        </PremiumProvider>
-      </LanguageProvider>
-    </AuthProvider>
+          </PremiumProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
