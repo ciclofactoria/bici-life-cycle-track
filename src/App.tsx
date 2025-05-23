@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './pages/Home';
+import Index from './pages/Index';
 import Calendar from './pages/Calendar';
 import Summary from './pages/Summary';
 import More from './pages/More';
@@ -8,7 +9,7 @@ import Auth from './pages/Auth';
 import StravaCallback from './pages/StravaCallback';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { PremiumProvider } from './services/premiumService';
+import PremiumProvider from './services/PremiumProvider';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
         <PremiumProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Index />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/summary" element={<Summary />} />
               <Route path="/more" element={<More />} />
