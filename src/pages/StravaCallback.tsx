@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -42,9 +42,7 @@ const StravaCallback = () => {
         if (errorParam) {
           const errorMsg = handleAuthError(errorParam);
           setError(errorMsg);
-          toast('Error de Strava', {
-            description: errorMsg
-          });
+          toast(errorMsg);
           setTimeout(() => navigate('/more'), 3000);
           return;
         }
@@ -52,9 +50,7 @@ const StravaCallback = () => {
         if (!code) {
           const errorMsg = handleMissingCode();
           setError(errorMsg);
-          toast('Código ausente', {
-            description: errorMsg
-          });
+          toast(errorMsg);
           setTimeout(() => navigate('/more'), 3000);
           return;
         }
@@ -62,9 +58,7 @@ const StravaCallback = () => {
         if (!user) {
           const errorMsg = handleMissingUser();
           setError(errorMsg);
-          toast('Sesión no encontrada', {
-            description: errorMsg
-          });
+          toast(errorMsg);
           setTimeout(() => navigate('/more'), 3000);
           return;
         }
@@ -108,9 +102,7 @@ const StravaCallback = () => {
               scopes: scope || ''
             });
             
-            toast('¡Conexión exitosa!', {
-              description: `Se importaron ${stravaAuthData.importedBikes || 0} bicicletas de Strava.`
-            });
+            toast('¡Conexión exitosa! Se importaron ' + (stravaAuthData.importedBikes || 0) + ' bicicletas de Strava.');
             
             setTimeout(() => {
               navigate('/');
@@ -132,9 +124,7 @@ const StravaCallback = () => {
         
         if (callbackError) {
           setError(callbackError);
-          toast('Error', {
-            description: callbackError
-          });
+          toast(callbackError);
           setTimeout(() => navigate('/more'), 3000);
           return;
         }
@@ -143,20 +133,14 @@ const StravaCallback = () => {
         setResult(callbackResult);
         
         if (callbackResult && callbackResult.totalBikes > 0) {
-          toast('¡Conexión exitosa!', {
-            description: `Se importaron ${callbackResult.totalBikes} bicicletas de Strava.`
-          });
+          toast('¡Conexión exitosa! Se importaron ' + callbackResult.totalBikes + ' bicicletas de Strava.');
         } else {
           const hasProfileReadAll = callbackResult?.scopes?.includes('profile:read_all');
           
           if (!hasProfileReadAll) {
-            toast('No se encontraron bicicletas', {
-              description: 'No se pudieron importar bicicletas. Faltan permisos necesarios. Intenta volver a conectar con Strava.'
-            });
+            toast('No se encontraron bicicletas. No se pudieron importar bicicletas. Faltan permisos necesarios. Intenta volver a conectar con Strava.');
           } else {
-            toast('Conexión con Strava completada', {
-              description: 'No se encontraron bicicletas para importar. Prueba a usar tus bicicletas en actividades en Strava.'
-            });
+            toast('Conexión con Strava completada. No se encontraron bicicletas para importar. Prueba a usar tus bicicletas en actividades en Strava.');
           }
         }
 
@@ -167,6 +151,7 @@ const StravaCallback = () => {
       } catch (error: any) {
         setLoading(false);
         setError(error.message || 'Error inesperado durante el proceso');
+        toast('Error: ' + (error.message || 'Error inesperado durante el proceso'));
       } finally {
         setLoading(false);
       }

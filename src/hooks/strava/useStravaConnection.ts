@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
 import { usePremiumFeatures } from '@/services/premiumService';
@@ -31,11 +31,10 @@ export function useStravaConnection() {
     try {
       // Verificar que el usuario esté autenticado
       if (!user) {
-        toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
+        toast("Authentication Required", {
           description: language === "en" ? 
             "Please log in to connect with Strava" : 
-            "Por favor inicia sesión para conectar con Strava",
-          variant: "destructive"
+            "Por favor inicia sesión para conectar con Strava"
         });
         
         // Redirect to auth page con estado para volver a la página actual
@@ -55,8 +54,7 @@ export function useStravaConnection() {
       // Verificar si el usuario es premium para conectar con Strava
       if (!isPremium) {
         toast(t('premium_feature', language), {
-          description: t('strava_premium_only', language),
-          variant: 'destructive'
+          description: t('strava_premium_only', language)
         });
         return;
       }
@@ -66,8 +64,7 @@ export function useStravaConnection() {
     } catch (err) {
       console.error('Error al iniciar autenticación con Strava:', err);
       toast(t('error', language), {
-        description: t('strava_auth_start_error', language),
-        variant: 'destructive'
+        description: t('strava_auth_start_error', language)
       });
     }
   };
