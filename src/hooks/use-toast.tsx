@@ -13,8 +13,8 @@ const ToastContext = React.createContext<
 
 type Toast = {
   id: string;
-  title?: string;
-  description?: string;
+  title?: string | React.ReactNode;
+  description?: string | React.ReactNode;
   action?: React.ReactNode;
   variant?: "default" | "destructive" | "warning";
 };
@@ -66,17 +66,5 @@ export function useToast() {
   };
 }
 
-// Export a standalone toast function for direct usage
-export const toast = (params: Omit<Toast, "id">) => {
-  // Use sonner toast for simpler implementation without context dependency
-  sonnerToast(params.title || "", {
-    description: params.description,
-    action: params.action,
-  });
-  
-  // Also try to use the context-based toast if available
-  if (typeof window !== "undefined") {
-    // @ts-ignore
-    window.__GLOBAL_TOAST__?.(params);
-  }
-};
+// For backward compatibility
+export const toast = sonnerToast;

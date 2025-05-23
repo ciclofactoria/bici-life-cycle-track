@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { usePremiumFeatures } from '@/services/premiumService';
 import { generateFullMaintenanceExcel } from '@/utils/excelGenerator';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -26,16 +26,14 @@ export const ActionCards = () => {
 
   const handleExportFullHistory = async () => {
     if (!user) {
-      toast({
-        title: t("error", language),
+      toast(t("error", language), {
         description: t("login_to_export", language),
         variant: "destructive"
       });
       return;
     }
     if (!isPremium) {
-      toast({
-        title: t("premium", language),
+      toast(t("premium", language), {
         description: t('excel_exports_premium', language),
         variant: 'destructive',
       });
@@ -44,14 +42,12 @@ export const ActionCards = () => {
     setIsExporting(true);
     try {
       await generateFullMaintenanceExcel(user.id);
-      toast({
-        title: t("export_success", language),
+      toast(t("export_success", language), {
         description: t("full_history_exported", language),
       });
     } catch (error) {
       console.error("Error exportando historial completo:", error);
-      toast({
-        title: t("error", language),
+      toast(t("error", language), {
         description: t("export_error", language),
         variant: "destructive"
       });

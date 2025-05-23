@@ -1,13 +1,11 @@
 
-// This file should re-export the toast functionality
-// We're removing the circular dependency by properly organizing exports
+// Re-export toast functionality from sonner for direct usage
+import { toast } from "sonner";
+export { toast };
 
-import { toast as sonnerToast } from "sonner";
+// Re-export the toast components from our UI library
 export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction } from "@/components/ui/toast";
 export type { ToastProps, ToastActionElement } from "@/components/ui/toast";
 
-// Re-export the toast function from sonner for direct usage
-export const toast = sonnerToast;
-
-// Re-export useToast hook from our hook implementation
+// Re-export the useToast hook from our implementation
 export { useToast } from "@/hooks/use-toast";

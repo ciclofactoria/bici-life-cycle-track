@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,8 +19,7 @@ export function useStravaDisconnect() {
   const disconnectFromStrava = async () => {
     try {
       if (!user) {
-        toast({
-          title: language === "en" ? "Authentication Required" : "Autenticación Requerida",
+        toast(language === "en" ? "Authentication Required" : "Autenticación Requerida", {
           description: language === "en" ? 
             "Please log in to disconnect from Strava" : 
             "Por favor inicia sesión para desconectar de Strava",
@@ -48,16 +47,14 @@ export function useStravaDisconnect() {
 
       if (error) throw error;
       
-      toast({
-        title: t("strava_disconnected", language),
+      toast(t("strava_disconnected", language), {
         description: t("strava_disconnect_success", language),
       });
 
       return { success: true };
     } catch (err) {
       console.error('Error al desconectar Strava:', err);
-      toast({
-        title: t('error', language),
+      toast(t('error', language), {
         description: t('strava_disconnect_error', language),
         variant: 'destructive',
       });

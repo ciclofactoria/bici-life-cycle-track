@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePremiumFeatures } from "@/services/premiumService";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/utils/i18n";
 
@@ -18,7 +18,6 @@ const LANGUAGES = [
 export const SettingsCard = () => {
   const { user } = useAuth();
   const { isPremium } = usePremiumFeatures();
-  const { toast } = useToast();
   const { language, setLanguage } = useLanguage();
 
   const [name, setName] = useState(user?.user_metadata?.full_name ?? "");
@@ -29,8 +28,7 @@ export const SettingsCard = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     setTimeout(() => {
-      toast({
-        title: t("profile_updated", language),
+      toast(t("profile_updated", language), {
         description: t("name_changed", language),
       });
       setEditing(false);
@@ -41,8 +39,7 @@ export const SettingsCard = () => {
   const handleSaveSettings = async () => {
     setLoading(true);
     setTimeout(() => {
-      toast({
-        title: t("settings_saved", language),
+      toast(t("settings_saved", language), {
         description: t("preferences_updated", language),
       });
       setLoading(false);

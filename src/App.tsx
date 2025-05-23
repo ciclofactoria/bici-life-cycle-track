@@ -11,26 +11,28 @@ import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import PremiumProvider from './services/PremiumProvider';
 import { Toaster } from './components/ui/toaster';
+import { ToastProvider } from './hooks/use-toast';
 
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <LanguageProvider>
-          <PremiumProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/summary" element={<Summary />} />
-              <Route path="/more" element={<More />} />
-              <Route path="/auth" element={<Auth />} />
-              {/* Asegurándonos de que la ruta al StravaCallback está incluida */}
-              <Route path="/strava-callback" element={<StravaCallback />} />
-            </Routes>
-            <Toaster />
-          </PremiumProvider>
-        </LanguageProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <PremiumProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/summary" element={<Summary />} />
+                <Route path="/more" element={<More />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/strava-callback" element={<StravaCallback />} />
+              </Routes>
+              <Toaster />
+            </PremiumProvider>
+          </LanguageProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

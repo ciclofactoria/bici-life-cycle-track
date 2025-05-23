@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -27,15 +27,14 @@ export const DeleteMaintenanceButton: React.FC<Props> = ({ maintenanceId, onDele
         throw error;
       }
 
-      toast({
-        title: "Borrado",
+      toast("Borrado", {
         description: "Registro eliminado correctamente",
       });
+      
       if (onDeleted) onDeleted();
       else window.location.reload();
     } catch {
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "No se pudo borrar el registro",
         variant: "destructive"
       });

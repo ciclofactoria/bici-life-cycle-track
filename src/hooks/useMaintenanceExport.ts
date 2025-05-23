@@ -1,5 +1,5 @@
 
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { generateMaintenanceExcel } from '@/utils/excelGenerator';
 import { usePremiumFeatures } from '@/services/premiumService';
 
@@ -11,8 +11,7 @@ export const useMaintenanceExport = () => {
     
     // Verificar si el usuario es premium antes de exportar
     if (!isPremium) {
-      toast({
-        title: 'Función premium',
+      toast("Función premium", {
         description: 'Las exportaciones a Excel están disponibles solo para usuarios premium',
         variant: 'destructive',
       });
@@ -21,14 +20,12 @@ export const useMaintenanceExport = () => {
     
     try {
       generateMaintenanceExcel(bike, maintenance);
-      toast({
-        title: "Exportado con éxito",
+      toast("Exportado con éxito", {
         description: "El historial de mantenimiento se ha exportado a Excel",
       });
     } catch (error) {
       console.error('Error exporting to Excel:', error);
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "No se pudo exportar el historial",
         variant: "destructive"
       });
