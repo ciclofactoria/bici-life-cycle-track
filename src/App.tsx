@@ -12,6 +12,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import PremiumProvider from './services/PremiumProvider';
 import { Toaster } from './components/ui/toaster';
 import { ToastProvider } from './hooks/use-toast';
+import { Toaster as SonnerToaster } from 'sonner';
 
 function App() {
   return (
@@ -27,8 +28,10 @@ function App() {
                 <Route path="/more" element={<More />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/strava-callback" element={<StravaCallback />} />
+                <Route path="/auth/callback" element={<StravaCallback />} />
               </Routes>
               <Toaster />
+              <SonnerToaster position="top-center" />
             </PremiumProvider>
           </LanguageProvider>
         </AuthProvider>
