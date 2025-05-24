@@ -34,31 +34,27 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     return BIKE_PLACEHOLDER_IMAGES[index];
   };
 
-  // Formato consistente para la distancia - igual que en Strava
+  // Formato para la distancia - diferenciando entre Strava (metros) y manual (kilómetros)
   const formatDistance = (distance?: number) => {
     if (!distance || distance === 0) {
       return language === "en" ? "N/A" : "No disponible";
     }
     
-    // Convertir metros a kilómetros
-    const km = distance / 1000;
+    let km: number;
     
-    // Para valores grandes (más de 100 km), mostrar sin decimales
-    if (km >= 100) {
+    // Si tiene strava_id, la distancia viene en metros desde Strava
+    if (bike.strava_id) {
+      km = distance / 1000;
+    } else {
+      // Si no tiene strava_id, es una bicicleta manual y la distancia ya está en kilómetros
+      km = distance;
+    }
+    
+    // Formatear el número con separadores de miles y mostrar como entero si no tiene decimales
+    if (km % 1 === 0) {
       return `${Math.floor(km).toLocaleString()} km`;
-    }
-    // Para valores medianos (más de 10 km), mostrar con 1 decimal
-    else if (km >= 10) {
-      return `${km.toFixed(1)} km`;
-    }
-    // Para valores pequeños (menos de 10 km), mostrar con 2 decimales si es necesario
-    else {
-      // Si tiene decimales significativos, mostrar con precisión
-      if (km % 1 !== 0) {
-        return `${km.toFixed(2).replace(/\.?0+$/, '')} km`;
-      } else {
-        return `${Math.floor(km)} km`;
-      }
+    } else {
+      return `${km.toFixed(1).replace(/\.0$/, '')} km`;
     }
   };
 
