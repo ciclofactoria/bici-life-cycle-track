@@ -2,8 +2,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { t } from "@/utils/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +20,7 @@ import {
 
 export const LogoutButton = () => {
   const { signOut } = useAuth();
+  const { language } = useLanguage();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -34,19 +37,28 @@ export const LogoutButton = () => {
       <AlertDialogTrigger asChild>
         <Button variant="destructive" className="w-full">
           <LogOut className="h-4 w-4 mr-2" />
-          <span>Cerrar sesión</span>
+          <span>{language === 'en' ? 'Logout' : 'Cerrar sesión'}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Quieres cerrar sesión?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {language === 'en' ? 'Do you want to logout?' : '¿Quieres cerrar sesión?'}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Tendrás que volver a iniciar sesión para acceder a tus datos.
+            {language === 'en' 
+              ? 'You will need to log in again to access your data.'
+              : 'Tendrás que volver a iniciar sesión para acceder a tus datos.'
+            }
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleLogout}>Cerrar sesión</AlertDialogAction>
+          <AlertDialogCancel>
+            {language === 'en' ? 'Cancel' : 'Cancelar'}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={handleLogout}>
+            {language === 'en' ? 'Logout' : 'Cerrar sesión'}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

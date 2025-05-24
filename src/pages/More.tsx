@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useLanguage, LanguageProvider } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import PremiumStatus from '@/components/PremiumStatus';
 import BottomNav from '@/components/BottomNav';
 import { ActionCards } from '@/components/more/ActionCards';
@@ -9,8 +9,9 @@ import { LogoutButton } from '@/components/more/LogoutButton';
 import { SettingsCard } from '@/components/more/SettingsCard';
 import { t } from "@/utils/i18n";
 
-const MoreContent = () => {
+const More = () => {
   const { language } = useLanguage();
+  
   return (
     <div className="pb-24">
       <div className="bici-container pt-6">
@@ -27,11 +28,5 @@ const MoreContent = () => {
     </div>
   );
 };
-
-const More = () => (
-  <LanguageProvider>
-    <MoreContent />
-  </LanguageProvider>
-);
 
 export default More;

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Bike, Calendar, ChartBar, MoreHorizontal } from 'lucide-react';
@@ -6,7 +7,6 @@ import { t } from '@/utils/i18n';
 
 interface NavItem {
   icon: React.ElementType;
-  label: string;
   labelKey: string;
   route: string;
 }
@@ -17,25 +17,21 @@ const BottomNav = ({ activePage }: { activePage: string }) => {
   const navItems: NavItem[] = [
     {
       icon: Bike,
-      label: t('bikes', language),
       labelKey: 'bikes',
       route: '/'
     },
     {
       icon: Calendar,
-      label: t('maintenance_plan', language),
       labelKey: 'maintenance_plan',
       route: '/calendar'
     },
     {
       icon: ChartBar,
-      label: t('summary', language),
       labelKey: 'summary',
       route: '/summary'
     },
     {
       icon: MoreHorizontal,
-      label: t('more_title', language),
       labelKey: 'more_title',
       route: '/more'
     }
@@ -55,7 +51,7 @@ const BottomNav = ({ activePage }: { activePage: string }) => {
             }`}
           >
             <item.icon className="h-5 w-5 mb-1" />
-            <span className="text-xs">{item.label}</span>
+            <span className="text-xs">{t(item.labelKey as any, language)}</span>
           </Link>
         ))}
       </div>
