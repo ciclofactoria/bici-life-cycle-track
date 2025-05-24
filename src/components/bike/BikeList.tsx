@@ -23,6 +23,12 @@ const BikeList: React.FC<BikeListProps> = ({
   const { language } = useLanguage();
 
   const handleBikeClick = (bikeId: string) => {
+    if (!bikeId) {
+      console.error('BikeList: No bike ID provided for navigation');
+      return;
+    }
+    
+    console.log('BikeList: Navigating to bike with ID:', bikeId);
     navigate(`/bike/${bikeId}`);
   };
 
@@ -30,7 +36,7 @@ const BikeList: React.FC<BikeListProps> = ({
     return <p className="text-center py-8">{t('loading_bikes', language)}</p>;
   }
 
-  if (bikeData.length === 0) {
+  if (!bikeData || bikeData.length === 0) {
     return (
       <EmptyState
         onAction={onAddBike}
@@ -40,11 +46,22 @@ const BikeList: React.FC<BikeListProps> = ({
 
   return (
     <div>
-      {bikeData.map((bike) => (
-        <div key={bike.id} onClick={() => handleBikeClick(bike.id)} className="cursor-pointer">
-          <BikeCard bike={bike} />
-        </div>
-      ))}
+      {bikeData.map((bike) => {
+        if (!bike || !bike.id) {
+          console.error('BikeList: Invalid bike data', bike);
+          return null;
+        }
+        
+        return (
+          <div 
+            key={bike.id} 
+            onClick={() => handleBikeClick(bike.id)} 
+            className="cursor-pointer"
+          >
+            <BikeCard bike={bike} />
+          </div>
+        );
+      })}
     </div>
   );
 };

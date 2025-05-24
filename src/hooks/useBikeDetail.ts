@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { MaintenanceProps } from '@/components/MaintenanceItem';
 
@@ -20,7 +20,6 @@ export interface BikeData {
 }
 
 export const useBikeDetail = (bikeId: string | undefined) => {
-  const { toast } = useToast();
   const [bike, setBike] = useState<BikeData | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceProps[]>([]);
   const [realBikeId, setRealBikeId] = useState<string | null>(null);
@@ -29,37 +28,62 @@ export const useBikeDetail = (bikeId: string | undefined) => {
 
   useEffect(() => {
     const fetchBike = async () => {
+      if (!bikeId) {
+        setError("No se especificó una bicicleta");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
+      
       try {
         console.log("Fetching bike with ID:", bikeId);
         
+        // Primero obtener el usuario actual
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setError("Usuario no autenticado");
+          setIsLoading(false);
+          return;
+        }
+        
         const { data: userBikes, error: userBikesError } = await supabase
           .from('bikes')
-          .select('*');
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('archived', false);
           
         if (userBikesError) {
           console.error("Error fetching bikes:", userBikesError);
-          throw userBikesError;
+          setError("Error al obtener las bicicletas");
+          setIsLoading(false);
+          return;
         }
         
         console.log("All bikes:", userBikes);
         
+        if (!userBikes || userBikes.length === 0) {
+          setError("No tienes bicicletas registradas");
+          setIsLoading(false);
+          return;
+        }
+        
         let selectedBike = null;
         
-        if (bikeId) {
-          selectedBike = userBikes.find(b => b.id === bikeId);
-          
-          if (!selectedBike && userBikes.length > 0 && !isNaN(Number(bikeId))) {
-            const numId = parseInt(bikeId);
-            if (numId > 0 && numId <= userBikes.length) {
-              selectedBike = userBikes[numId - 1];
-            }
+        // Buscar la bicicleta por ID exacto
+        selectedBike = userBikes.find(b => b.id === bikeId);
+        
+        // Si no se encuentra por ID exacto, intentar buscar por índice (para compatibilidad)
+        if (!selectedBike && !isNaN(Number(bikeId))) {
+          const numId = parseInt(bikeId);
+          if (numId > 0 && numId <= userBikes.length) {
+            selectedBike = userBikes[numId - 1];
           }
         }
         
         if (!selectedBike) {
-          setError("No se encontró la bicicleta especificada");
+          setError("Bicicleta no encontrada");
           setIsLoading(false);
           return;
         }
@@ -67,6 +91,7 @@ export const useBikeDetail = (bikeId: string | undefined) => {
         console.log("Found bike:", selectedBike);
         setRealBikeId(selectedBike.id);
         
+        // Obtener el mantenimiento de la bicicleta
         const { data: maintenanceData, error: maintenanceError } = await supabase
           .from('maintenance')
           .select('*')
@@ -75,7 +100,7 @@ export const useBikeDetail = (bikeId: string | undefined) => {
           
         if (maintenanceError) {
           console.error("Error fetching maintenance:", maintenanceError);
-          throw maintenanceError;
+          // No es un error crítico, continuar sin mantenimiento
         }
         
         let totalSpent = 0;
@@ -117,23 +142,17 @@ export const useBikeDetail = (bikeId: string | undefined) => {
         };
         
         setBike(mappedBike);
-      } catch (error) {
+        
+      } catch (error: any) {
         console.error('Error fetching bike:', error);
-        setError("No se pudo cargar la bicicleta");
-        toast({
-          title: "Error",
-          description: "No se pudo cargar la bicicleta",
-          variant: "destructive"
-        });
+        setError("Error al cargar la bicicleta: " + (error.message || "Error desconocido"));
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (bikeId) {
-      fetchBike();
-    }
-  }, [bikeId, toast]);
+    fetchBike();
+  }, [bikeId]);
 
   return {
     bike,

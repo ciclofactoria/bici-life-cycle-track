@@ -38,16 +38,24 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     `${Math.floor(bike.total_distance / 1000)} km` : 
     (language === "en" ? "N/A" : "No disponible");
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    target.src = BIKE_PLACEHOLDER_IMAGES[0];
+  };
+
+  if (!bike || !bike.id) {
+    console.error('BikeCard: Invalid bike data', bike);
+    return null;
+  }
+
   return (
     <Card className="overflow-hidden mb-4 bg-card hover:bg-secondary transition-colors cursor-pointer animate-fade-in">
       <div className="aspect-video relative overflow-hidden">
         <img 
           src={getPlaceholderImage()} 
-          alt={bike.name} 
+          alt={bike.name || 'Bicicleta'} 
           className="object-cover w-full h-full"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = BIKE_PLACEHOLDER_IMAGES[0];
-          }}
+          onError={handleImageError}
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
           <div className="flex items-center">

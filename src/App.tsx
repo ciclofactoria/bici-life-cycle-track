@@ -6,6 +6,7 @@ import Calendar from './pages/Calendar';
 import Summary from './pages/Summary';
 import More from './pages/More';
 import Auth from './pages/Auth';
+import BikeDetail from './pages/BikeDetail';
 import StravaCallback from './pages/StravaCallback';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/summary" element={<Summary />} />
                 <Route path="/more" element={<More />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/bike/:id" element={<BikeDetail />} />
                 <Route path="/strava-callback" element={<StravaCallback />} />
                 <Route path="/auth/callback" element={<StravaCallback />} />
               </Routes>
