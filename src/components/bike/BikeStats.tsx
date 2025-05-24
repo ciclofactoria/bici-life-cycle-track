@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CalendarClock, Bike } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -93,9 +94,22 @@ const BikeStats = ({
     }
   };
 
-  const formattedDistance = totalDistance ? 
-    `${Math.floor(totalDistance / 1000)} km` : 
-    t("not_available", language);
+  // Formato consistente para la distancia - mismo que BikeCard
+  const formatDistance = (distance?: number) => {
+    if (!distance || distance === 0) {
+      return t("not_available", language);
+    }
+    
+    // Convertir metros a kilómetros y mostrar con decimales si es necesario
+    const km = distance / 1000;
+    
+    // Si es un número entero, mostrarlo sin decimales, sino con 1 decimal
+    if (km % 1 === 0) {
+      return `${Math.floor(km)} km`;
+    } else {
+      return `${km.toFixed(1)} km`;
+    }
+  };
 
   return (
     <div className="bg-card rounded-lg p-4 my-6">
@@ -116,7 +130,7 @@ const BikeStats = ({
             }
             <p>{t("distance", language)}</p>
           </div>
-          <p className="font-medium">{formattedDistance}</p>
+          <p className="font-medium">{formatDistance(totalDistance)}</p>
         </div>
       </div>
       <div className="border-t pt-4 mt-2">

@@ -34,9 +34,22 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
     return BIKE_PLACEHOLDER_IMAGES[index];
   };
 
-  const formattedDistance = bike.total_distance ? 
-    `${Math.floor(bike.total_distance / 1000)} km` : 
-    (language === "en" ? "N/A" : "No disponible");
+  // Formato consistente para la distancia - igual que en Strava
+  const formatDistance = (distance?: number) => {
+    if (!distance || distance === 0) {
+      return language === "en" ? "N/A" : "No disponible";
+    }
+    
+    // Convertir metros a kilómetros y mostrar con decimales si es necesario
+    const km = distance / 1000;
+    
+    // Si es un número entero, mostrarlo sin decimales, sino con 1 decimal
+    if (km % 1 === 0) {
+      return `${Math.floor(km)} km`;
+    } else {
+      return `${km.toFixed(1)} km`;
+    }
+  };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
@@ -87,7 +100,7 @@ const BikeCard = ({ bike }: { bike: BikeProps }) => {
           <div className="flex flex-col items-center">
             <Bike className="h-5 w-5 text-orange-500 mb-1" />
             <p className="text-xs text-muted-foreground">{t("distance", language)}</p>
-            <p className="font-medium">{formattedDistance}</p>
+            <p className="font-medium">{formatDistance(bike.total_distance)}</p>
           </div>
         </div>
       </CardContent>

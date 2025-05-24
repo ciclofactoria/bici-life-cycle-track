@@ -127,6 +127,9 @@ export const useBikeDetail = (bikeId: string | undefined) => {
           setMaintenance(formattedMaintenance);
         }
 
+        // Asegurar que total_distance se trate como número, no como string
+        const totalDistance = selectedBike.total_distance ? Number(selectedBike.total_distance) : undefined;
+
         const mappedBike: BikeData = {
           id: selectedBike.id,
           name: selectedBike.name,
@@ -137,7 +140,7 @@ export const useBikeDetail = (bikeId: string | undefined) => {
           lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
           next_check_date: selectedBike.next_check_date,
           next_check_notes: selectedBike.next_check_notes,
-          total_distance: selectedBike.total_distance,
+          total_distance: totalDistance,
           strava_id: selectedBike.strava_id
         };
         

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -68,6 +69,9 @@ export const useBikes = () => {
             lastMaintenanceDate = sortedMaintenance[0].date;
           }
 
+          // Asegurar que total_distance se trate como número
+          const totalDistance = bike.total_distance ? Number(bike.total_distance) : undefined;
+
           return {
             id: bike.id,
             name: bike.name,
@@ -77,7 +81,7 @@ export const useBikes = () => {
             totalSpent: totalSpent,
             lastMaintenance: lastMaintenanceDate ? format(new Date(lastMaintenanceDate), 'dd/MM/yyyy') : 'N/A',
             strava_id: bike.strava_id,
-            total_distance: bike.total_distance
+            total_distance: totalDistance
           };
         });
         
