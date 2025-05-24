@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { maintenanceCategories } from "@/data/mockData";
 import { Disc, Cog, Wrench } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -53,20 +54,28 @@ const MaintenanceCategorySelect = ({
       <SelectTrigger className="w-full">
         <SelectValue placeholder={t("maintenance_type", language)} />
       </SelectTrigger>
-      <SelectContent className="max-h-[300px] bg-background">
-        {maintenanceCategories.map((category) => (
-          <SelectGroup key={category.name}>
-            <SelectLabel className="flex items-center font-medium text-primary">
-              {getCategoryIcon(category.name)}
-              {t(category.name as TranslationKey, language)}
-            </SelectLabel>
-            {category.types.map((type) => (
-              <SelectItem key={type} value={type} className="pl-8 text-sm">
-                {t(type as TranslationKey, language)}
-              </SelectItem>
+      <SelectContent className="bg-background border border-border shadow-lg z-50">
+        <ScrollArea className="h-[280px] w-full">
+          <div className="p-1">
+            {maintenanceCategories.map((category) => (
+              <SelectGroup key={category.name}>
+                <SelectLabel className="flex items-center font-medium text-primary px-2 py-1.5 sticky top-0 bg-background">
+                  {getCategoryIcon(category.name)}
+                  {t(category.name as TranslationKey, language)}
+                </SelectLabel>
+                {category.types.map((type) => (
+                  <SelectItem 
+                    key={type} 
+                    value={type} 
+                    className="pl-8 text-sm py-2 cursor-pointer hover:bg-accent focus:bg-accent"
+                  >
+                    {t(type as TranslationKey, language)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))}
-          </SelectGroup>
-        ))}
+          </div>
+        </ScrollArea>
       </SelectContent>
     </Select>
   );
