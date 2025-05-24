@@ -68,6 +68,15 @@ const enGeneral = {
   "Transmisión": "Transmission",
   "Dirección y suspensión": "Steering and suspension",
   "Montaje y ajustes generales": "Assembly and general adjustments",
+  
+  // Campos adicionales que faltan
+  strava: "Strava",
+  total_spent: "Total Spent",
+  last_service: "Last Service",
+  premium_badge: "Premium",
+  free_badge: "Free",
+  premium: "Premium",
+  calendar: "Calendar",
 };
 
 export default enGeneral;

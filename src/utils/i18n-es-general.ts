@@ -68,6 +68,15 @@ const esGeneral = {
   "Transmisión": "Transmisión",
   "Dirección y suspensión": "Dirección y suspensión",
   "Montaje y ajustes generales": "Montaje y ajustes generales",
+  
+  // Campos adicionales
+  strava: "Strava",
+  total_spent: "Total gastado",
+  last_service: "Último servicio",
+  premium_badge: "Premium",
+  free_badge: "Gratis",
+  premium: "Premium",
+  calendar: "Calendario",
 };
 
 export default esGeneral;
