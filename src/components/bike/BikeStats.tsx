@@ -100,14 +100,25 @@ const BikeStats = ({
       return t("not_available", language);
     }
     
-    // Convertir metros a kilómetros y mostrar con decimales si es necesario
+    // Convertir metros a kilómetros
     const km = distance / 1000;
     
-    // Si es un número entero, mostrarlo sin decimales, sino con 1 decimal
-    if (km % 1 === 0) {
-      return `${Math.floor(km)} km`;
-    } else {
+    // Para valores grandes (más de 100 km), mostrar sin decimales
+    if (km >= 100) {
+      return `${Math.floor(km).toLocaleString()} km`;
+    }
+    // Para valores medianos (más de 10 km), mostrar con 1 decimal
+    else if (km >= 10) {
       return `${km.toFixed(1)} km`;
+    }
+    // Para valores pequeños (menos de 10 km), mostrar con 2 decimales si es necesario
+    else {
+      // Si tiene decimales significativos, mostrar con precisión
+      if (km % 1 !== 0) {
+        return `${km.toFixed(2).replace(/\.?0+$/, '')} km`;
+      } else {
+        return `${Math.floor(km)} km`;
+      }
     }
   };
 
